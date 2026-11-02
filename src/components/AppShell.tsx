@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
+import { LogOut, Binary, FileBadge, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
 import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ const SECCIONES_CONFIG = [
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash, grande: true },
+  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Binary, grande: true },
   { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Coins },
   { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: UserCog },
@@ -132,7 +132,7 @@ const SECCIONES_COTIZ = [
 ];
 
 const SECCIONES_FACTURACION = [
-  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: ReciboCodigoBarras, grande: true },
+  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: FileBadge, grande: true },
   { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
   { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
   { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
