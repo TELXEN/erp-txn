@@ -37,6 +37,9 @@ function temaOffice(
       "--sidebar-border": c.borde,
       "--sidebar-hover": c.hover,
       "--sidebar-panel": c.panel,
+      "--cinta-pestanas": c.panel,
+      "--cinta-pestanas-texto": "#FFFFFF",
+      "--cinta-pestanas-acento": c.muted,
     },
   };
 }
@@ -73,6 +76,9 @@ export const TEMAS: Tema[] = [
       "--sidebar-border": "#285B76",
       "--sidebar-hover": "#124966",
       "--sidebar-panel": "#002A44",
+      "--cinta-pestanas": "#002A44",
+      "--cinta-pestanas-texto": "#FFFFFF",
+      "--cinta-pestanas-acento": "#FFC709",
     },
   },
   {
@@ -97,6 +103,9 @@ export const TEMAS: Tema[] = [
       "--sidebar-border": "#333338",
       "--sidebar-hover": "#262629",
       "--sidebar-panel": "#242427",
+      "--cinta-pestanas": "#1C1C1F",
+      "--cinta-pestanas-texto": "#FFFFFF",
+      "--cinta-pestanas-acento": "#FFC709",
     },
   },
   temaOffice("word", "Microsoft Word", "Azul Word de Microsoft 365", {

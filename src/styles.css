@@ -92,16 +92,20 @@
   --color-sidebar-hover: var(--sidebar-hover);
   --color-sidebar-panel: var(--sidebar-panel);
   /* Cinta fija: fondo gris ultra suave con texto e iconos gris oscuro, en todos los temas. */
-  --color-cinta-sup: #ebebeb;
-  --color-cinta-inf: #f5f5f5;
+  --color-cinta-sup: var(--cinta-sup, #ebebeb);
+  --color-cinta-inf: var(--cinta-inf, #f5f5f5);
   --color-sidebar-cinta-sup: var(--color-cinta-sup);
   --color-sidebar-cinta-inf: var(--color-cinta-inf);
-  --color-cinta-texto: #333333;
-  --color-cinta-tenue: color-mix(in oklab, #333333 68%, #f5f5f5);
-  --color-cinta-hover: color-mix(in oklab, #333333 10%, #f5f5f5);
-  --color-cinta-borde: color-mix(in oklab, #333333 18%, #f5f5f5);
-  --color-cinta-acento: var(--cta);
-  --color-cinta-acento-foreground: var(--cta-foreground);
+  --color-cinta-texto: var(--cinta-texto, #333333);
+  --color-cinta-tenue: var(--cinta-tenue, color-mix(in oklab, #333333 68%, #f5f5f5));
+  --color-cinta-hover: var(--cinta-hover, color-mix(in oklab, #333333 10%, #f5f5f5));
+  --color-cinta-borde: var(--cinta-borde, color-mix(in oklab, #333333 18%, #f5f5f5));
+  --color-cinta-acento: var(--cinta-acento, var(--cta));
+  --color-cinta-acento-foreground: var(--cinta-acento-fore, var(--cta-foreground));
+  /* Barra de pestañas: el color más oscuro del tema, con texto claro. */
+  --color-cinta-pestanas: var(--cinta-pestanas, #ebebeb);
+  --color-cinta-pestanas-texto: var(--cinta-pestanas-texto, #333333);
+  --color-cinta-pestanas-acento: var(--cinta-pestanas-acento, var(--cta));
   /* Dorado fijo para iconos que el usuario quiere siempre en ese color, sin importar el tema. */
   --color-cinta-oro: oklch(0.66 0.14 85);
   /* Verde, rojo y azul fijos para iconos de la cinta (cobros, pagos, beneficios). */
@@ -365,6 +369,18 @@ button.kpi-tarjeta:hover { border-color: color-mix(in oklab, var(--color-primary
   border-left-width: 4px;
   background-color: var(--color-card);
   padding: 1rem 1.25rem;
+}
+
+/* La barra de pestañas reutiliza los mismos rótulos de color, pero sobre el tono
+   más oscuro del tema: dentro de ella, los tokens de la cinta se vuelven claros. */
+.cinta-barra {
+  --cinta-texto: var(--color-cinta-pestanas-texto);
+  --cinta-tenue: color-mix(in oklab, var(--color-cinta-pestanas-texto) 80%, var(--color-cinta-pestanas));
+  --cinta-hover: color-mix(in oklab, var(--color-cinta-pestanas-texto) 16%, var(--color-cinta-pestanas));
+  --cinta-borde: color-mix(in oklab, var(--color-cinta-pestanas-texto) 30%, var(--color-cinta-pestanas));
+  --cinta-inf: color-mix(in oklab, var(--color-cinta-pestanas-texto) 12%, var(--color-cinta-pestanas));
+  --cinta-acento: var(--color-cinta-pestanas-acento);
+  --cinta-acento-fore: var(--color-cinta-pestanas);
 }
 
 /* Trazo fino exclusivo de la cinta, incluidos iconos propios y controles. */
