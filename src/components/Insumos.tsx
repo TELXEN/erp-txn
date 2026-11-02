@@ -8,6 +8,7 @@ import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
 import { CeldaEspecialidad } from "@/components/CeldaEspecialidad";
 import { CeldasClasificacion } from "@/components/CeldasClasificacion";
+import { useEnCinta } from "@/components/AppShell";
 import { FichaInsumoMaestro } from "@/components/InsumoVentana";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
@@ -42,6 +43,7 @@ import {
 type SeccionInsumos = TipoInsumo | "HE" | "margenes" | "laboral" | "codificacion";
 
 export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undefined; onSeccion?: (s: SeccionInsumos) => void } = {}) {
+  const enCinta = useEnCinta();
   const qc = useQueryClient();
   const { data: lista = [] } = useInsumos();
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");
@@ -128,6 +130,8 @@ export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undef
 
   return (
     <>
+      {!enCinta && (
+      <>
       <div className="mb-3 flex flex-wrap gap-1">
         {GRUPOS_INSUMOS.map((g) => {
           const Icono = g.icono;
@@ -166,6 +170,8 @@ export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undef
           </button>
         ))}
       </div>
+      </>
+      )}
 
       {seccion === "margenes" ? (
         <MargenesApuPanel />
