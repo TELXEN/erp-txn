@@ -70,7 +70,7 @@ export function GrupoCinta({ titulo, children }: { titulo?: string; children: Re
   return (
     <div className="grupo-cinta flex flex-col justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-2">{children}</div>
-      {titulo && <p className="pt-0.5 text-center text-[10px] text-cinta-tenue">{titulo}</p>}
+      {titulo && <p className="whitespace-nowrap pt-0.5 text-center text-[10px] text-cinta-tenue">{titulo}</p>}
     </div>
   );
 }
@@ -124,19 +124,13 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     <div className="cinta-opciones no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
       <div className="flex h-9 items-center gap-1 bg-cinta-sup px-2">
         {logo}
-        {contextual && (
-          <div className="hidden max-w-[220px] min-w-0 border-r border-cinta-borde pr-2 leading-tight xl:block" title={contextual.subtitulo}>
-            <p className="truncate text-xs font-semibold">{contextual.titulo}</p>
-            <p className="truncate font-mono text-[9px] uppercase tracking-wide text-cinta-tenue">{contextual.subtitulo}</p>
-          </div>
-        )}
-        <nav className="flex min-w-0 items-center gap-0.5 overflow-x-auto" role="tablist">
+        <nav className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist">
           {categorias.map((c) => {
             const sel = c.titulo === pestana;
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
                 onClick={() => { if (contraida && sel) alternarContraer(); setPestana(c.titulo); }}
-                className={`relative h-9 whitespace-nowrap px-3 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
+                className={`relative h-9 shrink-0 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
                 {CORTO[c.titulo] ?? c.titulo}
                 {sel && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
               </button>
@@ -145,15 +139,18 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           {contextual && (
             <button type="button" role="tab" aria-selected={enCtx}
               onClick={() => { if (contraida && enCtx) alternarContraer(); setPestana(CTX); }}
-              className={`relative ml-1 h-9 whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
-              {contextual.titulo}
+              title={`${contextual.titulo} — ${contextual.subtitulo}`}
+              className={`relative ml-1 h-9 max-w-[240px] shrink-0 truncate whitespace-nowrap border-l border-cinta-borde px-3 text-[13px] font-semibold text-cinta-acento transition-colors hover:bg-cinta-hover`}>
+              {contextual.titulo.replace(/\s*\(.*\)\s*$/, "")}
               {enCtx && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
             </button>
           )}
         </nav>
-        {usuario}
-        {pantallaCompleta}
-        <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
+        <div className="flex shrink-0 items-center gap-1">
+          {usuario}
+          {pantallaCompleta}
+          <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
+        </div>
       </div>
       <div ref={onRanuraContextual}
         className={`${!contraida && enCtx ? "flex" : "hidden"} min-h-11 items-stretch gap-2 overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2 py-1.5 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2`} />
@@ -174,7 +171,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
               .map((g, i) => (
                 <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
                   <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
-                  <p className="py-0.5 text-center text-[10px] text-cinta-tenue">{g.titulo}</p>
+                  <p className="whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">{g.titulo}</p>
                 </div>
               ))}
           </div>

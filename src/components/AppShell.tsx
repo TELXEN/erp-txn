@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -429,21 +430,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             distintivo={(a) => (a === "/aprobaciones" ? pendientesAprobacion : 0)}
             logo={<span className="mr-1 grid size-6 shrink-0 place-items-center rounded bg-cinta-acento font-mono text-[10px] font-bold text-cinta-acento-foreground" title="ERP TELXEN SAC">TXN</span>}
             usuario={
-              <div className="ml-auto flex items-center gap-2 pl-2">
+              <div className="flex shrink-0 items-center gap-2 whitespace-nowrap pl-2">
                 <span className="grid size-6 place-items-center rounded-full bg-cinta-acento text-[10px] font-semibold text-cinta-acento-foreground">
                   {iniciales}
                 </span>
-                <div className="hidden leading-tight lg:block">
-                  <p className="text-[11px] font-semibold">{nombre || email}</p>
-                  <p className="font-mono text-[9px] uppercase tracking-wide text-cinta-tenue">
+                <div className="hidden max-w-[150px] leading-tight lg:block" title={nombre || email}>
+                  <p className="truncate text-[11px] font-semibold">{nombre || email}</p>
+                  <p className="truncate font-mono text-[9px] uppercase tracking-wide text-cinta-tenue">
                     {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
                   </p>
                 </div>
                 <button
-                  onClick={cerrarSesion}
-                  className="rounded-md border border-cinta-borde px-2.5 py-1 font-mono text-[11px] text-cinta-texto transition-colors hover:border-cinta-acento hover:bg-cinta-acento hover:text-cinta-acento-foreground"
+                  onClick={cerrarSesion} title="Cerrar Sesión" aria-label="Cerrar Sesión"
+                  className="flex h-7 items-center gap-1 whitespace-nowrap rounded-md border border-cinta-borde px-2 text-[11px] text-cinta-texto transition-colors hover:border-cinta-acento hover:bg-cinta-acento hover:text-cinta-acento-foreground"
                 >
-                  Cerrar Sesión
+                  <LogOut className="size-3.5" /><span className="hidden xl:inline">Cerrar Sesión</span>
                 </button>
               </div>
             }
@@ -498,10 +499,10 @@ export function Encabezado({
   const enCinta = !!r?.cinta;
   const setCtx = r?.setCtx;
   useEffect(() => {
-    if (!enCinta || !setCtx) return;
+    if (!enCinta || !setCtx || !acciones) return;
     setCtx({ titulo, subtitulo });
     return () => setCtx(null);
-  }, [enCinta, setCtx, titulo, subtitulo]);
+  }, [enCinta, setCtx, titulo, subtitulo, !!acciones]);
   if (enCinta) {
     if (!r?.el || !acciones) return null;
     return createPortal(<div>{acciones}</div>, r.el);
