@@ -253,13 +253,6 @@ function Beneficios() {
         }
       />
 
-      <div className="mb-4 flex gap-1">
-        {(["CTS", "Gratificación", "Liquidación"] as Tipo[]).map((t) => (
-          <Boton key={t} variante={tipo === t ? "primario" : "linea"} onClick={() => cambiarTipo(t)}>
-            {t === "Gratificación" ? "Gratificaciones" : t === "Liquidación" ? "Liquidaciones" : t}
-          </Boton>
-        ))}
-      </div>
 
       <Panel className="mb-4">
         {tipo === "Liquidación" ? (
