@@ -137,7 +137,11 @@ const SECCIONES_FACTURACION = [
   { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
   { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
   { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
-  { texto: "Guías de remisión", corto: "Guías de Remisión", seccion: "09", campo: "tipo", icono: PackageCheck },
+];
+
+// Grupo propio en la cinta: un solo botón grande que abre las guías de remisión.
+const SECCIONES_GUIAS = [
+  { texto: "Guías de remisión", corto: "Guías de Remisión", seccion: "09", campo: "tipo", icono: PackageCheck, grande: true },
 ];
 
 const SECCIONES_VEHICULOS = [
@@ -200,7 +204,7 @@ const SECCIONES_BENEFICIOS = [
 
 
 type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; sub2?: { titulo: string; opciones: SubOpcion[] }; subFilas?: number };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; subGrupos?: { titulo: string; opciones: SubOpcion[]; subFilas?: number }[]; subFilas?: number };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -210,7 +214,7 @@ const MENU: Categoria[] = [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: ContactRound },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
-      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION, sub2: { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP } },
+      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
     ],
   },
@@ -276,7 +280,7 @@ const MENU: Categoria[] = [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, sub2: { titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG } },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG }] },
     ],
   },
   {
@@ -347,12 +351,12 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
       {abierto && (
         <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-2">
           {item.sub!.map(enlaceSeccion)}
-          {item.sub2 && (
-            <>
-              <p className="px-2.5 pt-1 text-[10px] font-semibold uppercase tracking-wide text-sidebar-foreground/60">{item.sub2.titulo}</p>
-              {item.sub2.opciones.map(enlaceSeccion)}
-            </>
-          )}
+          {(item.subGrupos ?? []).map((g) => (
+            <div key={g.titulo}>
+              <p className="px-2.5 pt-1 text-[10px] font-semibold uppercase tracking-wide text-sidebar-foreground/60">{g.titulo}</p>
+              {g.opciones.map(enlaceSeccion)}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -455,7 +459,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   function estaAbierta(c: Categoria): boolean {
     if (c.items.some((m) => pathname === m.a || m.hijos?.some((h) => h.a === pathname)
-      || m.sub?.some((o) => (o.a ?? m.a) === pathname) || m.sub2?.opciones.some((o) => (o.a ?? m.a) === pathname))) return true;
+      || m.sub?.some((o) => (o.a ?? m.a) === pathname) || m.subGrupos?.some((g) => g.opciones.some((o) => (o.a ?? m.a) === pathname)))) return true;
     return abierta === c.titulo;
   }
 
