@@ -75,6 +75,7 @@ function BotonPantallaCompleta({ className = "grid size-7 place-items-center rou
 import {
   Activity,
   ChartGantt,
+  ChartSpline,
   Banknote,
   BarChart3,
   Briefcase,
@@ -170,6 +171,12 @@ const SECCIONES_FLUJO = [
   { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: TrendingUp, grande: true },
   { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
 ];
+
+// Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
+const SECCIONES_VISTAS = [
+  { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: ChartGantt },
+  { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: ChartSpline },
+];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
   { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReceiptText, grande: true },
@@ -205,8 +212,8 @@ const MENU: Categoria[] = [
       { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Factory },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
-      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
+      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt, sub: SECCIONES_VISTAS },
       { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
