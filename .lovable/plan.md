@@ -1,6 +1,19 @@
 # Cinta propia para la cotización: modo Edición y modo Vista previa
 
-Al abrir una cotización, la cinta cambia sus botones según el modo. Las pestañas inferiores (Volver · Encabezado · Gastos generales · Vista previa) se mantienen como conmutador.
+Al abrir una cotización, la cinta cambia sus botones según el modo.
+
+## Pestañas reorganizadas (debajo de la cinta, en ambos modos)
+
+```text
+ ← Volver   |   Edición   Vista previa                         TXN26-C001 · Rev. 00
+            ‾‾‾‾‾‾‾‾‾ (línea del tema bajo el modo activo)
+```
+
+- «Volver» queda a la izquierda, separado por una línea fina, con flecha.
+- «Edición» y «Vista previa» son las pestañas de modo; la activa lleva la línea sutil del tema.
+- «Encabezado» y «Gastos generales» salen de las pestañas y pasan al grupo Documento de la cinta.
+- A la derecha, código y revisión de la cotización como referencia.
+- La misma barra aparece en la vista previa, para alternar entre ambos modos sin buscar botones.
 
 ## Modo Edición (hoja de la cotización)
 
