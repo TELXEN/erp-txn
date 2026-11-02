@@ -459,3 +459,109 @@ export function NotaDebitoAzul({ className, ...props }: SVGProps<SVGSVGElement>)
     </svg>
   );
 }
+
+/**
+ * Edificio de tesorería.
+ *
+ * Icono propio de «Tesorería»: el frontón triangular de arriba y la línea
+ * horizontal de abajo van en negro (--color-cinta-negro), y las columnas siguen
+ * el color del botón (dorado). Así el edificio se distingue bien incluso cuando
+ * el botón queda seleccionado y el dorado pasa al color de contraste.
+ */
+export function TesoreriaEdificio({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Frontón triangular, en negro y sin relleno */}
+      <path className="text-cinta-negro" d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z" />
+
+      {/* Columnas, en el color del botón (dorado) */}
+      <path d="M6 18v-7" />
+      <path d="M10 18v-7" />
+      <path d="M14 18v-7" />
+      <path d="M18 18v-7" />
+      {/* Línea horizontal de la base, en negro */}
+      <path className="text-cinta-negro" d="M3 22h18" />
+    </svg>
+  );
+}
+
+/**
+ * Bóveda de retenciones.
+ *
+ * Icono propio de «Retenciones»: el cuadrado, los puntos de las esquinas y sus
+ * trazos siguen el color del texto, y el símbolo del centro (el disco de la
+ * bóveda) va en naranja (--color-icono-naranja).
+ */
+export function BovedaRetenciones({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      <rect width="18" height="18" x="3" y="3" rx="2" />
+      <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
+      <path d="m7.9 7.9 2.7 2.7" />
+      <circle cx="16.5" cy="7.5" r=".5" fill="currentColor" />
+      <path d="m13.4 10.6 2.7-2.7" />
+      <circle cx="7.5" cy="16.5" r=".5" fill="currentColor" />
+      <path d="m7.9 16.1 2.7-2.7" />
+      <circle cx="16.5" cy="16.5" r=".5" fill="currentColor" />
+      <path d="m13.4 13.4 2.7 2.7" />
+      {/* Símbolo central de la bóveda, en naranja */}
+      <circle cx="12" cy="12" r="2" stroke="var(--color-icono-naranja)" />
+    </svg>
+  );
+}
+
+/**
+ * Partidas en tres colores.
+ *
+ * Icono propio de «Partidas»: tres niveles apilados, cada uno con su color fijo
+ * —el contorno de arriba en azul, la línea del medio en verde y la de abajo en
+ * rojo— para que la pila se lea de un vistazo.
+ */
+export function PartidasTresColores({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Contorno superior, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+      {/* Línea media, en verde */}
+      <path stroke="var(--color-icono-verde)" d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+      {/* Línea inferior, en rojo */}
+      <path stroke="var(--color-icono-rojo)" d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+    </svg>
+  );
+}
+
+
+

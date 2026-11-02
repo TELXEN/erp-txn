@@ -190,3 +190,10 @@
 - [x] Cinta «Catálogo Técnico»: primera columna tras Unidades = Especialidades, Categorías, Subcategorías; segunda columna = Marcas, Títulos WBS, alineadas desde arriba.
 - [x] Barra de pestañas de la cinta con el color más oscuro del tema (Obsidiana negro, Word azul), texto claro y acento legible en los siete temas.
 - [x] Grupo Ayuda en la cinta de Inicio: botón grande de ayuda y tres opciones apiladas (Manual de usuario, Acerca de, Licencia) con pantalla propia; cinta clásica y menú lateral verificados, compilación OK.
+- [x] Icono Tesorería: frontón triangular sin relleno (contorno negro), línea de base negra, columnas doradas; verificado en pantalla.
+- [x] "Caja Chica" en una sola línea en la cinta (unaLinea en CintaOpciones); verificado: 1 renglón.
+- [x] Icono Préstamos con contorno azul (#0077b6) en la cinta; verificado en pantalla.
+- [x] Icono APU con contorno verde (#029a56) en la cinta; verificado en pantalla.
+- [x] Icono Clientes (personita) en azul (#0077b6) en la cinta; verificado en pantalla.
+- [x] Icono Retenciones: disco central en naranja (#e85d04) con icono propio BovedaRetenciones; verificado en pantalla.
+- [x] Icono Partidas = PartidasTresColores: contorno superior azul, línea media verde, línea inferior roja; verificado en pantalla.
