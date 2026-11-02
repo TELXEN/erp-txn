@@ -64,4 +64,4 @@
 - Insumos: public.insumos is the only item row; type views are INSTEAD-OF over it (EPP extras 1:1). Ficha fields live on insumos; approvals/history via aprobar_insumo/ficha_insumo RPCs.
 - Categories and their subcategories use DB A–Z numbering; subcategories restart per category with no manual moves. Item codes remain unique per prefix, parent deletion is blocked when non-empty, and IDs preserve links.
 - Subdirectories have their own AGENTS.md (e.g. src/routes); read it before changing files there.
-- With a ribbon active, Encabezado portals page actions into the ribbon's contextual tab (GrupoCinta names groups); the header strip only exists in sidebar mode — one place for page actions.
+- Ribbon mode: Encabezado actions portal into the ribbon's contextual tab; header strip is sidebar-only.
