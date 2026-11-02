@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Revisar y diferenciar iconos de pantallas y secciones en menú, cinta y buscador, conservando símbolos de acciones comunes.
+- [x] Revisar y diferenciar iconos de pantallas y secciones en menú, cinta y buscador; seis categorías y Empresa/Tipografía verificadas sin errores, conservando símbolos de acciones comunes.
 - [x] Aclarar ambas cintas conservando colores destacados por tema; siete temas y trazos finos verificados en pantalla.
 - [x] Icono Eliminar al final (abajo) de la barra derecha en todas las pantallas; orden comprobado en Generar Requerimiento y Proyectos, compilación OK.
 - [x] Quitar la cabecera de desdoblamiento de APU de Generar Requerimiento: quedan la lista, la recepción de todas las obras y los dos iconos de nuevo requerimiento; verificado en pantalla sin guardar datos.
