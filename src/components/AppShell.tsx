@@ -36,6 +36,8 @@ const SECCIONES_MAESTRO = [
   { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
   { texto: "Herramientas", corto: "Herram.", seccion: "HE", campo: "seccion", icono: Hammer },
   { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
+];
+const SECCIONES_MAESTRO_CFG = [
   { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent },
   { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: BadgeDollarSign },
   { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Barcode },
@@ -222,7 +224,7 @@ const MENU: Categoria[] = [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, sub2: { titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG } },
     ],
   },
   {
