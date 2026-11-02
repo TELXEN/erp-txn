@@ -128,9 +128,9 @@ const SECCIONES_COTIZ = [
 const SECCIONES_FACTURACION = [
   { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: ReciboCodigoBarras, grande: true },
   { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
-  { texto: "Notas de crédito", corto: "N. crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
-  { texto: "Notas de débito", corto: "N. débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
-  { texto: "Guías de remisión", corto: "Guías", seccion: "09", campo: "tipo", icono: PackageCheck },
+  { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
+  { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
+  { texto: "Guías de remisión", corto: "Guías de Remisión", seccion: "09", campo: "tipo", icono: PackageCheck },
 ];
 
 const SECCIONES_VEHICULOS = [
