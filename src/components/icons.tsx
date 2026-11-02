@@ -130,3 +130,33 @@ export function GraficoFinanciero({ className, ...props }: SVGProps<SVGSVGElemen
     </svg>
   );
 }
+
+/**
+ * Hoja con verificación.
+ *
+ * Icono propio de «SIRE SUNAT»: hoja con esquina doblada y una palomita
+ * dentro. La palomita va en verde (--color-check-sire); el resto sigue el
+ * color del texto para que el icono siga legible sobre el fondo de la cinta.
+ */
+export function HojaVerificada({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Hoja con esquina doblada */}
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      {/* Palomita de verificación, en verde */}
+      <path stroke="var(--color-check-sire)" d="m8.5 14.2 2.6 2.6 4.6-5.2" />
+    </svg>
+  );
+}

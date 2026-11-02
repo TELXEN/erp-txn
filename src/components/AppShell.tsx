@@ -44,7 +44,7 @@ const SECCIONES_MAESTRO_CFG = [
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
-import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero } from "@/components/icons";
+import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
@@ -85,7 +85,6 @@ import {
   ClipboardList,
   ClipboardCheck,
   FileText,
-  FileCheck,
   FileMinus2,
   FilePlus2,
   FileX2,
@@ -254,7 +253,7 @@ const MENU: Categoria[] = [
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark, sub: SECCIONES_TESORERIA, subFilas: 3 },
 
       { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO, subFilas: 3 },
-      { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck },
+      { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: HojaVerificada },
     ],
   },
   {
