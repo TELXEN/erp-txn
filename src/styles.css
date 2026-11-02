@@ -108,6 +108,8 @@
   --color-sello-factura: #0077b6;
   /* Verde de la palomita del icono de SIRE. */
   --color-check-sire: #029a56;
+  /* Azul de la palomita del icono de Guías de Remisión. */
+  --color-check-guia: #0077b6;
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
