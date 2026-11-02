@@ -253,29 +253,32 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
       const subs = m.sub.slice(0, 8);
-      const iGrande = subs.findIndex((o) => o.grande);
-      const hayGrande = iGrande >= 0;
-      const nPeq = subs.length - (hayGrande ? 1 : 0);
+      // Puede haber más de un botón grande: cada uno ocupa su propia columna a la izquierda.
+      const idxGrande = subs.map((o, i) => (o.grande ? i : -1)).filter((i) => i >= 0);
+      const nGrande = idxGrande.length;
+      const hayGrande = nGrande > 0;
+      const nPeq = subs.length - nGrande;
       // Con dos opciones van lado a lado; con más, se reparten en dos filas.
       const filas = subs.length > 2 || hayGrande ? 2 : 1;
       // Con más filas (p. ej. tres opciones pequeñas bajo el botón grande) las filas se afinan para no agrandar la cinta.
       const filasPeq = m.subFilas ?? 2;
       const alto = filasPeq > 2 ? 20 : 24;
       const padBloque = filasPeq > 2 ? "py-1" : "py-2.5";
-      // La opción grande ocupa todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
-      const cols = hayGrande ? 1 + Math.ceil(nPeq / filasPeq) : Math.min(4, Math.ceil(subs.length / filas));
+      // Los grandes ocupan todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const colsPeq = Math.ceil(nPeq / filasPeq);
+      const cols = hayGrande ? nGrande + colsPeq : Math.min(4, Math.ceil(subs.length / filas));
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono;
         if (!SI) return null;
-        const grande = hayGrande && i === iGrande;
-        const j = hayGrande && !grande ? i - (i > iGrande ? 1 : 0) : 0;
+        const rGrande = idxGrande.indexOf(i);
+        const grande = rGrande >= 0;
         // Las pequeñas se leen por filas: primero la fila de arriba, luego la de abajo.
-        // Con una sola pequeña, ocupa todo el alto para quedar centrada junto a la grande.
-        const sitio = hayGrande ? (grande ? { gridColumn: 1, gridRow: `1 / span ${filasPeq}` }
-          : nPeq === 1 ? { gridColumn: 2, gridRow: `1 / span ${filasPeq}` }
-          : { gridColumn: 2 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
+        const j = subs.slice(0, i).filter((x) => !x.grande).length;
+        // Con una sola pequeña, ocupa todo el alto para quedar centrada junto a los grandes.
+        const sitio = hayGrande ? (grande ? { gridColumn: rGrande + 1, gridRow: `1 / span ${filasPeq}` }
+          : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: `1 / span ${filasPeq}` }
+          : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-full min-w-[76px] items-center gap-1.5 px-1.5"}`;
         const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
 

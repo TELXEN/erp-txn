@@ -9,18 +9,18 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Reserve project/quotation codes via reservarCodigo only; SQL functions are service_role-only — no browser numbering.
-- Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows — no double counting.
+- Programmed progress stores percentages per leaf item/period; dashboards exclude grouping rows.
 - S-curve lives in CurvaSObra on the Gantt tab route, not the dashboard; shared project selector, leaf schedules, physical cut-off and money-role-only costs preserve history.
 - Preliquidation uses @react-pdf/renderer; quotation/invoice previews use fixed A4 HTML. Quotation pagination measures row/closing heights via paginacion-cotizacion, keeping headings with items.
-- Project commercial refs are copied to preliquidaciones.orden_compra on selection, saved apart from concepto; outputs read the saved ref — history preserved.
+- Project commercial refs copy to preliquidaciones.orden_compra on selection, saved apart from concepto; outputs read the saved ref.
 - Electronic invoices use comprobantes_electronicos/items/cuotas; emitted invoices/receipts mirror into ventas for treasury; numbering reserved only by an authenticated server function.
 - Invoice creation chooses its source before opening the editor; keep the selected preliquidation ID in editor state, not the URL, so a later free invoice never inherits an old link.
 - Typography: configuracion_documentos/local catalogue, UI --font-global, PDF embeds chosen font, Excel uses catalogue family — consistent outputs.
 - Document codes use codificacion_documentos and siguiente_codigo_documento (free code + padded correlative) — one numbering source.
 - Read tipos_insumo via useTiposInsumo; only five system keys may be hardcoded — users can add types.
 - HT type is hidden (tipos_insumo.oculto); calcularApu auto-adds it last in EQ using Márgenes APU % — never manual.
-- Sidebar has dedicated theme tokens; primary/action buttons use its base color without altering business screens.
-- Ribbon: sidebar/action tokens, darker top; actions in category, never screen tabs; header sidebar-only. Icons from AppShell; search uses section icons.
+- Sidebar has its own theme tokens; primary/action buttons use its base color, never business screens.
+- Ribbon: sidebar/action tokens, darker top; actions in category, never screen tabs; header sidebar-only. Icons from AppShell; search uses section icons. A group may hold several large buttons, each its own left column.
 - Document colors/font: documento-tema.ts; preliquidation: one sheet + preliquidacion-montos.ts — outputs never diverge.
 - SUNAT purchases archive in comprobantes_recibidos(+_items) + private bucket; only authenticated descargarComprobantesSire downloads (batches of 10) — SOL creds server-side.
 - SIRE owns RCE: one period/sync control for both books; purchase XML/PDF/CDR + ERP register in the RCE table — Facturación Electrónica is sales-only.

@@ -172,7 +172,7 @@ const SECCIONES_FLUJO = [
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
-  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReceiptText },
+  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReceiptText, grande: true },
 ];
 // Opciones del grupo Beneficios Sociales: todas pequeñas, repartidas en dos filas y dos columnas.
 const SECCIONES_BENEFICIOS = [
