@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban } from "lucide-react";
+import { LogOut, Hash, FolderKanban, Scale, Plug } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -9,11 +9,11 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 /** true cuando las acciones de pantalla viven en la cinta. */
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 const SECCIONES_CONFIG = [
-  { texto: "Datos de la empresa", seccion: "empresa" },
-  { texto: "Tipografía de documentos", seccion: "tipografia" },
-  { texto: "Usuarios y Roles", seccion: "usuarios" },
-  { texto: "Valores normativos (RMV / UIT)", seccion: "normativa" },
-  { texto: "Integraciones", seccion: "integraciones" },
+  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2 },
+  { texto: "Tipografía de documentos", corto: "Tipografía", seccion: "tipografia", icono: FileText },
+  { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: ShieldCheck },
+  { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: Scale },
+  { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
   { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash },
