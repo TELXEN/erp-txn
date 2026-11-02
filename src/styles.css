@@ -375,7 +375,7 @@ button.kpi-tarjeta:hover { border-color: color-mix(in oklab, var(--color-primary
    más oscuro del tema: dentro de ella, los tokens de la cinta se vuelven claros. */
 .cinta-barra {
   --cinta-texto: var(--color-cinta-pestanas-texto);
-  --cinta-tenue: color-mix(in oklab, var(--color-cinta-pestanas-texto) 68%, var(--color-cinta-pestanas));
+  --cinta-tenue: color-mix(in oklab, var(--color-cinta-pestanas-texto) 80%, var(--color-cinta-pestanas));
   --cinta-hover: color-mix(in oklab, var(--color-cinta-pestanas-texto) 16%, var(--color-cinta-pestanas));
   --cinta-borde: color-mix(in oklab, var(--color-cinta-pestanas-texto) 30%, var(--color-cinta-pestanas));
   --cinta-inf: color-mix(in oklab, var(--color-cinta-pestanas-texto) 12%, var(--color-cinta-pestanas));

@@ -188,3 +188,4 @@
 - [x] Icono de «Nota de crédito»: el signo menos en rojo.
 - [x] Icono de «Nota de débito»: el signo más en azul.
 - [x] Cinta «Catálogo Técnico»: primera columna tras Unidades = Especialidades, Categorías, Subcategorías; segunda columna = Marcas, Títulos WBS, alineadas desde arriba.
+- [x] Barra de pestañas de la cinta con el color más oscuro del tema (Obsidiana negro, Word azul), texto claro y acento legible en los siete temas.
