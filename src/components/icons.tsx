@@ -220,3 +220,63 @@ export function EscudoVerificado({ className, ...props }: SVGProps<SVGSVGElement
     </svg>
   );
 }
+
+/**
+ * Portapapeles con verificación.
+ *
+ * Icono propio de «Valorizaciones»: portapapeles con una palomita dentro. La
+ * palomita va en verde (--color-icono-verde); el resto sigue el color del texto.
+ */
+export function PortapapelesVerificado({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Portapapeles */}
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      {/* Palomita de conformidad, en verde */}
+      <path stroke="var(--color-icono-verde)" d="m9 14 2 2 4-4" />
+    </svg>
+  );
+}
+
+/**
+ * Portapapeles con lápiz.
+ *
+ * Icono propio de «Generar Requerimiento»: portapapeles con un lápiz escribiendo
+ * sobre él. El lápiz va en azul (--color-icono-azul); el resto sigue el color
+ * del texto para que el icono siga legible sobre el fondo de la cinta.
+ */
+export function PortapapelesLapiz({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Portapapeles */}
+      <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+      <path d="M8 22H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      {/* Lápiz, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M21.34 15.664a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z" />
+    </svg>
+  );
+}

@@ -44,7 +44,7 @@ const SECCIONES_MAESTRO_CFG = [
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
-import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado } from "@/components/icons";
+import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado, PortapapelesVerificado, PortapapelesLapiz } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
@@ -83,7 +83,6 @@ import {
   CalendarDays,
   Car,
   ClipboardList,
-  ClipboardCheck,
   FileText,
   FileMinus2,
   FilePlus2,
@@ -108,7 +107,6 @@ import {
   Wallet,
   FolderClosed,
   HardHat,
-  ClipboardPen,
   Inbox,
   Grid3x3,
   Sprout,
@@ -223,8 +221,8 @@ const MENU: Categoria[] = [
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
       { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt, sub: SECCIONES_VISTAS, subFilas: 3 },
-      { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
-      { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
+      { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: PortapapelesLapiz },
+      { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: PortapapelesVerificado },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: EscudoVerificado },
     ],
   },
