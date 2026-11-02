@@ -371,3 +371,91 @@ export function PortapapelesLapiz({ className, ...props }: SVGProps<SVGSVGElemen
     </svg>
   );
 }
+
+/**
+ * Boleta con dólar en verde.
+ *
+ * Icono propio de «Boletas»: ticket de venta cuyo símbolo de dólar va en verde
+ * (--color-icono-verde); el ticket sigue el color del texto.
+ */
+export function BoletaDolar({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Ticket */}
+      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+      {/* Dólar, en verde */}
+      <path stroke="var(--color-icono-verde)" d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
+      <path stroke="var(--color-icono-verde)" d="M12 17.5v-11" />
+    </svg>
+  );
+}
+
+/**
+ * Nota de crédito: hoja con menos en rojo.
+ *
+ * Icono propio de «Notas de crédito»: hoja con el signo menos en rojo
+ * (--color-icono-rojo); la hoja sigue el color del texto.
+ */
+export function NotaCreditoRoja({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Hoja con esquina doblada */}
+      <path d="M20 14V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      {/* Menos, en rojo */}
+      <path stroke="var(--color-icono-rojo)" d="M14 18h6" />
+    </svg>
+  );
+}
+
+/**
+ * Nota de débito: hoja con más en azul.
+ *
+ * Icono propio de «Notas de débito»: hoja con el signo más en azul
+ * (--color-icono-azul); la hoja sigue el color del texto.
+ */
+export function NotaDebitoAzul({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Hoja con esquina doblada */}
+      <path d="M11.35 22H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v5.35" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      {/* Más, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M14 19h6" />
+      <path stroke="var(--color-icono-azul)" d="M17 16v6" />
+    </svg>
+  );
+}

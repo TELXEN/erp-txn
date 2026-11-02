@@ -184,3 +184,6 @@
 - [x] Iconos de «Cuentas por pagar» en rojo y «Cuentas por cobrar» en verde.
 - [x] Iconos pequeños de «CTS» en verde, «Gratificaciones» en azul y «Liquidaciones» en rojo.
 - [x] Icono de «Banco de datos»: el punto y las líneas del centro en azul.
+- [x] Icono de «Boletas»: el símbolo de dólar en verde.
+- [x] Icono de «Nota de crédito»: el signo menos en rojo.
+- [x] Icono de «Nota de débito»: el signo más en azul.
