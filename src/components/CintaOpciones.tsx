@@ -243,7 +243,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
       const subs = m.sub.slice(0, 8);
-      const cols = Math.min(4, Math.ceil(subs.length / 2));
+      // Con dos opciones van lado a lado; con más, se reparten en dos filas.
+      const filas = subs.length > 2 ? 2 : 1;
+      const cols = Math.min(4, Math.ceil(subs.length / filas));
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const celda = (o: NonNullable<ItemCinta["sub"]>[number]) => {
         const SI = o.icono!;
