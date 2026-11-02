@@ -193,6 +193,6 @@
 - [x] Icono Tesorería: frontón triangular sin relleno (contorno negro), línea de base negra, columnas doradas; verificado en pantalla.
 - [x] "Caja Chica" en una sola línea en la cinta (unaLinea en CintaOpciones); verificado: 1 renglón.
 - [x] Icono Préstamos con contorno azul (#0077b6) en la cinta; verificado en pantalla.
-- [ ] Icono APU: contorno en verde
-- [ ] Icono Clientes: la personita en azul
-- [ ] Icono Retenciones: el símbolo dentro del cuadrado en naranja
+- [x] Icono APU con contorno verde (#029a56) en la cinta; verificado en pantalla.
+- [x] Icono Clientes (personita) en azul (#0077b6) en la cinta; verificado en pantalla.
+- [x] Icono Retenciones: disco central en naranja (#e85d04) con icono propio BovedaRetenciones; verificado en pantalla.
