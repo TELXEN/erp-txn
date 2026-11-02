@@ -40,9 +40,9 @@ export function GrupoVista({ id, modo, onVolver }: { id: string; modo: "edicion"
   return (
     <GrupoCinta titulo="Vista">
       {onVolver ? (
-        <BotonGrande icono={<ArrowLeft />} texto="Volver" onClick={onVolver} />
+        <BotonGrande icono={<ArrowLeftFromLine />} texto="Volver" onClick={onVolver} />
       ) : (
-        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<ArrowLeft />} texto="Volver" /></Link>
+        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<ArrowLeftFromLine />} texto="Volver" /></Link>
       )}
       {modo === "vista" && (
         <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<PencilRuler />} texto="Edición" /></Link>
