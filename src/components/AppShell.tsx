@@ -15,6 +15,12 @@ const SECCIONES_CONFIG = [
   { texto: "Valores normativos (RMV / UIT)", seccion: "normativa" },
   { texto: "Integraciones", seccion: "integraciones" },
 ];
+const SECCIONES_DATOS = [
+  { texto: "Codificación", seccion: "codificacion", campo: "pestana" },
+  { texto: "Parámetros de proyectos", seccion: "configuracion", campo: "pestana" },
+  { texto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana" },
+  { texto: "Recursos Humanos", seccion: "cargos", campo: "pestana" },
+];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
 import { ReciboCodigoBarras, NominaBoletas } from "@/components/icons";
@@ -89,7 +95,7 @@ import { aplicarTema, leerTema } from "@/lib/temas";
 import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string }[] };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string; campo?: string }[] };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -164,7 +170,7 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
-      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings },
+      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: PackageCheck },
     ],
