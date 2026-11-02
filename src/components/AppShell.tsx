@@ -82,6 +82,9 @@ import {
   ClipboardCheck,
   FileText,
   FileCheck,
+  FileMinus2,
+  FilePlus2,
+  FileX2,
   Gauge,
   ShoppingBag,
   Landmark,
@@ -116,10 +119,25 @@ import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documento
 const SECCIONES_COTIZ = [
   { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText },
   { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
-  { texto: "Análisis de Precios Unitarios (APU)", corto: "A.P.U.", a: "/datos-apu", icono: Calculator },
+  { texto: "Análisis de Precios Unitarios (APU)", corto: "A.P.U.", a: "/datos-apu", icono: Calculator, grande: true },
 ];
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string }[] };
+const SECCIONES_FACTURACION = [
+  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: ReciboCodigoBarras, grande: true },
+  { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: ReceiptText },
+  { texto: "Notas de crédito", corto: "N. crédito", seccion: "07", campo: "tipo", icono: FileMinus2 },
+  { texto: "Notas de débito", corto: "N. débito", seccion: "08", campo: "tipo", icono: FilePlus2 },
+  { texto: "Guías de remisión", corto: "Guías", seccion: "09", campo: "tipo", icono: Truck },
+];
+
+const SECCIONES_OP_ESP = [
+  { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: Landmark, grande: true },
+  { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: HandCoins },
+  { texto: "Comunicaciones de baja", corto: "Bajas", seccion: "RA", campo: "tipo", icono: FileX2 },
+];
+
+type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; sub2?: { titulo: string; opciones: SubOpcion[] } };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -129,7 +147,7 @@ const MENU: Categoria[] = [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
-      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras },
+      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION, sub2: { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP } },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
     ],
   },
@@ -247,6 +265,14 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
   const [abierto, setAbierto] = useState(activo);
   useEffect(() => { if (activo) setAbierto(true); }, [activo]);
   const Icono = item.icono;
+  const enlaceSeccion = (o: SubOpcion) => {
+    const cls = "flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover";
+    return o.a ? (
+      <Link key={o.a} to={o.a} className={cls}>{o.texto}</Link>
+    ) : (
+      <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} className={cls}>{o.texto}</Link>
+    );
+  };
   return (
     <div>
       <button type="button" onClick={() => setAbierto((v) => !v)} aria-expanded={abierto}
@@ -257,14 +283,13 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
       </button>
       {abierto && (
         <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-2">
-          {item.sub!.map((o) => {
-            const cls = "flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover";
-            return o.a ? (
-              <Link key={o.a} to={o.a} className={cls}>{o.texto}</Link>
-            ) : (
-              <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} className={cls}>{o.texto}</Link>
-            );
-          })}
+          {item.sub!.map(enlaceSeccion)}
+          {item.sub2 && (
+            <>
+              <p className="px-2.5 pt-1 text-[10px] font-semibold uppercase tracking-wide text-sidebar-foreground/60">{item.sub2.titulo}</p>
+              {item.sub2.opciones.map(enlaceSeccion)}
+            </>
+          )}
         </div>
       )}
     </div>

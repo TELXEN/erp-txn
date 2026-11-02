@@ -242,7 +242,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
-      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
+      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
     }
     const link = (
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
@@ -254,17 +254,21 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
       const subs = m.sub.slice(0, 8);
+      const iGrande = subs.findIndex((o) => o.grande);
+      const hayGrande = iGrande >= 0;
+      const nPeq = subs.length - (hayGrande ? 1 : 0);
       // Con dos opciones van lado a lado; con más, se reparten en dos filas.
-      const filas = subs.length > 2 ? 2 : 1;
-      const cols = Math.min(4, Math.ceil(subs.length / filas));
-      // Con tres: dos apiladas (la primera arriba) y la tercera a la derecha, ocupando las dos filas.
-      const apilada = subs.length === 3;
+      const filas = subs.length > 2 || hayGrande ? 2 : 1;
+      // La opción grande ocupa las dos filas a la izquierda; las demás se reparten en columnas de dos filas a su derecha.
+      const cols = hayGrande ? 1 + Math.ceil(nPeq / 2) : Math.min(4, Math.ceil(subs.length / filas));
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
+      const colsPeq = Math.ceil(nPeq / 2);
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono!;
-        // La tercera opción (A.P.U.) va a la izquierda, ocupando las dos filas, con icono grande.
-        const grande = apilada && i === 2;
-        const sitio = apilada ? (grande ? { gridColumn: 1, gridRow: "1 / span 2" } : i === 0 ? { gridColumn: 2, gridRow: 1 } : { gridColumn: 2, gridRow: 2 }) : undefined;
+        const grande = hayGrande && i === iGrande;
+        const j = hayGrande && !grande ? i - (i > iGrande ? 1 : 0) : 0;
+        // Las pequeñas se leen por filas: primero la fila de arriba, luego la de abajo.
+        const sitio = hayGrande ? (grande ? { gridColumn: 1, gridRow: "1 / span 2" } : { gridColumn: 2 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[84px] flex-col items-center justify-center gap-1 px-1.5" : "flex h-6 min-w-[76px] items-center gap-1.5 px-1.5"}`;
         const contenido = grande ? <><SI className="size-6 shrink-0" /><span>{o.corto ?? o.texto}</span></> : <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
 
@@ -289,7 +293,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         </div>
       );
     }
-    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
+    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
@@ -297,7 +301,12 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const g: { titulo: string; items: ItemCinta[]; sub?: boolean }[] = [];
     for (const m of lista) {
       if (m.hijos) { g.push({ titulo: m.texto, items: m.hijos }); continue; }
-      if (m.sub && m.sub.every((o) => o.icono)) { g.push({ titulo: m.texto, items: [m], sub: true }); continue; }
+      if (m.sub && m.sub.every((o) => o.icono)) {
+        g.push({ titulo: m.texto, items: [m], sub: true });
+        // Un ítem puede aportar un segundo grupo (p. ej. Operaciones especiales junto a Facturación Electrónica).
+        if (m.sub2) { const { sub2, ...resto } = m; g.push({ titulo: sub2.titulo, items: [{ ...resto, sub: sub2.opciones }], sub: true }); }
+        continue;
+      }
       const t = GRUPO[m.a] ?? defecto; const e = g.find((x) => x.titulo === t);
       e ? e.items.push(m) : g.push({ titulo: t, items: [m] });
     }
