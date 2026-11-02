@@ -1,5 +1,5 @@
 import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
-import { ContactRound, Construction, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog } from "lucide-react";
+import { ContactRound, Construction, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, Vault, CircleDollarSign, Receipt, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -32,7 +32,7 @@ const SECCIONES_CATALOGO = [
 ];
 const SECCIONES_MAESTRO = [
   { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package },
-  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: HardHat },
+  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
   { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
   { texto: "Herramientas", corto: "Herram.", seccion: "HE", campo: "seccion", icono: Hammer },
   { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
@@ -210,7 +210,7 @@ const MENU: Categoria[] = [
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [
           { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: ClipboardList },
-          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackageCheck },
+          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackagePlus },
           { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: History },
         ],
       },
@@ -222,7 +222,7 @@ const MENU: Categoria[] = [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS },
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: ListTree, sub: SECCIONES_MAESTRO },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO },
     ],
   },
   {
