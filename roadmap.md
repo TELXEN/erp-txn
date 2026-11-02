@@ -139,3 +139,4 @@
 - [x] Partidas: el conmutador Tabla/Kanban adopta el estilo de Proyectos (icono + la palabra, activa resaltada); cambio de vista y F5 verificados, compilación OK.
 - [x] Vehículos como grupo propio en la cinta: Resumen con icono grande y Flota/Tareo/Traslados/Mantenim. en 2×2; la sección viaja en ?pestana= y F5 la conserva. Probado en clásica y lateral; compilación OK.
 - [x] Cinta Personal: el grupo «Remuneraciones» ocupa el lugar de «Gestión de EPP» y este pasa al final (derecha); el orden del menú lateral sigue igual. Probado en clásica y lateral, compilación OK.
+- [x] Maestro de Insumos: con la cinta activa, al elegir cualquiera de sus ocho opciones solo se muestra la lista o el panel; desaparecen la fila de botones (Maestro/Configuración) y la fila de pestañas del lienzo blanco. Probado en clásica (ocho opciones), simplificada (desplegable) y lateral (filas recuperadas); compilación OK.
