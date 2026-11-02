@@ -177,7 +177,7 @@ const SECCIONES_TESORERIA = [
   { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: TesoreriaEdificio, grande: true, iconoClase: "text-cinta-oro" },
   { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: ArrowDownLeft, iconoClase: "text-cinta-verde" },
   { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: ArrowUpRight, iconoClase: "text-cinta-rojo" },
-  { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: BadgePercent },
+  { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: BadgePercent, iconoClase: "text-cinta-azul" },
 ];
 
 // Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
