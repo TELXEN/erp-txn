@@ -192,3 +192,4 @@
 - [x] Grupo Ayuda en la cinta de Inicio: botón grande de ayuda y tres opciones apiladas (Manual de usuario, Acerca de, Licencia) con pantalla propia; cinta clásica y menú lateral verificados, compilación OK.
 - [ ] Icono Tesorería: triángulo superior sin relleno (solo contorno negro), línea de base negra, columnas doradas
 - [ ] "Caja Chica" en una sola línea en la cinta
+- [ ] Icono Préstamos: contorno en azul
