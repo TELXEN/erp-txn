@@ -341,7 +341,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             const sel = c.titulo === pestana;
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
-                title={c.titulo === activa && contextual ? `${contextual.titulo} — toca ${CORTO[c.titulo] ?? c.titulo} para ver sus botones` : undefined}
+                title={c.titulo === activa && contextual ? contextual.titulo : undefined}
                 onClick={() => clicPestana(c.titulo)}
                 className={`relative h-9 shrink-0 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
                 {CORTO[c.titulo] ?? c.titulo}
