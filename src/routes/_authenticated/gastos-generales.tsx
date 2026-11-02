@@ -131,13 +131,25 @@ function GastosGenerales() {
   const [hasta, setHasta] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [cerrados, setCerrados] = useState<Set<string>>(new Set());
-  const [pestana, setPestana] = useState<"resumen" | "gastos" | "mantenimiento" | "combustible">(() => {
+  const navigate = useNavigate();
+  const enCinta = useEnCinta();
+  const { pestana: pestanaQ } = Route.useSearch();
+  const [pestana, setPestana] = useState<PestañaGG>(() => {
     const v = localStorage.getItem("gastos-generales:pestana");
     return v === "gastos" || v === "mantenimiento" || v === "combustible" ? v : "resumen";
   });
   useEffect(() => {
     localStorage.setItem("gastos-generales:pestana", pestana);
   }, [pestana]);
+  // La cinta y la URL mandan sobre la pestaña mostrada; al llegar sin parámetro se fija la recordada.
+  useEffect(() => {
+    if (pestanaQ && pestanaQ !== pestana) setPestana(pestanaQ);
+    else if (!pestanaQ && enCinta) void navigate({ to: "/gastos-generales", search: { pestana }, replace: true });
+  }, [pestanaQ, pestana, enCinta, navigate]);
+  function cambiarPestana(p: PestañaGG) {
+    setPestana(p);
+    void navigate({ to: "/gastos-generales", search: { pestana: p }, replace: true });
+  }
   const ayudaCategoria = categorias.find((c) => c.nombre === form.categoria)?.descripcion ?? "";
   const [editando, setEditando] = useState<{
     id: string;
