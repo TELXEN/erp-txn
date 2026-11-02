@@ -120,3 +120,4 @@
 - [x] Cinta de opciones estilo Office (clásica y simplificada) con selector «Diseño», contraer cinta y opción de volver al menú lateral; ambas verificadas en pantalla.
 - [x] Icono de pantalla completa (doble flecha diagonal) integrado dentro de la cinta, junto a «Cerrar Sesión»; en menú lateral sigue en el encabezado. Verificado en los tres modos.
 - [x] Parámetros Generales como grupo de la cinta: cuatro opciones separadas por líneas verticales finas con el rótulo debajo y sin el icono del ítem; clásico, simplificado y lateral verificados.
+- [x] Grupo Parámetros Generales en dos filas y dos columnas (de 371 a 199 px) y con línea vertical fina a la izquierda y a la derecha; todos los grupos de la cinta quedan enmarcados igual. Cuatro secciones y dos pestañas verificadas en pantalla.

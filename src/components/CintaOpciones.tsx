@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Rows3, Search, Star } from "lucide-react";
@@ -236,23 +236,23 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </Link>
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
+      const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
+        const SI = o.icono!;
+        return (
+          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
+            activeOptions={{ includeSearch: true }}
+            activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
+            inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
+            className={`flex h-6 w-[92px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${i < 2 ? "row-start-1" : "row-start-3"} ${i % 2 ? "col-start-3" : "col-start-1"}`}>
+            <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
+          </Link>
+        );
+      };
       return (
-        <div key={m.a} className="flex shrink-0 items-center">
-          {m.sub.map((o, i) => {
-            const SI = o.icono!;
-            return (
-              <Fragment key={o.seccion}>
-                {i > 0 && <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-cinta-tenue/70" />}
-                <Link to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
-                  activeOptions={{ includeSearch: true }}
-                  activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
-                  inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-                  className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs">
-                  <SI className="size-4 shrink-0" /> {o.corto ?? o.texto}
-                </Link>
-              </Fragment>
-            );
-          })}
+        <div key={m.a} className="grid shrink-0 grid-cols-[92px_1px_92px] grid-rows-[24px_1px_24px]">
+          <span aria-hidden className="col-start-2 row-start-1 row-span-3 w-px self-stretch bg-cinta-tenue/70" />
+          <span aria-hidden className="col-start-1 col-span-3 row-start-2 h-px bg-cinta-tenue/70" />
+          {m.sub.slice(0, 4).map(celda)}
         </div>
       );
     }
@@ -277,6 +277,13 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[], sub: false },
       ]
     : cat ? porGrupo(cat.items, CORTO[cat.titulo] ?? cat.titulo) : [];
+  const visibles = gruposVista.filter((g) => g.items.length);
+  // Cada grupo queda enmarcado por líneas verticales finas a la izquierda y a la derecha.
+  const clasesGrupo = (g: { titulo: string; items: ItemCinta[]; sub?: boolean }, i: number) => {
+    const izq = g.sub ? !visibles[i - 1]?.sub : i > 0;
+    const der = g.sub || i === visibles.length - 1;
+    return `flex flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1.5" : "px-1"}`;
+  };
 
   return (
     <div className="cinta-opciones no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
@@ -324,10 +331,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           {enInicio && !favoritos.length && !recientes.length && (
             <p className="flex items-center gap-2 px-2 py-3 text-xs text-cinta-tenue"><Pin className="size-4" /> Haz clic derecho en cualquier botón para anclarlo aquí.</p>
           )}
-          {gruposVista.filter((g) => g.items.length).map((g, i) => modo === "simplificada" ? (
+          {visibles.map((g, i) => modo === "simplificada" ? (
             <div key={g.titulo} className={`flex items-center gap-1 ${i ? "border-l border-cinta-borde pl-1" : ""}`}>{g.items.map(boton)}</div>
           ) : (
-            <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
+            <div key={g.titulo} className={clasesGrupo(g, i)}>
               <div className={`flex flex-1 gap-0.5 ${g.sub ? "items-center" : "items-start"}`}>{g.items.map(boton)}</div>
               <p className="flex items-center justify-center gap-1 whitespace-nowrap py-0.5 text-center text-[10px] text-cinta-tenue">
                 {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
