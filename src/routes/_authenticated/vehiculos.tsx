@@ -1,6 +1,6 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardList, Eye, Pencil, Plus, Settings, Trash2, Truck, X } from "lucide-react";
@@ -73,7 +73,6 @@ const VACIO_VEHICULO = {
 };
 
 function PaginaVehiculos() {
-  const navigate = useNavigate();
   const [sel, setSel] = useState("");
   const { rol } = useAuth();
   const qc = useQueryClient();

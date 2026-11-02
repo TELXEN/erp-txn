@@ -22,7 +22,6 @@ import { usaSubfamilia, validarClasificacion } from "@/lib/clasificacion-insumo"
 import {
   CATEGORIAS_OBRERO,
   REGIMENES_LABORALES,
-  TIPOS_INSUMO,
   TIPOS_SISTEMA,
   useTiposInsumo,
   apuDb,
