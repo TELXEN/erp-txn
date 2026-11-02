@@ -187,3 +187,4 @@
 - [x] Icono de «Boletas»: el símbolo de dólar en verde.
 - [x] Icono de «Nota de crédito»: el signo menos en rojo.
 - [x] Icono de «Nota de débito»: el signo más en azul.
+- [ ] Cinta «Catálogo Técnico»: primera columna tras Unidades = Especialidades, Categorías, Subcategorías; segunda columna = Marcas, Títulos WBS, alineadas desde arriba.
