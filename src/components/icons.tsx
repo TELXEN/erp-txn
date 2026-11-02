@@ -632,6 +632,39 @@ export function FichaCliente({ className, ...props }: SVGProps<SVGSVGElement>) {
   );
 }
 
+/**
+ * Flecha de retorno dentro de un círculo.
+ *
+ * Icono propio de «Volver»: el aro exterior encierra una flecha que avanza,
+ * gira en semicírculo y apunta a la izquierda con la punta llena, como el botón
+ * «deshacer» de Office. Se dibuja aquí con el mismo trazo (24x24, stroke
+ * currentColor) que los iconos de lucide para que pese igual en la cinta.
+ */
+export function RetornoCirculo({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Aro exterior */}
+      <circle cx="12" cy="12" r="9.6" />
+      {/* Cuerpo: avanza a la derecha, gira en semicírculo y vuelve a la izquierda */}
+      <path d="M7.2 15.2h7a3.2 3.2 0 0 0 0-6.4H8.2" />
+      {/* Punta triangular llena, mirando a la izquierda */}
+      <path fill="currentColor" stroke="none" d="M6 8.8 9.2 6.4v4.8Z" />
+    </svg>
+  );
+}
+
+
 
 
 
