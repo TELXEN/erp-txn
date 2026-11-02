@@ -36,12 +36,12 @@ function SelectorModo({ modo, onModo, contraida, onContraer }: {
     <div ref={ref} className="relative flex items-center gap-1">
       {modo !== "lateral" && (
         <button type="button" onClick={onContraer} title={contraida ? "Expandir cinta" : "Contraer cinta"} aria-label={contraida ? "Expandir cinta" : "Contraer cinta"}
-          className="grid size-7 place-items-center rounded-md text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
+          className="grid size-7 place-items-center rounded-md text-cinta-tenue hover:bg-cinta-hover hover:text-cinta-texto">
           {contraida ? <ChevronDown className="size-4" /> : <ChevronUp className="size-4" />}
         </button>
       )}
       <button type="button" onClick={() => setAbierto((v) => !v)} title="Opciones de navegación" aria-label="Opciones de navegación" aria-expanded={abierto}
-        className="flex h-7 items-center gap-1 rounded-md px-2 text-[11px] text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-foreground">
+        className="flex h-7 items-center gap-1 rounded-md px-2 text-[11px] text-cinta-tenue hover:bg-cinta-hover hover:text-cinta-texto">
         <Rows2 className="size-3.5" /> <span className="hidden lg:inline">Diseño</span> <ChevronDown className="size-3" />
       </button>
       {abierto && (
@@ -83,7 +83,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const boton = (m: ItemCinta) => {
     const act = pathname === m.a;
     const I = m.icono;
-    const tono = act ? "bg-cta text-cta-foreground font-semibold" : "text-sidebar-foreground hover:bg-sidebar-hover";
+    const tono = act ? "bg-cinta-acento text-cinta-acento-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-hover";
     if (modo === "simplificada") {
       return (
         <Link key={m.a} to={m.a} title={m.texto} onClick={() => contraida && setPestana(pestana)}
@@ -106,8 +106,8 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const grupos = cat?.items.filter((m) => m.hijos) ?? [];
 
   return (
-    <div className="no-print shrink-0 border-b border-sidebar-border bg-sidebar-cinta-inf text-sidebar-foreground">
-      <div className="flex h-9 items-center gap-1 bg-sidebar-cinta-sup px-2">
+    <div className="no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
+      <div className="flex h-9 items-center gap-1 bg-cinta-sup px-2">
         {logo}
         <nav className="flex min-w-0 items-center gap-0.5 overflow-x-auto" role="tablist">
           {categorias.map((c) => {
@@ -115,9 +115,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
                 onClick={() => { if (contraida && sel) alternarContraer(); setPestana(c.titulo); }}
-                className={`relative h-9 whitespace-nowrap px-3 text-[13px] transition-colors hover:bg-sidebar-hover ${sel ? "font-semibold" : "text-sidebar-muted"}`}>
+                className={`relative h-9 whitespace-nowrap px-3 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
                 {CORTO[c.titulo] ?? c.titulo}
-                {sel && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cta" />}
+                {sel && <span className="absolute inset-x-2 bottom-0 h-0.5 rounded bg-cinta-acento" />}
               </button>
             );
           })}
@@ -128,22 +128,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </div>
       {!contraida && cat && (
         modo === "simplificada" ? (
-          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-sidebar-border bg-sidebar-cinta-inf px-2">
+          <div className="flex h-11 items-center gap-1 overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2">
             {simples.map(boton)}
             {grupos.map((g) => (
-              <div key={g.a} className="flex items-center gap-1 border-l border-sidebar-border pl-1">
+              <div key={g.a} className="flex items-center gap-1 border-l border-cinta-borde pl-1">
                 {g.hijos!.map(boton)}
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex items-stretch overflow-x-auto border-t border-sidebar-border bg-sidebar-cinta-inf px-2 pt-1">
+          <div className="flex items-stretch overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2 pt-1">
             {[{ titulo: CORTO[cat.titulo] ?? cat.titulo, items: simples }, ...grupos.map((g) => ({ titulo: g.texto, items: g.hijos! }))]
               .filter((g) => g.items.length)
               .map((g, i) => (
-                <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-sidebar-border pl-1" : ""} pr-1`}>
+                <div key={g.titulo} className={`flex flex-col ${i ? "border-l border-cinta-borde pl-1" : ""} pr-1`}>
                   <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
-                  <p className="py-0.5 text-center text-[10px] text-sidebar-muted">{g.titulo}</p>
+                  <p className="py-0.5 text-center text-[10px] text-cinta-tenue">{g.titulo}</p>
                 </div>
               ))}
           </div>
