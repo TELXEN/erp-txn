@@ -176,7 +176,7 @@ function SubMenu({ a, sub, onIr }: { a: string; sub: SubOpcionCinta[]; onIr?: (d
           {sub.map((o) => {
             const cls = "block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground";
             return o.a ? (
-              <Link key={o.a} to={o.a} {...(o.search ? { search: o.search as never } : {})} onClick={() => { setPos(null); onIr?.(o.a ?? a); }} className={cls}>{o.texto}</Link>
+              <Link key={`${o.a}|${o.texto}`} to={o.a} {...(o.search ? { search: o.search as never } : {})} onClick={() => { setPos(null); onIr?.(o.a ?? a); }} className={cls}>{o.texto}</Link>
             ) : (
               <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => { setPos(null); onIr?.(a); }} className={cls}>{o.texto}</Link>
             );
@@ -359,7 +359,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
         if (o.a) {
           return (
-            <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}
+            <Link key={`${o.a}|${o.texto}`} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}
               activeOptions={{ includeSearch: true }}
               activeProps={{ className: "cinta-activo bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
               inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
