@@ -67,7 +67,7 @@ function useRotulos(textos: string[]) {
       }
       if (vivo) setRotulos((prev) => {
         const k = Object.keys(nuevo);
-        const igual = k.length === Object.keys(prev).length && k.every((x) => prev[x]?.ancho === nuevo[x].ancho && prev[x]?.texto === nuevo[x].texto);
+        const igual = k.length === Object.keys(prev).length && k.every((x) => prev[x]?.ancho === nuevo[x]?.ancho && prev[x]?.texto === nuevo[x]?.texto);
         return igual ? prev : nuevo;
       });
     };
