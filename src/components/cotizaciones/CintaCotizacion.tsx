@@ -4,6 +4,9 @@ import { ArrowLeft, Eye, PencilRuler } from "lucide-react";
 import { GrupoCinta } from "@/components/CintaOpciones";
 import { cn } from "@/lib/utils";
 
+/** Rutas que la cinta conserva visibles mientras se edita o se ve una cotización. */
+export const SOLO_COTIZ = ["/cotizaciones"];
+
 type Base = { icono: ReactNode; texto: string; onClick?: () => void; disabled?: boolean; activo?: boolean; title?: string | undefined };
 
 /** Botón grande de la cinta de cotización (icono arriba, rótulo en hasta dos líneas). */

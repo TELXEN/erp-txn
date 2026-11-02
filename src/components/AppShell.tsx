@@ -655,11 +655,14 @@ export function Encabezado({
   titulo,
   subtitulo,
   acciones,
+  soloCinta,
   className = "mb-3",
 }: {
   titulo: string;
   subtitulo: string;
   acciones?: ReactNode;
+  /** Rutas que la cinta conserva visibles mientras esta pantalla muestra sus propias acciones. */
+  soloCinta?: string[];
   className?: string;
 }) {
   const r = useContext(RanuraEncabezado);
@@ -667,9 +670,9 @@ export function Encabezado({
   const setCtx = r?.setCtx;
   useEffect(() => {
     if (!enCinta || !setCtx || !acciones) return;
-    setCtx({ titulo, subtitulo });
+    setCtx({ titulo, subtitulo, solo: soloCinta });
     return () => setCtx(null);
-  }, [enCinta, setCtx, titulo, subtitulo, !!acciones]);
+  }, [enCinta, setCtx, titulo, subtitulo, !!acciones, soloCinta]);
   if (enCinta) {
     if (!r?.el || !acciones) return null;
     return createPortal(<div>{acciones}</div>, r.el);

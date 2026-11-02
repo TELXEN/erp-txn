@@ -247,7 +247,7 @@ export function SelectorModoLateral(props: { modo: ModoNavegacion; onModo: (m: M
   return <SelectorModo {...props} contraida={false} onContraer={() => {}} />;
 }
 
-export type ContextoCinta = { titulo: string; subtitulo: string };
+export type ContextoCinta = { titulo: string; subtitulo: string; solo?: string[] };
 
 /** Grupo de botones con título opcional dentro de la pestaña contextual de la cinta. */
 export function GrupoCinta({ titulo, children }: { titulo?: string; children: React.ReactNode }) {
@@ -413,12 +413,15 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     return g;
   };
   const buscar = (a: string) => plano.find((m) => m.a === a);
+  /** Con una pantalla propia abierta (p. ej. una cotización), la categoría muestra solo los botones que conserva. */
+  const solo = enCtx ? contextual?.solo : undefined;
+  const itemsVistos = cat && solo && cat.items.some((m) => solo.includes(m.a)) ? cat.items.filter((m) => solo.includes(m.a)) : cat?.items ?? [];
   const gruposVista = enInicio
     ? [
         { titulo: "Favoritos", items: favoritos.map(buscar).filter(Boolean) as ItemCinta[], sub: false },
         { titulo: "Recientes", items: recientes.filter((a) => !favoritos.includes(a)).map(buscar).filter(Boolean) as ItemCinta[], sub: false },
       ]
-    : cat ? porGrupo(cat.items, CORTO[cat.titulo] ?? cat.titulo) : [];
+    : cat ? porGrupo(itemsVistos, CORTO[cat.titulo] ?? cat.titulo) : [];
   const visibles = gruposVista.filter((g) => g.items.length);
   // Cada grupo queda enmarcado por líneas verticales finas a la izquierda y a la derecha.
   const clasesGrupo = (g: { titulo: string; items: ItemCinta[]; sub?: boolean }, i: number) => {

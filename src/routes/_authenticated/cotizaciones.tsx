@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { GrupoCinta } from "@/components/CintaOpciones";
-import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cotizaciones/CintaCotizacion";
+import { BotonGrande, BotonPequeno, Columna, GrupoVista, SOLO_COTIZ } from "@/components/cotizaciones/CintaCotizacion";
 import { Building2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
@@ -580,6 +580,7 @@ function Cotizaciones() {
     return (
       <div ref={ajustarAlto} className="-mx-3 -mb-3 flex flex-col bg-background sm:-mx-4 lg:overflow-hidden">
         <Encabezado
+          soloCinta={SOLO_COTIZ}
           titulo={cot.nombre || cot.codigo || "Cotización"}
           subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""} · modo edición`}
           acciones={
