@@ -247,7 +247,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: GraficoFinanciero },
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
