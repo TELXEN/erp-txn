@@ -335,7 +335,7 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
   const enlaceSeccion = (o: SubOpcion) => {
     const cls = "flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover";
     return o.a ? (
-      <Link key={o.a} to={o.a} {...(o.search ? { search: o.search as never } : {})} className={cls}>{o.texto}</Link>
+      <Link key={`${o.a}|${o.texto}`} to={o.a} {...(o.search ? { search: o.search as never } : {})} className={cls}>{o.texto}</Link>
     ) : (
       <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} className={cls}>{o.texto}</Link>
     );
