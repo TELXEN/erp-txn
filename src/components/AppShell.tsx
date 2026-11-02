@@ -174,7 +174,7 @@ const SECCIONES_FLUJO = [
 
 // Caja y bancos: el icono grande abre las tarjetas de resumen; al lado, en una sola columna, las tres gestiones.
 const SECCIONES_TESORERIA = [
-  { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: Landmark, grande: true },
+  { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: Landmark, grande: true, iconoClase: "text-cinta-oro" },
   { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: ArrowDownLeft },
   { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: ArrowUpRight },
   { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: BadgePercent },
@@ -189,9 +189,9 @@ const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
   { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReceiptText, grande: true },
 ];
-// Opciones del grupo Beneficios Sociales: todas pequeñas, repartidas en dos filas y dos columnas.
+// Opciones del grupo Beneficios Sociales: Datos de AFP grande a la izquierda y las demás en una columna vertical.
 const SECCIONES_BENEFICIOS = [
-  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: PiggyBank },
+  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: PiggyBank, grande: true },
   { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: Sprout },
   { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: Gift },
   { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: UserMinus },
@@ -199,7 +199,7 @@ const SECCIONES_BENEFICIOS = [
 
 
 
-type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string> };
+type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
 type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; sub2?: { titulo: string; opciones: SubOpcion[] }; subFilas?: number };
 type Categoria = { titulo: string; items: Item[] };
 
@@ -248,7 +248,6 @@ const MENU: Categoria[] = [
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
       { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark, sub: SECCIONES_TESORERIA, subFilas: 3 },
-      { a: "/facturacion-electronica", texto: "Facturación", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION },
 
       { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO, subFilas: 3 },
       { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck },
@@ -260,7 +259,7 @@ const MENU: Categoria[] = [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
       { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: NominaBoletas, sub: SECCIONES_NOMINA },
-      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS },
+      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS, subFilas: 3 },
       {
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [

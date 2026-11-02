@@ -101,6 +101,8 @@
   --color-cinta-borde: color-mix(in oklab, var(--sidebar-foreground) 22%, var(--sidebar));
   --color-cinta-acento: var(--cta);
   --color-cinta-acento-foreground: var(--cta-foreground);
+  /* Dorado fijo para iconos que el usuario quiere siempre en ese color, sin importar el tema. */
+  --color-cinta-oro: oklch(0.66 0.14 85);
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
@@ -484,3 +486,6 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 
 .dash-chip { display: block; border-radius: 0.25rem; padding: 0.3rem 0.5rem; font-size: 0.75rem; background: color-mix(in oklab, var(--card) 22%, transparent); }
 .dash-chip-activo { background: var(--card); color: var(--primary); font-weight: 600; }
+
+/* Iconos dorados: sobre el botón seleccionado (fondo dorado) pasan al color del texto activo para no perderse. */
+.cinta-opciones a.cinta-activo .text-cinta-oro { color: var(--cta-foreground); }
