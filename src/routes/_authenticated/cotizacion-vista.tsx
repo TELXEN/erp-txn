@@ -1,4 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { GrupoCinta } from "@/components/CintaOpciones";
+import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cotizaciones/CintaCotizacion";
 import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -13,7 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
-import { ArrowLeft, FileDown, FileSpreadsheet, Calculator } from "lucide-react";
+import { ArrowLeft, FileDown, FileSpreadsheet, Calculator, Files, Receipt } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Eslogan en dos líneas: se corta en la primera coma. */
@@ -110,6 +112,7 @@ function construirFilas(items: ItemCot[], _opts: { multi?: boolean; alcance?: st
 
 
 function VistaCotizacion() {
+  const navigate = useNavigate();
   const { id } = Route.useSearch();
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null, true);
@@ -408,29 +411,27 @@ function VistaCotizacion() {
         titulo="Vista previa de cotización"
         subtitulo={`${cot.codigo ?? "Sin código"} · ${cot.cliente || "Cliente sin registrar"}`}
         acciones={
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="no-print flex h-8 cursor-pointer items-center gap-2 rounded-md border border-line px-3 text-xs font-medium select-none" title="Imprimir y exportar la hoja en A4 horizontal">
-              <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
-              A4 horizontal
-            </label>
-            <Link to="/cotizaciones" search={id ? { abrir: id } : {}}>
-              <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
-            </Link>
-            <Boton variante="linea" onClick={() => void exportarExcel()} disabled={items.length === 0}>
-              <FileSpreadsheet size={14} /> Exportar a Excel
-            </Boton>
-            <Link to="/apu-vista" search={{ id, item: "" }}>
-              <Boton variante="linea"><Calculator size={14} /> Dossier APU</Boton>
-            </Link>
-            <Link to="/gg-vista" search={{ id }}>
-              <Boton variante="linea"><Calculator size={14} /> Gastos generales</Boton>
-            </Link>
-            <Boton variante="linea" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU">
-              <FileDown size={14} /> PDF cotización + dossier
-            </Boton>
-            <Boton variante="accion" onClick={() => void descargarPdf()} disabled={pdfCargando}>
-              <FileDown size={14} /> {pdfCargando ? "Generando..." : "Descargar PDF"}
-            </Boton>
+          <div className="no-print flex items-stretch gap-2">
+            <GrupoVista id={id} modo="vista" />
+            <GrupoCinta titulo="Formato">
+              <Columna>
+                <label className="flex h-[20px] cursor-pointer items-center gap-1.5 px-1.5 text-[11px] text-cinta-texto select-none" title="Imprimir y exportar la hoja en A4 horizontal">
+                  <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
+                  A4 horizontal
+                </label>
+              </Columna>
+            </GrupoCinta>
+            <GrupoCinta titulo="Exportar">
+              <BotonGrande icono={<FileDown />} texto={pdfCargando ? "Generando..." : "Descargar\nPDF"} onClick={() => void descargarPdf()} disabled={pdfCargando} />
+              <Columna>
+                <BotonPequeno icono={<Files />} texto="PDF cotización + dossier" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU" />
+                <BotonPequeno icono={<FileSpreadsheet />} texto="Exportar a Excel" onClick={() => void exportarExcel()} disabled={items.length === 0} />
+                <BotonPequeno icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
+              </Columna>
+              <Columna>
+                <BotonPequeno icono={<Receipt />} texto="Gastos generales" onClick={() => void navigate({ to: "/gg-vista", search: { id } })} />
+              </Columna>
+            </GrupoCinta>
           </div>
         }
       />

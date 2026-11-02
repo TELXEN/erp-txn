@@ -6,6 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { GrupoCinta } from "@/components/CintaOpciones";
+import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cotizaciones/CintaCotizacion";
+import { Building2, BookOpen, PackagePlus } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
@@ -669,60 +671,72 @@ function Cotizaciones() {
           titulo={cot.nombre || cot.codigo || "Cotización"}
           subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""} · modo edición`}
           acciones={
-            <div className="flex flex-wrap items-center gap-2">
-              <Vigencia c={cot} />
-              {hermanas.length > 1 && (
-                <select
-                  value={cot.id}
-                  onChange={(e) => {
-                    const destino = hermanas.find((h) => h.id === e.target.value);
-                    if (!destino) return;
-                    // Las revisiones históricas se consultan en la vista A4 (solo lectura).
-                    if (destino.id === hermanas.at(-1)?.id) setSeleccion(destino.id);
-                    else void navigate({ to: "/cotizacion-vista", search: { id: destino.id } });
-                  }}
-                  title="Revisiones de esta cotización"
-                  className="h-8 rounded-md border border-brand-foreground/30 bg-brand-foreground/10 px-2 font-mono text-xs text-brand-foreground"
-                >
-                  {hermanas.map((h) => (
-                    <option key={h.id} value={h.id}>
-                      {etiquetaRevision(h.revision)}{h.id === hermanas.at(-1)?.id ? " · actual" : " · histórica"}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <select
-                value={cot.estado}
-                onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
-                className="h-8 w-32 rounded-md border border-brand-foreground/30 bg-brand-foreground/10 px-2 font-mono text-xs text-brand-foreground"
-              >
-                {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
-              </select>
-              <Boton onClick={convertirEnObra} disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"} title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined}>
-                {cot.proyecto_id ? "Obra generada" : "Convertir en obra"}
-              </Boton>
+            <div className="flex items-stretch gap-2">
+              <GrupoVista id={cot.id} modo="edicion" onVolver={() => { setSeleccion(null); setError(""); setAviso(""); }} />
+              <GrupoCinta titulo="Estado">
+                <Columna>
+                  <select
+                    value={cot.estado}
+                    onChange={(e) => cambiarEstado(cot.id, e.target.value as EstadoCotizacion)}
+                    className="h-[20px] w-32 rounded border border-line bg-card px-1 text-[11px] text-cinta-texto"
+                  >
+                    {ESTADOS_COTIZACION.map((e) => <option key={e} value={e}>{e}</option>)}
+                  </select>
+                  {hermanas.length > 1 && (
+                    <select
+                      value={cot.id}
+                      onChange={(e) => {
+                        const destino = hermanas.find((h) => h.id === e.target.value);
+                        if (!destino) return;
+                        // Las revisiones históricas se consultan en la vista A4 (solo lectura).
+                        if (destino.id === hermanas.at(-1)?.id) setSeleccion(destino.id);
+                        else void navigate({ to: "/cotizacion-vista", search: { id: destino.id } });
+                      }}
+                      title="Revisiones de esta cotización"
+                      className="h-[20px] w-32 rounded border border-line bg-card px-1 font-mono text-[11px] text-cinta-texto"
+                    >
+                      {hermanas.map((h) => (
+                        <option key={h.id} value={h.id}>
+                          {etiquetaRevision(h.revision)}{h.id === hermanas.at(-1)?.id ? " · actual" : " · histórica"}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <div className="text-[11px]"><Vigencia c={cot} /></div>
+                </Columna>
+              </GrupoCinta>
+              <GrupoCinta titulo="Obra">
+                <BotonGrande icono={<Building2 />} texto={cot.proyecto_id ? "Obra\ngenerada" : "Convertir\nen obra"} onClick={() => void convertirEnObra()}
+                  disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"}
+                  title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined} />
+              </GrupoCinta>
+              <GrupoCinta titulo="Documento">
+                <Columna>
+                  <BotonPequeno icono={<FileText />} texto="Encabezado" onClick={() => setEncabezado(true)} />
+                  <BotonPequeno icono={<Receipt />} texto="Gastos generales" onClick={() => setVentanaGG(true)} />
+                  <BotonPequeno icono={<History />} texto="Nueva revisión" disabled={!esUltimaRevision || Boolean(cot.proyecto_id)}
+                    onClick={() => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); }} />
+                </Columna>
+              </GrupoCinta>
+              <GrupoCinta titulo="Partidas">
+                <Columna>
+                  <BotonPequeno icono={<BookOpen />} texto="Insertar del catálogo" onClick={() => setVerCatalogo(true)} />
+                  <BotonPequeno icono={<PackagePlus />} texto="Agregar insumo" onClick={() => {
+                    if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
+                    setCmdInsumo({ grupo: "INSUMO", n: Date.now() });
+                  }} />
+                </Columna>
+              </GrupoCinta>
+              <GrupoCinta titulo="Salida">
+                <Columna>
+                  <BotonPequeno icono={<FileSpreadsheet />} texto="Exportar a Excel" onClick={exportarCotizacion} />
+                  <BotonPequeno icono={<Library />} texto="Guardar como plantilla" onClick={() => void guardarPlantilla()} />
+                  <BotonPequeno icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id: cot.id, item: "" } })} />
+                </Columna>
+              </GrupoCinta>
             </div>
           }
         />
-        <div role="tablist" className="flex items-end gap-1 border-b border-border px-3 sm:px-4">
-          {([
-            { k: "volver", t: "Volver", activo: false, fn: () => { setSeleccion(null); setError(""); setAviso(""); } },
-            { k: "enc", t: "Encabezado", activo: encabezado, fn: () => setEncabezado(true) },
-            { k: "gg", t: "Gastos generales", activo: ventanaGG, fn: () => setVentanaGG(true) },
-            { k: "vp", t: "Vista previa", activo: false, fn: () => void navigate({ to: "/cotizacion-vista", search: { id: cot.id } }) },
-          ]).map((p) => (
-            <button
-              key={p.k}
-              type="button"
-              role="tab"
-              aria-selected={p.activo}
-              onClick={p.fn}
-              className={`-mb-px border-b-2 px-3 py-1.5 text-xs transition-colors ${p.activo ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-            >
-              {p.t}
-            </button>
-          ))}
-        </div>
         {error && <p className="mb-2 font-mono text-xs text-bad">{error}</p>}
         {aviso && <p className="mb-2 font-mono text-xs text-good">{aviso}</p>}
 
@@ -817,13 +831,7 @@ function Cotizaciones() {
               tipoCambio={Number(cot.tipo_cambio)}
               onSeleccionar={setPartidaActiva}
               barraEn={slotBarra}
-              accionesDocumento={[
-                { etiqueta: "Gastos generales", icono: <Receipt size={15} />, onClick: () => setVentanaGG(true) },
-                { etiqueta: "Nueva revisión", icono: <History size={15} />, oculto: !esUltimaRevision || Boolean(cot.proyecto_id), onClick: () => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); } },
-                { etiqueta: "Dossier APU", icono: <Calculator size={15} />, onClick: () => void navigate({ to: "/apu-vista", search: { id: cot.id, item: "" } }) },
-                { etiqueta: "Guardar como plantilla", icono: <Library size={15} />, onClick: () => void guardarPlantilla() },
-                { etiqueta: "Exportar a Excel", icono: <FileSpreadsheet size={15} />, onClick: exportarCotizacion },
-              ]}
+              accionesDocumento={[]}
               onAgregarInsumo={() => {
                 if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
                 setCmdInsumo({ grupo: "INSUMO", n: Date.now() });
