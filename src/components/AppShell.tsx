@@ -34,7 +34,7 @@ const SECCIONES_MAESTRO = [
   { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package },
   { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
   { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
-  { texto: "Herramientas", corto: "Herram.", seccion: "HE", campo: "seccion", icono: Hammer },
+  { texto: "Herramientas", corto: "Herramientas", seccion: "HE", campo: "seccion", icono: Hammer },
   { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
 ];
 const SECCIONES_MAESTRO_CFG = [
