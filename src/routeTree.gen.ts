@@ -15,6 +15,7 @@ import { Route as AuthenticatedAlmacenRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAprobacionesRouteImport } from './routes/_authenticated/aprobaciones'
 import { Route as AuthenticatedApuVistaRouteImport } from './routes/_authenticated/apu-vista'
 import { Route as AuthenticatedAvanceRouteImport } from './routes/_authenticated/avance'
+import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated/ayuda'
 import { Route as AuthenticatedBeneficiosRouteImport } from './routes/_authenticated/beneficios'
 import { Route as AuthenticatedCajaChicaRouteImport } from './routes/_authenticated/caja-chica'
 import { Route as AuthenticatedCatalogoTecnicoRouteImport } from './routes/_authenticated/catalogo-tecnico'
@@ -90,6 +91,11 @@ const AuthenticatedApuVistaRoute = AuthenticatedApuVistaRouteImport.update({
 const AuthenticatedAvanceRoute = AuthenticatedAvanceRouteImport.update({
   id: '/avance',
   path: '/avance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
+  id: '/ayuda',
+  path: '/ayuda',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBeneficiosRoute = AuthenticatedBeneficiosRouteImport.update({
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/apu-vista': typeof AuthenticatedApuVistaRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/catalogo-tecnico': typeof AuthenticatedCatalogoTecnicoRoute
@@ -405,6 +412,7 @@ export interface FileRoutesByTo {
   '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/apu-vista': typeof AuthenticatedApuVistaRoute
   '/avance': typeof AuthenticatedAvanceRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/beneficios': typeof AuthenticatedBeneficiosRoute
   '/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/catalogo-tecnico': typeof AuthenticatedCatalogoTecnicoRoute
@@ -460,6 +468,7 @@ export interface FileRoutesById {
   '/_authenticated/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/_authenticated/apu-vista': typeof AuthenticatedApuVistaRoute
   '/_authenticated/avance': typeof AuthenticatedAvanceRoute
+  '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
   '/_authenticated/beneficios': typeof AuthenticatedBeneficiosRoute
   '/_authenticated/caja-chica': typeof AuthenticatedCajaChicaRoute
   '/_authenticated/catalogo-tecnico': typeof AuthenticatedCatalogoTecnicoRoute
@@ -515,6 +524,7 @@ export interface FileRouteTypes {
     | '/aprobaciones'
     | '/apu-vista'
     | '/avance'
+    | '/ayuda'
     | '/beneficios'
     | '/caja-chica'
     | '/catalogo-tecnico'
@@ -568,6 +578,7 @@ export interface FileRouteTypes {
     | '/aprobaciones'
     | '/apu-vista'
     | '/avance'
+    | '/ayuda'
     | '/beneficios'
     | '/caja-chica'
     | '/catalogo-tecnico'
@@ -622,6 +633,7 @@ export interface FileRouteTypes {
     | '/_authenticated/aprobaciones'
     | '/_authenticated/apu-vista'
     | '/_authenticated/avance'
+    | '/_authenticated/ayuda'
     | '/_authenticated/beneficios'
     | '/_authenticated/caja-chica'
     | '/_authenticated/catalogo-tecnico'
@@ -718,6 +730,13 @@ declare module '@tanstack/react-router' {
       path: '/avance'
       fullPath: '/avance'
       preLoaderRoute: typeof AuthenticatedAvanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ayuda': {
+      id: '/_authenticated/ayuda'
+      path: '/ayuda'
+      fullPath: '/ayuda'
+      preLoaderRoute: typeof AuthenticatedAyudaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/beneficios': {
@@ -1050,6 +1069,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAprobacionesRoute: typeof AuthenticatedAprobacionesRoute
   AuthenticatedApuVistaRoute: typeof AuthenticatedApuVistaRoute
   AuthenticatedAvanceRoute: typeof AuthenticatedAvanceRoute
+  AuthenticatedAyudaRoute: typeof AuthenticatedAyudaRoute
   AuthenticatedBeneficiosRoute: typeof AuthenticatedBeneficiosRoute
   AuthenticatedCajaChicaRoute: typeof AuthenticatedCajaChicaRoute
   AuthenticatedCatalogoTecnicoRoute: typeof AuthenticatedCatalogoTecnicoRoute
@@ -1102,6 +1122,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAprobacionesRoute: AuthenticatedAprobacionesRoute,
   AuthenticatedApuVistaRoute: AuthenticatedApuVistaRoute,
   AuthenticatedAvanceRoute: AuthenticatedAvanceRoute,
+  AuthenticatedAyudaRoute: AuthenticatedAyudaRoute,
   AuthenticatedBeneficiosRoute: AuthenticatedBeneficiosRoute,
   AuthenticatedCajaChicaRoute: AuthenticatedCajaChicaRoute,
   AuthenticatedCatalogoTecnicoRoute: AuthenticatedCatalogoTecnicoRoute,
