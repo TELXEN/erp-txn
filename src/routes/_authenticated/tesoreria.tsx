@@ -803,7 +803,6 @@ function Tesoreria() {
         )}
       </Panel>
         </div>
-        </div>
       )}
 
       {verReporte && (
