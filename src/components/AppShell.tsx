@@ -1,5 +1,5 @@
 import { LogOut, FileDigit, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
-import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, Boxes, BookOpen, History, LayoutDashboard, CircleDollarSign, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent, CircleHelp, NotebookText, BadgeInfo, Stamp } from "lucide-react";
+import { ContactRound, Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, BookOpen, History, LayoutDashboard, CircleDollarSign, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent, CircleHelp, NotebookText, BadgeInfo, Stamp } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -50,7 +50,7 @@ const SECCIONES_MAESTRO_CFG = [
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
-import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado, PortapapelesVerificado, PortapapelesLapiz, GanttLineas, CurvaAzul, PortapapelesDatos, BoletaDolar, NotaCreditoRoja, NotaDebitoAzul, TesoreriaEdificio, BovedaRetenciones, PartidasTresColores } from "@/components/icons";
+import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado, PortapapelesVerificado, PortapapelesLapiz, GanttLineas, CurvaAzul, PortapapelesDatos, BoletaDolar, NotaCreditoRoja, NotaDebitoAzul, TesoreriaEdificio, BovedaRetenciones, PartidasTresColores, CajasInventario } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
@@ -150,7 +150,7 @@ const SECCIONES_VEHICULOS = [
 
 const SECCIONES_ALMACEN = [
   { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
-  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes, grande: true },
+  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: CajasInventario, grande: true },
 ];
 
 
