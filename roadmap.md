@@ -200,3 +200,4 @@
 - [x] Icono Inventario: cubos de la base en azul y el de arriba en verde
 - [x] Vehículos: Flota verde, Tareo de Vehículos azul y Traslados marrón
 - [ ] Maestro de Insumos: grupo de una columna con Equipos, Herramientas y Mano de Obra (icono + texto)
+- [ ] Datos: subir el icono de Laboral a la altura de Marcas
