@@ -124,7 +124,7 @@ import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documento
 
 const SECCIONES_COTIZ = [
   { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText, grande: true },
-  { texto: "Análisis de Precios Unitarios (APU)", corto: "APU", a: "/datos-apu", icono: Calculator },
+  { texto: "Análisis de Precios Unitarios (APU)", corto: "APU", a: "/datos-apu", icono: Calculator, iconoClase: "text-cinta-verde" },
   { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
 ];
 
