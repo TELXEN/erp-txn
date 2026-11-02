@@ -25,7 +25,7 @@ const GRUPO: Record<string, string> = {
   "/generar-requerimiento": "Solicitar", "/aprobaciones": "Solicitar",
   "/proveedores": "Socios", "/transportistas": "Socios",
   "/requerimientos": "Comprar", "/ordenes-compra": "Comprar", "/importaciones": "Comprar",
-  "/almacen": "Existencias", "/inventario": "Existencias", "/vehiculos": "Existencias",
+  "/vehiculos": "Vehículos",
   "/dashboard": "Análisis", "/flujo-caja": "Análisis",
   "/gastos-directos": "Costos", "/gastos-generales": "Costos",
   "/tesoreria": "Caja y bancos", "/caja-chica": "Caja y bancos", "/sire": "SUNAT",
