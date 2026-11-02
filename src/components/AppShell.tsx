@@ -175,7 +175,7 @@ const MENU: Categoria[] = [
       { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Construction },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
-      { a: "/gantt", texto: "Gantt y Curva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
+      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
       { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
