@@ -22,11 +22,11 @@ import { actualizarBorradorComprobante, crearComprobanteElectronico, eliminarBor
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>) => ({ preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "" }), head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de comprobantes de pago electrónicos: facturas, boletas, notas y retenciones y percepciones." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
+export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>) => ({ preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "", tipo: typeof s["tipo"] === "string" && s["tipo"] in TIPOS_COMPROBANTE ? s["tipo"] : "" }), head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de comprobantes de pago electrónicos: facturas, boletas, notas y retenciones y percepciones." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
 
 export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo" | "guias" } = {}) {
   const esGuias = modo === "guias";
-  const { rol } = useAuth(); const preliquidacion = (useSearch({ strict: false }) as { preliquidacion?: string }).preliquidacion ?? ""; const navigate = useNavigate(); const qc = useQueryClient();
+  const { rol } = useAuth(); const { preliquidacion, tipo: tipoQ } = Route.useSearch(); const navigate = useNavigate(); const qc = useQueryClient();
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
   const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
   const [sel, setSel] = useState("");
@@ -44,6 +44,18 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const [ventaExt, setVentaExt] = useState(false);
   const [origenGuiaAbierto, setOrigenGuiaAbierto] = useState(false); const [origenGuia, setOrigenGuia] = useState<"libre" | "cliente">("libre"); const [guiaCliente, setGuiaCliente] = useState(""); const [guiaProyecto, setGuiaProyecto] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
+
+  // La pestaña activa vive en la URL (?tipo=) para que la cinta la resalte y F5 la conserve.
+  useEffect(() => {
+    if (tipoQ) return;
+    void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: pestanaInicial }, replace: true });
+  }, [tipoQ, preliquidacion, pestanaInicial, navigate]);
+  useEffect(() => {
+    const t = (tipoQ || pestanaInicial) as TipoComprobante;
+    if (t === pestana) return;
+    if (abierto) cambiarTipo(t); else setPestana(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoQ]);
 
   const { data: empresa } = useEmpresa();
   const { data: clientes = [] } = useQuery({ queryKey: ["terceros", "clientes-cpe"], queryFn: async () => { const { data, error } = await supabase.from("terceros").select("id,razon_social,numero_documento,direccion,tipo_documento").eq("es_cliente", true).eq("activo", true).order("razon_social"); if (error) throw error; return data ?? []; } });
@@ -81,6 +93,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   function cambiarTipo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
     setPestana(t); setForm({ ...form, tipo_comprobante: t, serie, referencia_id: t === "07" || t === "08" ? form.referencia_id : "" });
+    void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: t } });
   }
   function cerrar() { setAbierto(false); setEditando(null); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
 
@@ -96,6 +109,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       const guia = (x.datos_guia ?? {}) as Record<string, string>; const regimen = (x.datos_regimen ?? {}) as Record<string, string>;
       const base = nuevoFormCpe(x.tipo_comprobante as TipoComprobante, x.serie);
       setEditando(x); setPreliquidacionOrigen(""); setCargado(""); setPestana(x.tipo_comprobante as TipoComprobante);
+      void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: x.tipo_comprobante } });
       setForm({ ...base, ...guia, tipo_comprobante: x.tipo_comprobante as TipoComprobante, serie: x.serie, cliente_id: x.cliente_id ?? "", proyecto_id: x.proyecto_id ?? "", referencia_id: x.comprobante_referencia_id ?? "", motivo_nota_codigo: x.motivo_nota_codigo, motivo_nota_descripcion: x.motivo_nota_descripcion, fecha_emision: x.fecha_emision, fecha_vencimiento: x.fecha_vencimiento ?? x.fecha_emision, moneda: x.moneda as "PEN" | "USD", tipo_cambio: String(x.tipo_cambio), operacion_tipo: x.operacion_tipo as OperacionTipo, condicion_pago: x.condicion_pago, dias_credito: String(x.dias_credito), tipo_tributario: x.tipo_tributario as TipoTributarioCpe, pct_detraccion: String(x.pct_detraccion), codigo_spot: x.codigo_spot, orden_compra: x.orden_compra, observacion: x.observacion, cliente_numero_documento: x.cliente_numero_documento ?? "", cliente_razon_social: x.cliente_razon_social ?? "", cliente_direccion: x.cliente_direccion ?? "", cliente_ciudad: x.cliente_ciudad ?? "", cliente_estado_sunat: x.cliente_estado_sunat ?? "", cliente_condicion_sunat: x.cliente_condicion_sunat ?? "", guia_remision_numero: x.guia_remision_numero ?? "", igv_tasa: String(x.igv_tasa ?? 18), anticipo_tipo: x.anticipo_tipo ?? "ninguno", anticipo_documento: x.anticipo_documento ?? "", anticipo_monto: Number(x.anticipo_monto ?? 0) ? String(x.anticipo_monto) : "", isc: String(x.isc ?? 0), icbper: String(x.icbper ?? 0), otros_cargos: String(x.otros_cargos ?? 0), otros_tributos: String(x.otros_tributos ?? 0), regimen_tasa: regimen["tasa"] ?? base.regimen_tasa, motivo_baja: x.motivo_baja ?? base.motivo_baja });
       setItems((filas ?? []).map((i) => ({ codigo: i.codigo, descripcion: i.descripcion, unidad_sunat: i.unidad_sunat, cantidad: String(i.cantidad), valor_unitario: String(i.valor_unitario), descuento: String(i.descuento) })));
       setCuotas((filasCuotas ?? []).map((q) => ({ fecha: q.fecha_vencimiento, monto: String(q.monto) })));
