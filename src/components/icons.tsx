@@ -482,8 +482,9 @@ export function TesoreriaEdificio({ className, ...props }: SVGProps<SVGSVGElemen
       className={className}
       {...props}
     >
-      {/* Frontón triangular, en negro */}
-      <path className="text-cinta-negro" fill="currentColor" d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z" />
+      {/* Frontón triangular, en negro y sin relleno */}
+      <path className="text-cinta-negro" d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z" />
+
       {/* Columnas, en el color del botón (dorado) */}
       <path d="M6 18v-7" />
       <path d="M10 18v-7" />
