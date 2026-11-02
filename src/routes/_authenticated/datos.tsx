@@ -92,6 +92,18 @@ function Datos() {
   const qc = useQueryClient();
   const [pestana, setPestana] = useRecordado<Pestana>("erp-datos-pestana", "codificacion");
   const [error, setError] = useState("");
+  const { pestana: pestanaUrl } = Route.useSearch();
+
+  // El menú desplegable de «Parámetros Generales» (cinta y menú lateral) abre la sección elegida.
+  useEffect(() => {
+    if (!pestanaUrl) return;
+    const valida = GRUPOS_CONFIG.some((g) => g.items.some(([p]) => p === pestanaUrl));
+    if (valida && pestanaUrl !== pestana) {
+      setPestana(pestanaUrl as Pestana);
+      setError("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pestanaUrl]);
 
   const { data: bancos = [] } = useQuery({
     queryKey: ["bancos"],
@@ -171,27 +183,6 @@ function Datos() {
           </Boton>
         }
       />
-
-
-      <div className="mb-3 flex flex-wrap gap-1">
-        {GRUPOS_CONFIG.map((g) => {
-          const Icono = g.icono;
-          const activo = g.items.some(([p]) => p === pestana);
-          return (
-            <Boton
-              key={g.titulo}
-              variante={activo ? "primario" : "linea"}
-              onClick={() => {
-                const primero = g.items[0];
-                if (primero) setPestana(primero[0]);
-                setError("");
-              }}
-            >
-              <Icono size={13} /> {g.titulo}
-            </Boton>
-          );
-        })}
-      </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-5 border-b border-line pb-2">
         {(GRUPOS_CONFIG.find((g) => g.items.some(([p]) => p === pestana)) ?? GRUPOS_CONFIG[0]!).items.map(([p, texto]) => (
