@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Boxes, Check, ChevronDown, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import { Boton, Input, MenuFiltros, Panel, Select } from "@/components/ui-kit";
@@ -41,7 +41,7 @@ import {
 
 type SeccionInsumos = TipoInsumo | "HE" | "margenes" | "laboral" | "codificacion";
 
-export function Insumos() {
+export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undefined; onSeccion?: (s: SeccionInsumos) => void } = {}) {
   const qc = useQueryClient();
   const { data: lista = [] } = useInsumos();
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");
@@ -62,6 +62,13 @@ export function Insumos() {
   function cambiarPestana(t: TipoInsumo) {
     setSeccion(t);
     setFiltro(t === "HE" ? "EQ" : t);
+    onSeccion?.(t);
+  }
+
+  /** Va a una sección del maestro y avisa a la cinta para que resalte la opción activa. */
+  function irA(s: SeccionInsumos) {
+    if (s === "margenes" || s === "laboral" || s === "codificacion") { setSeccion(s); onSeccion?.(s); return; }
+    cambiarPestana(s as TipoInsumo);
   }
 
   function agregarInsumo(t: TipoInsumo) {
@@ -97,6 +104,21 @@ export function Insumos() {
   const grupoActivo =
     GRUPOS_INSUMOS.find((g) => g.items.some(([p]) => p === seccion)) ?? GRUPOS_INSUMOS[0]!;
 
+  // La cinta puede abrir una sección concreta por URL (?seccion=...).
+  const aplicada = useRef("");
+  useEffect(() => {
+    if (!seccionUrl || aplicada.current === seccionUrl) return;
+    if (seccionUrl === "margenes" || seccionUrl === "laboral" || seccionUrl === "codificacion") {
+      setSeccion(seccionUrl);
+      aplicada.current = seccionUrl;
+      return;
+    }
+    if (ORDEN_PESTANAS.includes(seccionUrl as TipoInsumo)) {
+      cambiarPestana(seccionUrl as TipoInsumo);
+      aplicada.current = seccionUrl;
+    }
+  }, [seccionUrl, ORDEN_PESTANAS.length]);
+
   // El foco de la fila de captura se aplica al montar; se libera después.
   useEffect(() => {
     if (!crearEn) return;
@@ -117,11 +139,7 @@ export function Insumos() {
               onClick={() => {
                 const primero = g.items[0];
                 if (!primero) return;
-                if (primero[0] === "margenes" || primero[0] === "laboral" || primero[0] === "codificacion") {
-                  setSeccion(primero[0]);
-                } else {
-                  cambiarPestana(primero[0] as TipoInsumo);
-                }
+                irA(primero[0]);
               }}
             >
               <Icono size={13} /> {g.titulo}
@@ -136,8 +154,7 @@ export function Insumos() {
             key={p}
             type="button"
             onClick={() => {
-              if (p === "margenes" || p === "laboral" || p === "codificacion") setSeccion(p);
-              else cambiarPestana(p as TipoInsumo);
+              irA(p);
             }}
             className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
               seccion === p
