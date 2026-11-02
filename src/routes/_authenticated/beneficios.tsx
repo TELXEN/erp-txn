@@ -1,11 +1,11 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Fragment, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
@@ -15,6 +15,12 @@ import { agruparBoletasPorTrabajador, calcCts, calcGrat, calcLiquidacion, filasR
 import { HojaCts, HojaGratificacion, HojaLiquidacion } from "@/components/personal/HojaCts";
 
 export const Route = createFileRoute("/_authenticated/beneficios")({
+  validateSearch: (s: Record<string, unknown>): { tipo?: Tipo } => {
+    const r: { tipo?: Tipo } = {};
+    const v = s["tipo"];
+    if (v === "CTS" || v === "Gratificación" || v === "Liquidación") r.tipo = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Beneficios Sociales — ERP TELXEN" },
@@ -103,7 +109,15 @@ function Beneficios() {
     setError("");
     if (t === "CTS") setPeriodo(ahora.getMonth() < 5 || ahora.getMonth() >= 10 ? "Mayo" : "Noviembre");
     if (t === "Gratificación") setPeriodo(ahora.getMonth() < 7 ? "Julio" : "Diciembre");
+    void navigate({ to: "/beneficios", search: { tipo: t }, replace: true });
   };
+
+  // La cinta y la URL mandan sobre lo que se muestra; al llegar sin parámetro se fija la vista actual.
+  useEffect(() => {
+    if (tipoQ && tipoQ !== tipo) cambiarTipo(tipoQ);
+    else if (!tipoQ && enCinta) void navigate({ to: "/beneficios", search: { tipo }, replace: true });
+  }, [tipoQ, tipo, enCinta, navigate]);
+
 
   async function calcularPeriodo(recalcular: boolean) {
     setError("");
