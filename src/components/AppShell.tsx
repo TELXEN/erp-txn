@@ -422,27 +422,27 @@ export function AppShell({ children }: { children: ReactNode }) {
             modo={modoNav as "simplificada" | "clasica"}
             onModo={cambiarModo}
             distintivo={(a) => (a === "/aprobaciones" ? pendientesAprobacion : 0)}
-            logo={<span className="mr-1 grid size-6 shrink-0 place-items-center rounded bg-cta font-mono text-[10px] font-bold text-cta-foreground" title="ERP TELXEN SAC">TXN</span>}
+            logo={<span className="mr-1 grid size-6 shrink-0 place-items-center rounded bg-cinta-acento font-mono text-[10px] font-bold text-cinta-acento-foreground" title="ERP TELXEN SAC">TXN</span>}
             usuario={
               <div className="ml-auto flex items-center gap-2 pl-2">
-                <span className="grid size-6 place-items-center rounded-full bg-cta text-[10px] font-semibold text-cta-foreground">
+                <span className="grid size-6 place-items-center rounded-full bg-cinta-acento text-[10px] font-semibold text-cinta-acento-foreground">
                   {iniciales}
                 </span>
                 <div className="hidden leading-tight lg:block">
                   <p className="text-[11px] font-semibold">{nombre || email}</p>
-                  <p className="font-mono text-[9px] uppercase tracking-wide text-sidebar-muted">
+                  <p className="font-mono text-[9px] uppercase tracking-wide text-cinta-tenue">
                     {rol ? ETIQUETA_ROL[rol] : "Sin rol"}
                   </p>
                 </div>
                 <button
                   onClick={cerrarSesion}
-                  className="rounded-md border border-sidebar-border px-2.5 py-1 font-mono text-[11px] text-sidebar-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                  className="rounded-md border border-cinta-borde px-2.5 py-1 font-mono text-[11px] text-cinta-texto transition-colors hover:border-cinta-acento hover:bg-cinta-acento hover:text-cinta-acento-foreground"
                 >
                   Cerrar Sesión
                 </button>
               </div>
             }
-            pantallaCompleta={<BotonPantallaCompleta className="grid size-7 place-items-center rounded-md text-sidebar-muted transition-colors hover:bg-sidebar-hover hover:text-sidebar-foreground" />}
+            pantallaCompleta={<BotonPantallaCompleta className="grid size-7 place-items-center rounded-md text-cinta-tenue transition-colors hover:bg-cinta-hover hover:text-cinta-texto" />}
           />
         )}
         <header className="no-print sticky top-0 z-20 flex min-h-12 shrink-0 items-center gap-3 border-b border-brand bg-brand px-4 py-1.5 text-brand-foreground">
