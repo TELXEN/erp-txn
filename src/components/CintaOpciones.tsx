@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Rows3, Search, Star } from "lucide-react";
@@ -237,22 +237,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
       return (
-        <div key={m.a} className="flex shrink-0 items-center gap-1">
-          {link}
-          <div className="grid grid-cols-2 gap-x-1 gap-y-0.5">
-            {m.sub.map((o) => {
-              const SI = o.icono!;
-              return (
-                <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
+        <div key={m.a} className="flex shrink-0 items-center">
+          {m.sub.map((o, i) => {
+            const SI = o.icono!;
+            return (
+              <Fragment key={o.seccion}>
+                {i > 0 && <span aria-hidden className="mx-1 h-6 w-px shrink-0 bg-cinta-borde" />}
+                <Link to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
                   activeOptions={{ includeSearch: true }}
                   activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
                   inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
                   className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs">
                   <SI className="size-4 shrink-0" /> {o.corto ?? o.texto}
                 </Link>
-              );
-            })}
-          </div>
+              </Fragment>
+            );
+          })}
         </div>
       );
     }
