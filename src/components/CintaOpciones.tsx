@@ -7,7 +7,7 @@ import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
 export type SubOpcionCinta = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: SubOpcionCinta[]; subGrupos?: { titulo: string; opciones: SubOpcionCinta[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 /** Ancho del botón: lo justo para leer la etiqueta completa en dos renglones, sin partir palabras. */
@@ -290,6 +290,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         // Con una sola pequeña, va en la fila de arriba: queda a la altura de las demás opciones pequeñas.
         const sitio = hayGrande ? (grande ? { gridColumn: rGrande + 1, gridRow: `1 / span ${filasPeq}` }
           : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: 1 }
+          : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-center gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
         const contenido = grande ? <><SI className={`size-6 shrink-0 ${o.iconoClase ?? ""}`} /><span>{o.corto ?? o.texto}</span></> : <><SI className={`size-3.5 shrink-0 ${o.iconoClase ?? ""}`} /> {o.corto ?? o.texto}</>;
