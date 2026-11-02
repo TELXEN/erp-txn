@@ -26,7 +26,7 @@ const SECCIONES_CATALOGO = [
   { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler, grande: true },
   { texto: "Especialidades", corto: "Especialidades", seccion: "especialidades", campo: "pestana", icono: Shapes },
   { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: FolderTree },
-  { texto: "Subcategorías", corto: "Subcateg.", seccion: "subfamilias", campo: "pestana", icono: Network },
+  { texto: "Subcategorías", corto: "Subcategorías", seccion: "subfamilias", campo: "pestana", icono: Network },
   { texto: "Marcas", corto: "Marcas", seccion: "marcas", campo: "pestana", icono: Tag },
   { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: ListTree },
 ];
