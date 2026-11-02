@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { GrupoCinta } from "@/components/CintaOpciones";
-import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cotizaciones/CintaCotizacion";
+import { BotonGrande, BotonPequeno, Columna, GrupoVista, SOLO_COTIZ } from "@/components/cotizaciones/CintaCotizacion";
 import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -408,6 +408,7 @@ function VistaCotizacion() {
   return (
     <>
       <Encabezado
+        soloCinta={SOLO_COTIZ}
         titulo="Vista previa de cotización"
         subtitulo={`${cot.codigo ?? "Sin código"} · ${cot.cliente || "Cliente sin registrar"}`}
         acciones={
