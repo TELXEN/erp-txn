@@ -419,7 +419,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   };
   const buscar = (a: string) => plano.find((m) => m.a === a);
   /** Con una pantalla propia abierta (p. ej. una cotización), la categoría muestra solo los botones que conserva. */
-  const solo = enCtx ? contextual?.solo : undefined;
   // Los botones conservados pierden sus opciones laterales (p. ej. APU y Plantillas junto a Cotizaciones).
   const itemsVistos = cat && solo && cat.items.some((m) => solo.includes(m.a))
     ? cat.items.filter((m) => solo.includes(m.a)).map(({ sub, subGrupos, ...r }) => r)
