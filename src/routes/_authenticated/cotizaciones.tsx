@@ -6,6 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { GrupoCinta } from "@/components/CintaOpciones";
+import { BotonGrande, BotonPequeno, Columna, GrupoVista } from "@/components/cotizaciones/CintaCotizacion";
+import { Building2, BookOpen, PackagePlus } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco, guardarPartidaEnBanco, useCatalogoCotizacion } from "@/lib/banco-apu";
@@ -829,13 +831,7 @@ function Cotizaciones() {
               tipoCambio={Number(cot.tipo_cambio)}
               onSeleccionar={setPartidaActiva}
               barraEn={slotBarra}
-              accionesDocumento={[
-                { etiqueta: "Gastos generales", icono: <Receipt size={15} />, onClick: () => setVentanaGG(true) },
-                { etiqueta: "Nueva revisión", icono: <History size={15} />, oculto: !esUltimaRevision || Boolean(cot.proyecto_id), onClick: () => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); } },
-                { etiqueta: "Dossier APU", icono: <Calculator size={15} />, onClick: () => void navigate({ to: "/apu-vista", search: { id: cot.id, item: "" } }) },
-                { etiqueta: "Guardar como plantilla", icono: <Library size={15} />, onClick: () => void guardarPlantilla() },
-                { etiqueta: "Exportar a Excel", icono: <FileSpreadsheet size={15} />, onClick: exportarCotizacion },
-              ]}
+              accionesDocumento={[]}
               onAgregarInsumo={() => {
                 if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
                 setCmdInsumo({ grupo: "INSUMO", n: Date.now() });
