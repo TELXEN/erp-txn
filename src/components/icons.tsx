@@ -104,3 +104,29 @@ export function FacturaSello({ className, ...props }: SVGProps<SVGSVGElement>) {
   );
 }
 
+
+/**
+ * Gráfico de barras del «Dashboard Financiero»: eje en el color del texto y
+ * tres barras verticales en verde, rojo y azul fijos (no cambian con el tema).
+ */
+export function GraficoFinanciero({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <path stroke="#029a56" d="M8 17v-3" />
+      <path stroke="#c1121f" d="M13 17V5" />
+      <path stroke="#0077b6" d="M18 17V9" />
+    </svg>
+  );
+}

@@ -44,7 +44,7 @@ const SECCIONES_MAESTRO_CFG = [
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
-import { ReciboCodigoBarras, NominaBoletas, FacturaSello } from "@/components/icons";
+import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
@@ -247,7 +247,7 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: BarChart3 },
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: GraficoFinanciero },
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
       { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet },
