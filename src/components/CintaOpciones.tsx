@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown, ChevronUp, PanelLeft, Rows2, Rows3 } from "lucide-react";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[] };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string }[] };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -11,6 +12,37 @@ const CORTO: Record<string, string> = {
   "Recursos Humanos": "Personal",
   "Temas de colores": "Temas",
 };
+
+function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string }[] }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!pos) return;
+    const cerrar = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest?.("[data-submenu-cinta]")) setPos(null); };
+    document.addEventListener("mousedown", cerrar);
+    return () => document.removeEventListener("mousedown", cerrar);
+  }, [pos]);
+  const abrir = () => {
+    const r = ref.current?.getBoundingClientRect();
+    setPos((p) => (p || !r ? null : { x: r.left, y: r.bottom + 2 }));
+  };
+  return (
+    <>
+      <button ref={ref} type="button" data-submenu-cinta aria-label="Ver secciones" onClick={abrir}
+        className="absolute bottom-0 right-0 grid size-4 place-items-center rounded text-cinta-tenue hover:bg-cinta-hover">
+        <ChevronDown className="size-3" />
+      </button>
+      {pos && createPortal(
+        <div data-submenu-cinta style={{ left: pos.x, top: pos.y }}
+          className="fixed z-[100] min-w-56 rounded-md border border-border bg-popover py-1 text-xs text-popover-foreground shadow-lg">
+          {sub.map((o) => (
+            <Link key={o.seccion} to={a} search={{ seccion: o.seccion } as never} onClick={() => setPos(null)}
+              className="block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground">{o.texto}</Link>
+          ))}
+        </div>, document.body)}
+    </>
+  );
+}
 
 function contiene(c: CategoriaCinta, p: string) {
   return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p));
@@ -100,20 +132,22 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const I = m.icono;
     const tono = act ? "bg-cinta-acento text-cinta-acento-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-hover";
     if (modo === "simplificada") {
-      return (
+      const link = (
         <Link key={m.a} to={m.a} title={m.texto} onClick={() => contraida && setPestana(pestana)}
           className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
+      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
     }
-    return (
+    const link = (
       <Link key={m.a} to={m.a} title={m.texto}
         className={`relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
         <I className="size-6 shrink-0" />
         <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
       </Link>
     );
+    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={m.sub} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
