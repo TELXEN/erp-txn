@@ -47,9 +47,7 @@ export function GrupoVista({ id, modo, onVolver }: { id: string; modo: "edicion"
       {modo === "vista" && (
         <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<PencilRuler />} texto="Edición" /></Link>
       )}
-      {modo === "vista" ? (
-        <BotonGrande icono={<Eye />} texto={"Vista\nprevia"} activo />
-      ) : (
+      {modo === "edicion" && (
         <Link to="/cotizacion-vista" search={{ id }}><BotonGrande icono={<Eye />} texto={"Vista\nprevia"} /></Link>
       )}
     </GrupoCinta>
