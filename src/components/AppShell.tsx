@@ -142,9 +142,10 @@ const SECCIONES_GUIAS = [
 
 const SECCIONES_VEHICULOS = [
   { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: LayoutDashboard, grande: true },
-  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car },
-  { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: CalendarClock },
-  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route },
+  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car, iconoClase: "text-cinta-verde" },
+  { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: CalendarClock, iconoClase: "text-cinta-azul" },
+  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route, iconoClase: "text-cinta-marron" },
+
   { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
 ];
 
