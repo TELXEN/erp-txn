@@ -203,7 +203,7 @@ const SECCIONES_BENEFICIOS = [
 
 
 type SubOpcion = { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string; grande?: boolean; search?: Record<string, string>; iconoClase?: string };
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: SubOpcion[]; subGrupos?: { titulo: string; opciones: SubOpcion[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean; iconoClase?: string };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; /** Rutas hermanas que también pertenecen a este botón (p. ej. la vista previa de una cotización). */ rutas?: string[]; hijos?: Item[]; sub?: SubOpcion[]; subGrupos?: { titulo: string; opciones: SubOpcion[]; subFilas?: number }[]; subFilas?: number; subColumnas?: boolean; unaLinea?: boolean; iconoClase?: string };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -223,7 +223,7 @@ const MENU: Categoria[] = [
     titulo: "Comercial",
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: FichaCliente, iconoClase: "text-cinta-azul" },
-      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ, subFilas: 3 },
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
