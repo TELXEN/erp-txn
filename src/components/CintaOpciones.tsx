@@ -268,8 +268,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const nGrande = idxGrande.length;
       const hayGrande = nGrande > 0;
       const nPeq = subs.length - nGrande;
-      // Con dos opciones van lado a lado; con más, se reparten en dos filas.
-      const filas = subs.length > 2 || hayGrande ? 2 : 1;
       // Con más filas (p. ej. tres opciones pequeñas bajo el botón grande) las filas se afinan para no agrandar la cinta.
       const filasPeq = m.subFilas ?? 2;
       const alto = filasPeq > 2 ? 20 : 24;
@@ -277,7 +275,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       // Los grandes ocupan todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const colsPeq = Math.ceil(nPeq / filasPeq);
-      const cols = hayGrande ? nGrande + colsPeq : Math.min(4, Math.ceil(subs.length / filas));
+      // Sin botón grande, las pequeñas también se apilan en filasPeq filas (p. ej. Gantt arriba y Curva S debajo).
+      const cols = hayGrande ? nGrande + colsPeq : Math.min(4, Math.ceil(subs.length / filasPeq));
+
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono;
         if (!SI) return null;
