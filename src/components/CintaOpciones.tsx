@@ -236,21 +236,26 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       </Link>
     );
     if (m.sub && m.sub.every((o) => o.icono)) {
-      const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
+      const subs = m.sub.slice(0, 6);
+      const cols = Math.min(3, Math.ceil(subs.length / 2));
+      const largo = Math.max(...subs.map((o) => (o.corto ?? o.texto).length));
+      const ancho = largo <= 12 ? 92 : Math.min(120, Math.round(largo * 6.4) + 26);
+      const celda = (o: NonNullable<ItemCinta["sub"]>[number]) => {
         const SI = o.icono!;
         return (
           <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-            className={`flex h-6 w-[92px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${i < 2 ? "row-start-1" : "row-start-2"} ${i % 2 ? "col-start-2" : "col-start-1"}`}>
+            style={{ width: ancho }}
+            className="flex h-6 items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px]">
             <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
           </Link>
         );
       };
       return (
-        <div key={m.a} className="grid shrink-0 grid-cols-[92px_92px] grid-rows-[24px_24px]">
-          {m.sub.slice(0, 4).map(celda)}
+        <div key={m.a} className="grid shrink-0" style={{ gridTemplateColumns: `repeat(${cols}, ${ancho}px)`, gridTemplateRows: `repeat(${Math.ceil(subs.length / cols)}, 24px)` }}>
+          {subs.map(celda)}
         </div>
       );
     }
