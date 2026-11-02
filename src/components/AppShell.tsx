@@ -89,7 +89,7 @@ import { aplicarTema, leerTema } from "@/lib/temas";
 import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documentos";
 
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[] };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string }[] };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
