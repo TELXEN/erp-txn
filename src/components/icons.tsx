@@ -655,11 +655,12 @@ export function RetornoCirculo({ className, ...props }: SVGProps<SVGSVGElement>)
       {...props}
     >
       {/* Aro exterior, trazo pesado como la referencia */}
-      <circle strokeWidth={2.3} cx="12" cy="12" r="9.6" />
+      <circle strokeWidth={2.8} cx="12" cy="12" r="9.6" />
       {/* Cuerpo: avanza a la derecha, gira en semicírculo ancho y vuelve a la izquierda, en azul */}
-      <path strokeWidth={2.7} strokeLinecap="butt" stroke="var(--color-icono-azul)" d="M6.2 15.6h8.2a3.6 3.6 0 0 0 0-7.2H7.8" />
+      <path strokeWidth={3.2} strokeLinecap="butt" stroke="var(--color-icono-azul)" d="M7 15.6h7.4a3.6 3.6 0 0 0 0-7.2H7.8" />
       {/* Punta triangular llena y prominente, en azul, mirando a la izquierda */}
-      <path fill="var(--color-icono-azul)" stroke="none" d="M4.9 8.4 9.4 5.3v6.2Z" />
+      <path fill="var(--color-icono-azul)" stroke="none" d="M5.2 8.4 9.4 5.3v6.2Z" />
+
 
 
 
