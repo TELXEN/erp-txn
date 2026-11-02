@@ -41,7 +41,7 @@ import {
 
 type SeccionInsumos = TipoInsumo | "HE" | "margenes" | "laboral" | "codificacion";
 
-export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string; onSeccion?: (s: SeccionInsumos) => void } = {}) {
+export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undefined; onSeccion?: (s: SeccionInsumos) => void } = {}) {
   const qc = useQueryClient();
   const { data: lista = [] } = useInsumos();
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");

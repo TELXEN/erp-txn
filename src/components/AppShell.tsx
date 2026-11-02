@@ -1,4 +1,4 @@
-import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Package, Wrench, Hammer, Percent, Briefcase } from "lucide-react";
+import { LogOut, Hash, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
