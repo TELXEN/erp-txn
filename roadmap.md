@@ -189,3 +189,4 @@
 - [x] Icono de «Nota de débito»: el signo más en azul.
 - [x] Cinta «Catálogo Técnico»: primera columna tras Unidades = Especialidades, Categorías, Subcategorías; segunda columna = Marcas, Títulos WBS, alineadas desde arriba.
 - [x] Barra de pestañas de la cinta con el color más oscuro del tema (Obsidiana negro, Word azul), texto claro y acento legible en los siete temas.
+- [x] Grupo Ayuda en la cinta de Inicio: botón grande de ayuda y tres opciones apiladas (Manual de usuario, Acerca de, Licencia) con pantalla propia; cinta clásica y menú lateral verificados, compilación OK.
