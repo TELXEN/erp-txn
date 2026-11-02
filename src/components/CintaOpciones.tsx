@@ -106,7 +106,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const grupos = cat?.items.filter((m) => m.hijos) ?? [];
 
   return (
-    <div className="no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
+    <div className="cinta-opciones no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
       <div className="flex h-9 items-center gap-1 bg-cinta-sup px-2">
         {logo}
         <nav className="flex min-w-0 items-center gap-0.5 overflow-x-auto" role="tablist">
