@@ -112,6 +112,9 @@
   --color-cinta-verde: #029a56;
   --color-cinta-rojo: #c1121f;
   --color-cinta-azul: #0077b6;
+  /* Marrón fijo para iconos de la cinta (traslados). */
+  --color-cinta-marron: #8b5e34;
+
   /* Azul del sello de goma del icono de Facturas. */
   --color-sello-factura: #0077b6;
   /* Verde de las palomitas de verificación (SIRE, Aprobaciones). */
@@ -527,5 +530,7 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .cinta-opciones a.cinta-activo .text-cinta-verde,
 .cinta-opciones a.cinta-activo .text-cinta-rojo,
 .cinta-opciones a.cinta-activo .text-cinta-azul,
+.cinta-opciones a.cinta-activo .text-cinta-marron,
 .cinta-opciones a.cinta-activo .text-cinta-negro { color: var(--cta-foreground); }
+
 

@@ -563,5 +563,45 @@ export function PartidasTresColores({ className, ...props }: SVGProps<SVGSVGElem
   );
 }
 
+/**
+ * Cajas de inventario.
+ *
+ * Icono propio de «Inventario»: los dos cubos de la base van en azul y el cubo
+ * de arriba en verde, para que se lea la pila de un vistazo.
+ */
+export function CajasInventario({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Cubo de la base, a la izquierda, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z" />
+      <path stroke="var(--color-icono-azul)" d="m7 16.5-4.74-2.85" />
+      <path stroke="var(--color-icono-azul)" d="m7 16.5 5-3" />
+      <path stroke="var(--color-icono-azul)" d="M7 16.5v5.17" />
+      {/* Cubo de la base, a la derecha, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z" />
+      <path stroke="var(--color-icono-azul)" d="m17 16.5-5-3" />
+      <path stroke="var(--color-icono-azul)" d="m17 16.5 4.74-2.85" />
+      <path stroke="var(--color-icono-azul)" d="M17 16.5v5.17" />
+      {/* Cubo superior, en verde */}
+      <path stroke="var(--color-icono-verde)" d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z" />
+      <path stroke="var(--color-icono-verde)" d="M12 8 7.26 5.15" />
+      <path stroke="var(--color-icono-verde)" d="m12 8 4.74-2.85" />
+      <path stroke="var(--color-icono-verde)" d="M12 13.5V8" />
+    </svg>
+  );
+}
+
+
 
 
