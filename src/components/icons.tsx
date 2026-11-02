@@ -65,3 +65,42 @@ export function NominaBoletas({ className, ...props }: SVGProps<SVGSVGElement>) 
   );
 }
 
+/**
+ * Factura con sello de goma.
+ *
+ * Icono propio de «Facturas»: hoja con esquina doblada, líneas de detalle y un
+ * sello de goma con cintas. El contorno del sello va en azul claro
+ * (--color-sello-factura); el resto sigue el color del texto para que el icono
+ * siga legible sobre el fondo de la cinta.
+ */
+export function FacturaSello({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Hoja con esquina doblada; se abre abajo a la izquierda para el sello */}
+      <path d="M13 22h5a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v3.3" />
+      <path d="M14 2v5a1 1 0 0 0 1 1h5" />
+      {/* Detalle de la factura: renglones y total */}
+      <path strokeWidth={1.4} d="M8.5 7.5h6" />
+      <path strokeWidth={1.4} d="M9.5 11h5" />
+      <path strokeWidth={1.4} d="M13.5 14.5h3.5" />
+      <path strokeWidth={1.4} d="M13.5 17.5h3.5" />
+      {/* Sello de goma con cintas, en azul claro */}
+      <g stroke="var(--color-sello-factura)">
+        <circle cx="6" cy="14" r="3" strokeWidth={1.8} />
+        <path strokeWidth={1.6} d="m7.69 16.479 1.29 4.88a.5.5 0 0 1-.698.591l-1.843-.849a1 1 0 0 0-.879.001l-1.846.85a.5.5 0 0 1-.692-.593l1.29-4.88" />
+      </g>
+    </svg>
+  );
+}
+
