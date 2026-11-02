@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Boxes, Check, ChevronDown, ChevronRight, SlidersHorizontal, X } from "lucide-react";
-import { Boton, Input, MenuFiltros, Panel, Select } from "@/components/ui-kit";
+import { Check, ChevronDown, ChevronRight, X } from "lucide-react";
+import { Input, MenuFiltros, Panel, Select } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { SelectorBuscable } from "@/components/SelectorBuscable";
 import { CeldaSubfamilia } from "@/components/CeldaSubfamilia";
 import { CeldaEspecialidad } from "@/components/CeldaEspecialidad";
 import { CeldasClasificacion } from "@/components/CeldasClasificacion";
-import { useEnCinta } from "@/components/AppShell";
 import { FichaInsumoMaestro } from "@/components/InsumoVentana";
 import { MargenesApuPanel } from "@/components/MargenesApu";
 import { ParametrosLaboralesPanel } from "@/components/ParametrosLaborales";
@@ -23,7 +22,6 @@ import { usaSubfamilia, validarClasificacion } from "@/lib/clasificacion-insumo"
 import {
   CATEGORIAS_OBRERO,
   REGIMENES_LABORALES,
-  TIPOS_INSUMO,
   TIPOS_SISTEMA,
   useTiposInsumo,
   apuDb,
@@ -43,7 +41,6 @@ import {
 type SeccionInsumos = TipoInsumo | "HE" | "margenes" | "laboral" | "codificacion";
 
 export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undefined; onSeccion?: (s: SeccionInsumos) => void } = {}) {
-  const enCinta = useEnCinta();
   const qc = useQueryClient();
   const { data: lista = [] } = useInsumos();
   const [filtro, setFiltro] = useState<TipoInsumo>("MO");
@@ -67,11 +64,6 @@ export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undef
     onSeccion?.(t);
   }
 
-  /** Va a una sección del maestro y avisa a la cinta para que resalte la opción activa. */
-  function irA(s: SeccionInsumos) {
-    if (s === "margenes" || s === "laboral" || s === "codificacion") { setSeccion(s); onSeccion?.(s); return; }
-    cambiarPestana(s as TipoInsumo);
-  }
 
   function agregarInsumo(t: TipoInsumo) {
     setCrearEn(t);
@@ -84,27 +76,6 @@ export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undef
     "MAT", "MO", "EQ", "HE", "SC",
     ...tiposDb.filter((t) => !t.oculto && !(TIPOS_SISTEMA as readonly string[]).includes(t.clave)).map((t) => t.clave),
   ];
-  const etiquetaTipo = (t: TipoInsumo) => t === "EQ" ? "EQUIPOS" : t === "HE" ? "HERRAMIENTAS" : TIPOS_INSUMO.find(([k]) => k === t)?.[1] ?? t;
-
-  // Grupos con el mismo estilo de navegación de la pantalla Datos (Catálogos maestros).
-  const GRUPOS_INSUMOS: { titulo: string; icono: React.ElementType; items: [SeccionInsumos, string][] }[] = [
-    {
-      titulo: "Maestro",
-      icono: Boxes,
-      items: ORDEN_PESTANAS.map((t) => [t, etiquetaTipo(t)] as [SeccionInsumos, string]),
-    },
-    {
-      titulo: "Configuración",
-      icono: SlidersHorizontal,
-      items: [
-        ["margenes", "Márgenes APU"],
-        ["laboral", "Parámetros laborales"],
-        ["codificacion", "Codificación de insumos"],
-      ] as [SeccionInsumos, string][],
-    },
-  ];
-  const grupoActivo =
-    GRUPOS_INSUMOS.find((g) => g.items.some(([p]) => p === seccion)) ?? GRUPOS_INSUMOS[0]!;
 
   // La cinta puede abrir una sección concreta por URL (?seccion=...).
   const aplicada = useRef("");
@@ -130,48 +101,6 @@ export function Insumos({ seccionUrl, onSeccion }: { seccionUrl?: string | undef
 
   return (
     <>
-      {!enCinta && (
-      <>
-      <div className="mb-3 flex flex-wrap gap-1">
-        {GRUPOS_INSUMOS.map((g) => {
-          const Icono = g.icono;
-          const activo = g.items.some(([p]) => p === seccion);
-          return (
-            <Boton
-              key={g.titulo}
-              variante={activo ? "primario" : "linea"}
-              onClick={() => {
-                const primero = g.items[0];
-                if (!primero) return;
-                irA(primero[0]);
-              }}
-            >
-              <Icono size={13} /> {g.titulo}
-            </Boton>
-          );
-        })}
-      </div>
-
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-        {grupoActivo.items.map(([p, texto]) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => {
-              irA(p);
-            }}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
-              seccion === p
-                ? "border-cta bg-primary/10 font-semibold text-primary"
-                : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
-            }`}
-          >
-            {texto}
-          </button>
-        ))}
-      </div>
-      </>
-      )}
 
       {seccion === "margenes" ? (
         <MargenesApuPanel />
