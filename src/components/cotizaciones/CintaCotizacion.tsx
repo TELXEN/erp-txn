@@ -10,7 +10,7 @@ type Base = { icono: ReactNode; texto: string; onClick?: () => void; disabled?: 
 export function BotonGrande({ icono, texto, onClick, disabled, activo, title }: Base) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} title={title} aria-pressed={activo}
-      className={cn("flex h-[68px] min-w-[56px] max-w-[84px] flex-col items-center justify-start gap-1 rounded-md px-1.5 pt-1.5 text-center text-[11px] leading-tight text-cinta-foreground transition-colors hover:bg-black/5 disabled:opacity-40",
+      className={cn("flex h-[68px] min-w-[56px] max-w-[84px] flex-col items-center justify-start gap-1 rounded-md px-1.5 pt-1.5 text-center text-[11px] leading-tight text-cinta-texto transition-colors hover:bg-black/5 disabled:opacity-40",
         activo && "cinta-activo bg-primary text-primary-foreground hover:bg-primary")}>
       <span className="[&>svg]:size-7 [&>svg]:stroke-[1.4]">{icono}</span>
       <span className="whitespace-pre-line">{texto}</span>
@@ -22,7 +22,7 @@ export function BotonGrande({ icono, texto, onClick, disabled, activo, title }: 
 export function BotonPequeno({ icono, texto, onClick, disabled, title }: Base) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} title={title}
-      className="flex h-[20px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] text-cinta-foreground transition-colors hover:bg-black/5 disabled:opacity-40 [&_svg]:size-3.5">
+      className="flex h-[20px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] text-cinta-texto transition-colors hover:bg-black/5 disabled:opacity-40 [&_svg]:size-3.5">
       {icono}{texto}
     </button>
   );
