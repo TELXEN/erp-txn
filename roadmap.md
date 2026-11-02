@@ -201,3 +201,7 @@
 - [x] Vehículos: Flota verde, Tareo de Vehículos azul y Traslados marrón
 - [x] Maestro de Insumos: grupo de una columna con Equipos, Herramientas y Mano de Obra (icono + texto)
 - [x] Datos: subir el icono de Laboral a la altura de Marcas
+
+## Cinta de cotización
+- [x] Quitar el botón «Vista previa» de la cinta cuando ya se está en la vista previa; verificado en edición y vista previa.
+- [x] Ocultar APU y Plantillas del grupo Presupuestar en modo edición y vista previa; verificado en listado, edición y vista previa.
