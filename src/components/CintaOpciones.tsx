@@ -238,8 +238,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     if (m.sub && m.sub.every((o) => o.icono)) {
       const subs = m.sub.slice(0, 8);
       const cols = Math.min(4, Math.ceil(subs.length / 2));
-      const largo = Math.max(...subs.map((o) => (o.corto ?? o.texto).length));
-      const ancho = largo <= 11 ? 92 : Math.min(112, Math.round(largo * 6.6) + 22);
+      // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const celda = (o: NonNullable<ItemCinta["sub"]>[number]) => {
         const SI = o.icono!;
         return (
@@ -247,14 +246,13 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-            style={{ width: ancho }}
-            className="flex h-6 items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px]">
+            className="flex h-6 min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px]">
             <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
           </Link>
         );
       };
       return (
-        <div key={m.a} className="grid shrink-0" style={{ gridTemplateColumns: `repeat(${cols}, ${ancho}px)`, gridTemplateRows: `repeat(${Math.ceil(subs.length / cols)}, 24px)` }}>
+        <div key={m.a} className="grid shrink-0" style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: "24px", columnGap: 6 }}>
           {subs.map(celda)}
         </div>
       );
