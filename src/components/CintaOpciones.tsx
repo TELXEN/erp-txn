@@ -258,15 +258,21 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const celda = (o: NonNullable<ItemCinta["sub"]>[number], i: number) => {
         const SI = o.icono!;
         const sitio = apilada ? (i === 0 ? { gridColumn: 1, gridRow: 1 } : i === 1 ? { gridColumn: 1, gridRow: 2 } : { gridColumn: 2, gridRow: "1 / span 2" }) : undefined;
+        const cls = `flex min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${apilada && i === 2 ? "h-full" : "h-6"}`;
+        const contenido = <><SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}</>;
+        if (o.a) {
+          return (
+            <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
+              activeOptions={{ includeSearch: true }}
+              activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
+              inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
+          );
+        }
         return (
-          <Link key={o.a ?? o.seccion} to={o.a ?? m.a} search={o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion } as never)} title={o.texto}
+          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
-            inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}
-            style={sitio}
-            className={`flex min-w-[76px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] ${apilada && i === 2 ? "h-full" : "h-6"}`}>
-            <SI className="size-3.5 shrink-0" /> {o.corto ?? o.texto}
-          </Link>
+            inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
         );
       };
       return (
