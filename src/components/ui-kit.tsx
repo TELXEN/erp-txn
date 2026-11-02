@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import type { ReactNode, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ButtonHTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Inbox, Info, Search, X } from "lucide-react";
@@ -83,9 +84,10 @@ export function VentanaFlotante({
     return () => window.removeEventListener("keydown", cerrar);
   }, [abierta, onCerrar]);
 
-  if (!abierta) return null;
-  return (
-    <div className={`fixed inset-0 z-50 flex items-start justify-center bg-ink/40 ${pantallaCompleta ? "overflow-hidden p-2" : "overflow-y-auto p-4"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
+  if (!abierta || typeof document === "undefined") return null;
+  // Al cuerpo del documento: así no hereda colores ni trazos de la cinta cuando se abre desde ella.
+  return createPortal(
+    <div className={`fixed inset-0 z-50 flex items-start justify-center bg-ink/40 text-ink ${pantallaCompleta ? "overflow-hidden p-2" : "overflow-y-auto p-4"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
       <section
         role="dialog"
         aria-modal="true"
@@ -104,7 +106,8 @@ export function VentanaFlotante({
         </div>
         <div className={`min-h-0 ${pantallaCompleta ? "flex flex-1 flex-col overflow-hidden" : "overflow-y-auto"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>{children}</div>
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

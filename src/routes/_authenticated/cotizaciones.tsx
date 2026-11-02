@@ -856,17 +856,18 @@ function Cotizaciones() {
               <Plus size={14} /> Nueva cotización
             </Boton>
             <VentanaFlotante titulo="Nueva cotización" subtitulo="Elige la moneda; luego completarás el encabezado" abierta={pidiendoMoneda} onCerrar={() => setPidiendoMoneda(false)} ancho="max-w-md">
-              <div className="space-y-3 p-4">
-                <p className="text-xs font-semibold">Moneda de la cotización <span className="text-bad">*</span></p>
+              <div className="space-y-4 p-5">
+                <p className="text-xs font-semibold text-ink">Moneda de la cotización <span className="text-bad">*</span></p>
                 <div className="grid grid-cols-2 gap-2">
                   {(["PEN", "USD"] as const).map((m) => (
-                    <button key={m} type="button" onClick={() => setMonedaNueva(m)} className={cn("rounded-md border px-3 py-3 text-sm font-semibold", monedaNueva === m ? "border-primary bg-primary/10 text-primary" : "border-line hover:bg-muted")}>
-                      {m === "PEN" ? "Soles (S/)" : "Dólares (US$)"}
+                    <button key={m} type="button" onClick={() => setMonedaNueva(m)} aria-pressed={monedaNueva === m} className={cn("flex flex-col items-center gap-1 rounded-lg border-2 bg-card px-3 py-4 transition-colors", monedaNueva === m ? "border-primary bg-primary/10 text-primary" : "border-line text-ink hover:border-primary/50 hover:bg-muted")}>
+                      <span className="text-2xl font-bold">{m === "PEN" ? "S/" : "US$"}</span>
+                      <span className="text-xs font-semibold">{m === "PEN" ? "Soles" : "Dólares"}</span>
                     </button>
                   ))}
                 </div>
                 {error && <p className="text-xs text-bad">{error}</p>}
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2 border-t border-line pt-4">
                   <Boton variante="linea" onClick={() => setPidiendoMoneda(false)}>Cancelar</Boton>
                   <Boton disabled={!monedaNueva} onClick={() => void crear()}>Crear y completar encabezado</Boton>
                 </div>
