@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, Clock, Home, Palette, PanelLeft, Pin, Rows2, Ro
 import { claveNombre } from "@/lib/formato-texto";
 
 export type ModoNavegacion = "lateral" | "simplificada" | "clasica";
-export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion: string; campo?: string; icono?: React.ElementType; corto?: string }[] };
+export type ItemCinta = { a: string; texto: string; icono: React.ElementType; hijos?: ItemCinta[]; sub?: { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string }[] };
 export type CategoriaCinta = { titulo: string; items: ItemCinta[] };
 
 const CORTO: Record<string, string> = {
@@ -81,7 +81,7 @@ function Buscador({ items }: { items: Resultado[] }) {
   );
 }
 
-function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string; campo?: string }[] }) {
+function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion?: string; campo?: string; a?: string }[] }) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -104,7 +104,7 @@ function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string;
         <div data-submenu-cinta style={{ left: pos.x, top: pos.y }}
           className="fixed z-[100] min-w-56 rounded-md border border-border bg-popover py-1 text-xs text-popover-foreground shadow-lg">
           {sub.map((o) => (
-            <Link key={o.seccion} to={a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} onClick={() => setPos(null)}
+            <Link key={o.a ?? o.seccion} to={o.a ?? a} search={o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion } as never)} onClick={() => setPos(null)}
               className="block px-3 py-1.5 hover:bg-accent hover:text-accent-foreground">{o.texto}</Link>
           ))}
         </div>, document.body)}
@@ -113,7 +113,7 @@ function SubMenu({ a, sub }: { a: string; sub: { texto: string; seccion: string;
 }
 
 function contiene(c: CategoriaCinta, p: string) {
-  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p));
+  return c.items.some((m) => m.a === p || m.hijos?.some((h) => h.a === p) || m.sub?.some((o) => (o.a ?? m.a) === p));
 }
 
 function SelectorModo({ modo, onModo, contraida, onContraer }: {
