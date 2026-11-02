@@ -355,7 +355,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-center gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
-        const contenido = grande ? <><SI className={`size-6 shrink-0 ${o.iconoClase ?? ""}`} /><span>{o.corto ?? o.texto}</span></> : <><SI className={`size-3.5 shrink-0 ${o.iconoClase ?? ""}`} /> {o.corto ?? o.texto}</>;
+        const contenido = grande ? <><SI className={`size-6 shrink-0 ${o.iconoClase ?? ""}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI className={`size-3.5 shrink-0 ${o.iconoClase ?? ""}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
         if (o.a) {
           return (
