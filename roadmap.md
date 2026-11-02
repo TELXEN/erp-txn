@@ -121,3 +121,6 @@
 - [x] Icono de pantalla completa (doble flecha diagonal) integrado dentro de la cinta, junto a «Cerrar Sesión»; en menú lateral sigue en el encabezado. Verificado en los tres modos.
 - [x] Parámetros Generales como grupo de la cinta: cuatro opciones separadas por líneas verticales finas con el rótulo debajo y sin el icono del ítem; clásico, simplificado y lateral verificados.
 - [x] Grupo Parámetros Generales en dos filas y dos columnas (de 371 a 199 px) y con línea vertical fina a la izquierda y a la derecha; todos los grupos de la cinta quedan enmarcados igual. Cuatro secciones y dos pestañas verificadas en pantalla.
+- [x] Quitadas las líneas internas en cruz del grupo; el bloque queda solo enmarcado por fuera (199 a 184 px). Verificado en pantalla.
+- [x] Configuración del Sistema como bloque de la cinta: cinco opciones con icono y nombre corto en dos filas (Empresa, Tipografía, Usuarios / Normativa, Integraciones) con el rótulo debajo; desplegable conservado en simplificada y lateral. Navegación a Normativa e Integraciones probada.
+- [x] Catálogo Técnico y Maestro de Insumos como bloques de la cinta: seis y ocho opciones con icono y nombre corto en dos filas, cada una abre su sección (?pestana= y ?seccion=); pestañas internas y cinta se sincronizan al hacer clic. Cuatro bloques, navegable y sin recortes, verificados en clásica y simplificada.
