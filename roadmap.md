@@ -119,3 +119,4 @@
 - [x] Subcontratos sin subfamilia: columna fuera del maestro, código forzado a 00 y regla en la base; verificado en pantalla.
 - [x] Cinta de opciones estilo Office (clásica y simplificada) con selector «Diseño», contraer cinta y opción de volver al menú lateral; ambas verificadas en pantalla.
 - [x] Icono de pantalla completa (doble flecha diagonal) integrado dentro de la cinta, junto a «Cerrar Sesión»; en menú lateral sigue en el encabezado. Verificado en los tres modos.
+- [x] Parámetros Generales: pestañas de grupo dentro de la cinta
