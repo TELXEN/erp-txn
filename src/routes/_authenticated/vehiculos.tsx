@@ -569,24 +569,28 @@ function PaginaVehiculos() {
         }
       />
 
-      <div className="mb-3 flex flex-wrap gap-1">
-        {GRUPOS_VEHICULOS.map((g) => { const Icono = g.icono; return (
-          <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) setPestaña(primero); }}><Icono size={13} />{g.titulo}</Boton>
-        ); })}
-      </div>
-      <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
-        {PESTAÑAS.filter((p) => grupoActivo?.items.includes(p.id)).map((p) => (
-          <button
-            key={p.id}
-            onClick={() => setPestaña(p.id)}
-            className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
-              pestaña === p.id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
-            }`}
-          >
-            {p.texto}
-          </button>
-        ))}
-      </div>
+      {!enCinta && (
+        <>
+          <div className="mb-3 flex flex-wrap gap-1">
+            {GRUPOS_VEHICULOS.map((g) => { const Icono = g.icono; return (
+              <Boton key={g.titulo} variante={g === grupoActivo ? "primario" : "linea"} onClick={() => { const primero = g.items[0]; if (primero) cambiarPestana(primero); }}><Icono size={13} />{g.titulo}</Boton>
+            ); })}
+          </div>
+          <div className="mb-4 flex flex-wrap gap-1 border-b border-line pb-3">
+            {PESTAÑAS.filter((p) => grupoActivo?.items.includes(p.id)).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => cambiarPestana(p.id)}
+                className={`rounded-md border-b-2 px-3 py-1.5 text-xs transition-colors ${
+                  pestaña === p.id ? "border-cta bg-primary/10 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-primary"
+                }`}
+              >
+                {p.texto}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
       {pestaña === "flota" && (
         <div className="space-y-4">
