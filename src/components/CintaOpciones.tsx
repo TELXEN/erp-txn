@@ -211,26 +211,17 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
-  // Con una pantalla abierta, su pestaña de categoría muestra las acciones de la pantalla o, al tocarla otra vez, los botones de la categoría.
-  const [verAcciones, setVerAcciones] = useState(false);
   const [contraida, setContraida] = useState(false);
   useEffect(() => { try { setContraida(localStorage.getItem("erp-telxen-cinta-contraida") === "1"); } catch { /* */ } }, []);
-  // Navegar desde la cuadrícula conserva la vista de botones; llegar por otro camino (menú lateral, buscador, recarga) muestra las acciones de la pantalla.
-  const gridNav = useRef<string | null>(null);
-  useEffect(() => {
-    setPestana(activa);
-    if (gridNav.current === pathname) return;
-    gridNav.current = null;
-    setVerAcciones(!!contextual);
-  }, [activa, pathname, !!contextual]);
-  const enCtx = !!contextual && pestana === activa && verAcciones;
+  useEffect(() => { setPestana(activa); }, [activa]);
+  // Las acciones de la pantalla abierta se muestran siempre a la derecha de la cinta, junto a los botones de su categoría.
+  const enCtx = !!contextual && pestana === activa;
   const alternarContraer = () => setContraida((v) => { try { localStorage.setItem("erp-telxen-cinta-contraida", v ? "0" : "1"); } catch { /* */ } return !v; });
   const enInicio = pestana === INICIO;
   const clicPestana = (t: string) => {
     if (contraida && pestana === t) alternarContraer();
-    if (t === pestana) { if (t === activa && contextual) setVerAcciones((v) => !v); return; }
-    // Venir de otra pestaña muestra los botones de la categoría; las acciones de la pantalla quedan a un toque más.
-    setPestana(t); setVerAcciones(false);
+    if (t === pestana) return;
+    setPestana(t);
   };
   const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
@@ -245,15 +236,15 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     const tono = act ? "bg-cinta-acento text-cinta-acento-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-hover";
     if (modo === "simplificada") {
       const link = (
-        <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => { gridNav.current = m.a; if (contraida) setPestana(pestana); }} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
+        <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
           className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
           <I className="size-4 shrink-0" /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
-      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} onIr={(d) => { gridNav.current = d; }} /></div> : link;
+      return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
     }
     const link = (
-      <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onClick={() => { gridNav.current = m.a; }} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
+      <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
         className={`relative flex w-[76px] shrink-0 flex-col items-center gap-1 rounded-md px-1 py-1.5 text-center text-[11px] leading-tight ${tono}`}>
         <I className="size-6 shrink-0" />
         <span className="line-clamp-2">{m.texto}</span><Insignia a={m.a} />
@@ -283,7 +274,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         if (o.a) {
           return (
             <Link key={o.a} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
-              onClick={() => { gridNav.current = o.a ?? m.a; }}
               activeOptions={{ includeSearch: true }}
               activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
               inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
@@ -291,7 +281,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         }
         return (
           <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
-            onClick={() => { gridNav.current = m.a; }}
             activeOptions={{ includeSearch: true }}
             activeProps={{ className: "bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
             inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
@@ -303,7 +292,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         </div>
       );
     }
-    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} onIr={(d) => { gridNav.current = d; }} /></div> : link;
+    return m.sub ? <div key={m.a} className="relative flex shrink-0">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.sub2?.opciones ?? [])]} /></div> : link;
   };
 
   // En la clásica: los ítems simples forman un grupo con el nombre de la pestaña; cada submenú es su propio grupo.
@@ -352,7 +341,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             const sel = c.titulo === pestana;
             return (
               <button key={c.titulo} type="button" role="tab" aria-selected={sel}
-                title={c.titulo === activa && contextual ? `${contextual.titulo} — toca ${CORTO[c.titulo] ?? c.titulo} para ver sus botones` : undefined}
+                title={c.titulo === activa && contextual ? contextual.titulo : undefined}
                 onClick={() => clicPestana(c.titulo)}
                 className={`relative h-9 shrink-0 whitespace-nowrap px-2.5 text-[13px] transition-colors hover:bg-cinta-hover ${sel ? "font-semibold" : "text-cinta-tenue"}`}>
                 {CORTO[c.titulo] ?? c.titulo}
@@ -368,9 +357,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           <SelectorModo modo={modo} onModo={onModo} contraida={contraida} onContraer={alternarContraer} />
         </div>
       </div>
-      <div ref={onRanuraContextual}
-        className={`${!contraida && enCtx ? "flex" : "hidden"} min-h-11 items-stretch gap-2 overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2 py-1.5 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2`} />
-      {!contraida && !enCtx && (
+      {!contraida && (
         <div className={`flex ${modo === "simplificada" ? "h-11 items-center gap-1" : "items-stretch pt-1"} overflow-x-auto border-t border-cinta-borde bg-cinta-inf px-2`}>
           {enInicio && !favoritos.length && !recientes.length && (
             <p className="flex items-center gap-2 px-2 py-3 text-xs text-cinta-tenue"><Pin className="size-4" /> Haz clic derecho en cualquier botón para anclarlo aquí.</p>
@@ -385,6 +372,10 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
               </p>
             </div>
           ))}
+          {enCtx && (
+            <div ref={onRanuraContextual}
+              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde py-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
+          )}
         </div>
       )}
     </div>
