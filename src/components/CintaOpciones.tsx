@@ -26,7 +26,7 @@ const GRUPO: Record<string, string> = {
   "/proveedores": "Socios", "/transportistas": "Socios",
   "/requerimientos": "Comprar", "/ordenes-compra": "Comprar", "/importaciones": "Comprar",
   "/vehiculos": "Vehículos",
-  "/dashboard": "Análisis", "/flujo-caja": "Análisis",
+  "/dashboard": "Análisis",
   "/gastos-directos": "Costos", "/gastos-generales": "Costos",
   "/tesoreria": "Caja y bancos", "/caja-chica": "Caja y bancos", "/sire": "SUNAT",
   "/personal": "Personal", "/tareo": "Personal",
@@ -335,8 +335,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const clasesGrupo = (g: { titulo: string; items: ItemCinta[]; sub?: boolean }, i: number) => {
     const izq = g.sub ? !visibles[i - 1]?.sub : i > 0;
     const der = g.sub || i === visibles.length - 1;
-    return `flex flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1.5" : "px-1"}`;
+    return `flex shrink-0 flex-col ${izq ? "border-l border-cinta-tenue/70" : ""} ${der ? "border-r border-cinta-tenue/70" : ""} ${g.sub ? "px-1.5" : "px-1"}`;
   };
+
 
   return (
     <div className="cinta-opciones no-print shrink-0 border-b border-cinta-borde bg-cinta-inf text-cinta-texto">
