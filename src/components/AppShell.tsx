@@ -174,15 +174,15 @@ const SECCIONES_FLUJO = [
 // Caja y bancos: el icono grande abre las tarjetas de resumen; al lado, en una sola columna, las tres gestiones.
 const SECCIONES_TESORERIA = [
   { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: Landmark, grande: true, iconoClase: "text-cinta-oro" },
-  { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: ArrowDownLeft },
-  { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: ArrowUpRight },
+  { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: ArrowDownLeft, iconoClase: "text-cinta-verde" },
+  { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: ArrowUpRight, iconoClase: "text-cinta-rojo" },
   { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: BadgePercent },
 ];
 
 // Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
 const SECCIONES_VISTAS = [
-  { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: ChartGantt },
-  { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: ChartSpline },
+  { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: GanttLineas },
+  { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: CurvaAzul },
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
@@ -191,9 +191,9 @@ const SECCIONES_NOMINA = [
 // Opciones del grupo Beneficios Sociales: Datos de AFP grande a la izquierda y las demás en una columna vertical.
 const SECCIONES_BENEFICIOS = [
   { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: PiggyBank, grande: true },
-  { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: Sprout },
-  { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: Gift },
-  { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: UserMinus },
+  { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: Sprout, iconoClase: "text-cinta-verde" },
+  { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: Gift, iconoClase: "text-cinta-azul" },
+  { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: UserMinus, iconoClase: "text-cinta-rojo" },
 ];
 
 
@@ -220,7 +220,7 @@ const MENU: Categoria[] = [
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Factory },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: Layers },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
-      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt, sub: SECCIONES_VISTAS, subFilas: 3 },
+      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: GanttLineas, sub: SECCIONES_VISTAS, subFilas: 3 },
       { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: PortapapelesLapiz },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: PortapapelesVerificado },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: EscudoVerificado },
@@ -262,7 +262,7 @@ const MENU: Categoria[] = [
       {
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
         hijos: [
-          { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: ClipboardList },
+          { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: PortapapelesDatos },
           { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackagePlus },
           { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: History },
         ],
