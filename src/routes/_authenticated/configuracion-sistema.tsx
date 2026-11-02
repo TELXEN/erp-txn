@@ -16,7 +16,7 @@ type Seccion = "tipografia" | "usuarios" | "empresa" | "integraciones" | "normat
 const SECCIONES: Seccion[] = ["empresa", "tipografia", "usuarios", "normativa", "integraciones"];
 
 export const Route = createFileRoute("/_authenticated/configuracion-sistema")({
-  validateSearch: (s: Record<string, unknown>): { seccion?: string } => (typeof s.seccion === "string" ? { seccion: s.seccion } : {}),
+  validateSearch: (s: Record<string, unknown>): { seccion?: string } => (typeof s["seccion"] === "string" ? { seccion: s["seccion"] } : {}),
   head: () => ({
     meta: [
       { title: "Configuración del Sistema — TELXEN ERP" },
