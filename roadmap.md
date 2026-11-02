@@ -199,3 +199,5 @@
 - [x] Icono Partidas = PartidasTresColores: contorno superior azul, línea media verde, línea inferior roja; verificado en pantalla.
 - [x] Icono Inventario: cubos de la base en azul y el de arriba en verde
 - [x] Vehículos: Flota verde, Tareo de Vehículos azul y Traslados marrón
+- [x] Maestro de Insumos: grupo de una columna con Equipos, Herramientas y Mano de Obra (icono + texto)
+- [x] Datos: subir el icono de Laboral a la altura de Marcas

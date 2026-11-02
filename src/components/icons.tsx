@@ -602,6 +602,36 @@ export function CajasInventario({ className, ...props }: SVGProps<SVGSVGElement>
   );
 }
 
+/**
+ * Ficha de cliente.
+ *
+ * Icono propio de «Clientes»: el cuadrado lleva el borde negro y la persona del
+ * interior va en azul, para que la ficha se lea de un vistazo.
+ */
+export function FichaCliente({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Cuadrado de la ficha, con borde negro */}
+      <rect stroke="var(--color-cinta-negro)" x="3" y="3" width="18" height="18" rx="4" />
+      {/* Cabeza de la persona, en azul */}
+      <circle stroke="var(--color-icono-azul)" cx="12" cy="9.8" r="2.8" />
+      {/* Hombros de la persona, en azul */}
+      <path stroke="var(--color-icono-azul)" d="M7.2 17.6c0-2.6 2.1-4.4 4.8-4.4s4.8 1.8 4.8 4.4" />
+    </svg>
+  );
+}
+
 
 
 
