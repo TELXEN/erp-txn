@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Hash, FolderKanban } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -16,10 +16,10 @@ const SECCIONES_CONFIG = [
   { texto: "Integraciones", seccion: "integraciones" },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", seccion: "codificacion", campo: "pestana" },
-  { texto: "Parámetros de proyectos", seccion: "configuracion", campo: "pestana" },
-  { texto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana" },
-  { texto: "Recursos Humanos", seccion: "cargos", campo: "pestana" },
+  { texto: "Codificación", corto: "Codificación", seccion: "codificacion", campo: "pestana", icono: Hash },
+  { texto: "Parámetros de proyectos", corto: "Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
+  { texto: "Costos y Finanzas", corto: "Costos", seccion: "categoriasgg", campo: "pestana", icono: Calculator },
+  { texto: "Recursos Humanos", corto: "RR. HH.", seccion: "cargos", campo: "pestana", icono: Users },
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
