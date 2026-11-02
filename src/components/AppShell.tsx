@@ -38,10 +38,12 @@ const SECCIONES_CATALOGO = [
 ];
 const SECCIONES_MAESTRO = [
   { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package, grande: true },
-  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
+  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
+];
+const SECCIONES_MAESTRO_RECURSOS = [
   { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
   { texto: "Herramientas", corto: "Herramientas", seccion: "HE", campo: "seccion", icono: Hammer },
-  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
+  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
 ];
 const SECCIONES_MAESTRO_CFG = [
   { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent, grande: true },
@@ -288,7 +290,7 @@ const MENU: Categoria[] = [
     titulo: "Datos",
     items: [
       { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO, subFilas: 3, subColumnas: true },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG }] },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subGrupos: [{ titulo: "Recursos", opciones: SECCIONES_MAESTRO_RECURSOS, subFilas: 3 }, { titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG }] },
     ],
   },
 ];
