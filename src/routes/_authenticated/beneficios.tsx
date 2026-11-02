@@ -1,11 +1,11 @@
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
-import { createFileRoute } from "@tanstack/react-router";
-import { Fragment, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Fragment, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, FileText, RefreshCw, Trash2, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Encabezado } from "@/components/AppShell";
+import { Encabezado, useEnCinta } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha, hoy, soles } from "@/lib/format";
@@ -15,6 +15,12 @@ import { agruparBoletasPorTrabajador, calcCts, calcGrat, calcLiquidacion, filasR
 import { HojaCts, HojaGratificacion, HojaLiquidacion } from "@/components/personal/HojaCts";
 
 export const Route = createFileRoute("/_authenticated/beneficios")({
+  validateSearch: (s: Record<string, unknown>): { tipo?: Tipo } => {
+    const r: { tipo?: Tipo } = {};
+    const v = s["tipo"];
+    if (v === "CTS" || v === "Gratificación" || v === "Liquidación") r.tipo = v;
+    return r;
+  },
   head: () => ({
     meta: [
       { title: "Beneficios Sociales — ERP TELXEN" },
@@ -43,6 +49,10 @@ function Beneficios() {
   const qc = useQueryClient();
   const { data: trabajadores = [] } = useTrabajadores();
   const ahora = new Date();
+  const enCinta = useEnCinta();
+  const navigate = useNavigate();
+  const { tipo: tipoQ } = Route.useSearch();
+
   const [sel, setSel] = useState("");
   const [tipo, setTipo] = useState<Tipo>("CTS");
   const [anio, setAnio] = useState(ahora.getFullYear());
@@ -93,17 +103,28 @@ function Beneficios() {
       .sort((a, b) => a.trabajador_id.localeCompare(b.trabajador_id) || a.fecha_hasta.localeCompare(b.fecha_hasta))
     : registros;
 
-  if (!puedeVerDinero(rol)) return <SinAcceso />;
-
-  const tDe = (id: string) => trabajadores.find((t) => t.id === id);
-  const planilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios");
-  const refrescar = () => qc.invalidateQueries({ queryKey: ["beneficios"] });
   const cambiarTipo = (t: Tipo) => {
     setTipo(t);
     setError("");
     if (t === "CTS") setPeriodo(ahora.getMonth() < 5 || ahora.getMonth() >= 10 ? "Mayo" : "Noviembre");
     if (t === "Gratificación") setPeriodo(ahora.getMonth() < 7 ? "Julio" : "Diciembre");
+    void navigate({ to: "/beneficios", search: { tipo: t }, replace: true });
   };
+
+  // La cinta y la URL mandan sobre lo que se muestra; al llegar sin parámetro se fija la vista actual.
+  // Va antes del acceso denegado: los hooks no pueden quedar detrás de un return anticipado.
+  useEffect(() => {
+    if (tipoQ && tipoQ !== tipo) cambiarTipo(tipoQ);
+    else if (!tipoQ && enCinta) void navigate({ to: "/beneficios", search: { tipo }, replace: true });
+  }, [tipoQ, tipo, enCinta, navigate]);
+
+  if (!puedeVerDinero(rol)) return <SinAcceso />;
+
+  const tDe = (id: string) => trabajadores.find((t) => t.id === id);
+  const planilla = trabajadores.filter((t) => t.tipo_contratacion !== "Honorarios");
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["beneficios"] });
+
+
 
   async function calcularPeriodo(recalcular: boolean) {
     setError("");
