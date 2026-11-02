@@ -104,6 +104,8 @@
   --color-cinta-acento-foreground: var(--cta-foreground);
   /* Dorado fijo para iconos que el usuario quiere siempre en ese color, sin importar el tema. */
   --color-cinta-oro: oklch(0.66 0.14 85);
+  /* Azul claro del sello de goma del icono de Facturas. */
+  --color-sello-factura: rgb(161 212 250);
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
