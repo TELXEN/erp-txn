@@ -654,12 +654,13 @@ export function RetornoCirculo({ className, ...props }: SVGProps<SVGSVGElement>)
       className={className}
       {...props}
     >
-      {/* Aro exterior, algo más fino para que la flecha pese lo mismo */}
-      <circle strokeWidth={1.8} cx="12" cy="12" r="9.6" />
+      {/* Aro exterior, trazo pesado como la referencia */}
+      <circle strokeWidth={2.3} cx="12" cy="12" r="9.6" />
       {/* Cuerpo: avanza a la derecha, gira en semicírculo ancho y vuelve a la izquierda, en azul */}
-      <path strokeWidth={2.4} stroke="var(--color-icono-azul)" d="M6.2 15.6h8.2a3.6 3.6 0 0 0 0-7.2H7.8" />
+      <path strokeWidth={2.7} strokeLinecap="butt" stroke="var(--color-icono-azul)" d="M6.2 15.6h8.2a3.6 3.6 0 0 0 0-7.2H7.8" />
       {/* Punta triangular llena y prominente, en azul, mirando a la izquierda */}
-      <path fill="var(--color-icono-azul)" stroke="none" d="M5.2 8.4 9.2 5.6v5.6Z" />
+      <path fill="var(--color-icono-azul)" stroke="none" d="M4.9 8.4 9.4 5.3v6.2Z" />
+
 
 
 
