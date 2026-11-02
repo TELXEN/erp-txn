@@ -1,7 +1,7 @@
 import { useRecordado } from "@/lib/recordado";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { BotonIcono } from "@/components/ui-kit";
-import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,7 +22,7 @@ import { actualizarBorradorComprobante, crearComprobanteElectronico, eliminarBor
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>) => ({ preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "", tipo: typeof s["tipo"] === "string" && s["tipo"] in TIPOS_COMPROBANTE ? s["tipo"] : "" }), head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de comprobantes de pago electrónicos: facturas, boletas, notas y retenciones y percepciones." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
+export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>): { preliquidacion: string; tipo?: string } => { const r: { preliquidacion: string; tipo?: string } = { preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "" }; if (typeof s["tipo"] === "string" && s["tipo"] in TIPOS_COMPROBANTE) r.tipo = s["tipo"]; return r; }, head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de comprobantes de pago electrónicos: facturas, boletas, notas y retenciones y percepciones." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
 
 export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo" | "guias" } = {}) {
   const esGuias = modo === "guias";
