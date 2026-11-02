@@ -197,5 +197,5 @@
 - [x] Icono Clientes (personita) en azul (#0077b6) en la cinta; verificado en pantalla.
 - [x] Icono Retenciones: disco central en naranja (#e85d04) con icono propio BovedaRetenciones; verificado en pantalla.
 - [x] Icono Partidas = PartidasTresColores: contorno superior azul, línea media verde, línea inferior roja; verificado en pantalla.
-- [ ] Icono Inventario: cubos de la base en azul y el de arriba en verde
-- [ ] Vehículos: Flota verde, Tareo de Vehículos azul y Traslados marrón
+- [x] Icono Inventario: cubos de la base en azul y el de arriba en verde
+- [x] Vehículos: Flota verde, Tareo de Vehículos azul y Traslados marrón
