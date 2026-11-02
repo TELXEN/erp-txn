@@ -116,9 +116,10 @@ import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documento
 const SECCIONES_COTIZ = [
   { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText },
   { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
+  { texto: "Análisis de Precios Unitarios (APU)", corto: "A.P.U.", a: "/datos-apu", icono: Calculator },
 ];
 
-type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion: string; campo?: string; icono?: React.ElementType; corto?: string }[] };
+type Item = { a: string; texto: string; roles: Rol[]; icono: React.ElementType; hijos?: Item[]; sub?: { texto: string; seccion?: string; campo?: string; icono?: React.ElementType; corto?: string; a?: string }[] };
 type Categoria = { titulo: string; items: Item[] };
 
 const MENU: Categoria[] = [
@@ -126,7 +127,6 @@ const MENU: Categoria[] = [
     titulo: "Comercial",
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Users },
-      { a: "/datos-apu", texto: "Análisis de Precios Unitarios (APU)", roles: ["administrador", "gerente"], icono: Calculator },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ReciboCodigoBarras },
@@ -258,7 +258,7 @@ function ItemSubMenu({ item, pathname }: { item: Item; pathname: string }) {
       {abierto && (
         <div className="ml-4 mt-1 space-y-1 border-l border-sidebar-border pl-2">
           {item.sub!.map((o) => (
-            <Link key={o.seccion} to={item.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never}
+            <Link key={o.a ?? o.seccion} to={o.a ?? item.a} search={o.a ? undefined : ({ [o.campo ?? "seccion"]: o.seccion } as never)}
               className="flex rounded-md px-2.5 py-1.5 text-[13px] text-sidebar-foreground transition-colors hover:bg-sidebar-hover">
               {o.texto}
             </Link>
