@@ -160,3 +160,34 @@ export function HojaVerificada({ className, ...props }: SVGProps<SVGSVGElement>)
     </svg>
   );
 }
+
+/**
+ * Caja de traslado con verificación.
+ *
+ * Icono propio de «Guías de Remisión»: caja isométrica con la palomita dentro
+ * de la cara frontal. La palomita va en azul (--color-check-guia); el resto
+ * sigue el color del texto para que el icono siga legible sobre la cinta.
+ */
+export function CajaVerificada({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Caja de traslado */}
+      <path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" />
+      <path strokeWidth={1.4} d="M12 22V12" />
+      <path strokeWidth={1.4} d="m3.29 7 8.71 5 8.71-5" />
+      {/* Palomita de verificación, en azul */}
+      <path stroke="var(--color-check-guia)" d="m13.6 15.4 1.9 1.9 3.6-3.6" />
+    </svg>
+  );
+}

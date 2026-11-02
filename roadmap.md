@@ -175,3 +175,4 @@
 - [x] Icono de «Facturas» (Comercial › Facturación Electrónica): componente propio `FacturaSello` en `src/components/icons.tsx` — hoja con esquina doblada, cuatro renglones de detalle y sello de goma con cintas cuyo contorno va en azul `#0077b6` (token `--color-sello-factura` en `src/styles.css`). Probado en pantalla: sello `#0077b6` a 1.5 px tanto sin seleccionar (gris) como seleccionado (dorado), hoja y renglones nítidos, sin errores de consola; compilación OK.
 - [ ] Icono de «SIRE SUNAT» (Finanzas): la palomita dentro de la hoja en verde `#029a56` (token `--color-check-sire`).
 - [ ] Icono de «Guías de Remisión» (Comercial): la palomita de la caja en azul `#0077b6`.
+- [ ] Icono de «Aprobaciones»: la palomita en verde `#029a56`.
