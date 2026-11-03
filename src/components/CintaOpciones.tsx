@@ -322,7 +322,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const link = (
         <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
           className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
-          <I size={16} strokeWidth={1.75} className={`shrink-0 ${m.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /> {m.texto}<Insignia a={m.a} />
+          <I size={16} strokeWidth={2.25} className={`shrink-0 ${m.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
       return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.subGrupos ?? []).flatMap((g) => g.opciones)]} /></div> : link;
@@ -368,7 +368,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
-        const contenido = grande ? <><SI size={32} strokeWidth={1.75} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI size={16} strokeWidth={1.75} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
+        const contenido = grande ? <><SI size={32} strokeWidth={1.75} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI size={16} strokeWidth={2.25} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
         if (o.a) {
           return (
