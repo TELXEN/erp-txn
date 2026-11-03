@@ -322,7 +322,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const link = (
         <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
           className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-2.5 text-xs ${tono}`}>
-          <I className={`size-4 shrink-0 ${m.iconoClase ?? ""}`} /> {m.texto}<Insignia a={m.a} />
+          <I size={16} strokeWidth={1.75} className={`shrink-0 ${m.iconoClase ?? ""}`} /> {m.texto}<Insignia a={m.a} />
         </Link>
       );
       return m.sub ? <div key={m.a} className="relative flex shrink-0 pr-3">{link}<SubMenu a={m.a} sub={[...m.sub, ...(m.subGrupos ?? []).flatMap((g) => g.opciones)]} /></div> : link;
@@ -331,7 +331,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
         className={`relative flex w-auto max-w-none min-w-[62px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-1.5 text-center text-[11px] leading-tight ${tono}`}
         style={{ width: rotulos[m.texto]?.ancho ?? anchoEtiqueta(m.texto, m.unaLinea) }}>
-        <I className={`size-8 shrink-0 ${m.iconoClase ?? ""}`} />
+        <I size={32} strokeWidth={1.75} className={`shrink-0 ${m.iconoClase ?? ""}`} />
         <span lang="es" className={`line-clamp-2 w-full break-words${m.unaLinea ? " whitespace-nowrap" : " whitespace-pre-line"}`}>{rotulos[m.texto]?.texto ?? renglones(m.texto, m.unaLinea).join("\n")}</span><Insignia a={m.a} />
 
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
@@ -368,7 +368,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
-        const contenido = grande ? <><SI className={`size-8 shrink-0 ${o.iconoClase ?? ""}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI className={`size-4 shrink-0 ${o.iconoClase ?? ""}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
+        const contenido = grande ? <><SI size={32} strokeWidth={1.75} className={`shrink-0 ${o.iconoClase ?? ""}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI size={16} strokeWidth={1.75} className={`shrink-0 ${o.iconoClase ?? ""}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
         if (o.a) {
           return (

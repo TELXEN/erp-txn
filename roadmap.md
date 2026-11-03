@@ -214,3 +214,4 @@
 - [x] Iconos realistas en los accesos principales de la cinta: Cotizaciones, Empresa, Codificación, Unidades, Materiales, Márgenes, Resumen de vehículos, Almacén, Gastos Generales, Flujo de Caja, Honorarios, AFP, Temas y Ayuda; verificados en las cinco pestañas, compilación OK.
 - [x] Alinear todos los iconos grandes de la cinta a la misma altura vertical (iconos de botones grandes y de la ranura contextual); verificado con mediciones en las seis pestañas y en edición y vista previa de cotización.
 - [x] Medidas fijas de la cinta: iconos grandes 32x32 px y pequeños 16x16 px; verificado midiendo todos los iconos de las seis pestañas y de la ranura contextual de cotización.
+- [x] Cinta en lucide-react: los iconos del menú superior pasan a componentes de lucide-react con size={32} (grandes) y size={16} (pequeños), trazo uniforme strokeWidth={1.75}; verificado midiendo 41 grandes y 49 pequeños en las seis pestañas y en la cinta de cotización.

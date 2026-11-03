@@ -423,8 +423,8 @@ button.kpi-tarjeta:hover { border-color: color-mix(in oklab, var(--color-primary
 }
 
 /* Trazo fino exclusivo de la cinta, incluidos iconos propios y controles. */
-.cinta-opciones svg { stroke-width: 1.5; }
-.cinta-opciones svg [stroke-width] { stroke-width: 1.1; }
+/* Trazo uniforme de los iconos de la cinta (lucide-react). */
+.cinta-opciones svg { stroke-width: 1.75; }
 
 /* Menú lateral: barra de desplazamiento delgada visible solo al pasar el mouse */
 aside .md\:overflow-y-auto { scrollbar-width: thin; scrollbar-color: transparent transparent; }

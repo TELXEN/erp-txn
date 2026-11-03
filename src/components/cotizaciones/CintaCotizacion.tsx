@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Eye } from "lucide-react";
-import { LapizRegla, RetornoCirculo } from "@/components/icons";
+import { Eye, Pencil, Undo2 } from "lucide-react";
 
 
 import { GrupoCinta } from "@/components/CintaOpciones";
@@ -18,7 +17,7 @@ export function BotonGrande({ icono, texto, onClick, disabled, activo, title }: 
     <button type="button" onClick={onClick} disabled={disabled} title={title} aria-pressed={activo}
       className={cn("flex h-[76px] min-w-[56px] max-w-[84px] flex-col items-center justify-start gap-1 rounded-md px-1.5 pt-1.5 text-center text-[11px] leading-tight text-cinta-texto transition-colors hover:bg-black/5 disabled:opacity-40",
         activo && "cinta-activo bg-primary text-primary-foreground hover:bg-primary")}>
-      <span className="[&>svg]:!size-8 [&>svg]:stroke-[1.4]">{icono}</span>
+      <span className="[&>svg]:!size-8 [&>svg]:stroke-[1.75]">{icono}</span>
       <span className="whitespace-pre-line">{texto}</span>
     </button>
   );
@@ -43,13 +42,13 @@ export function GrupoVista({ id, modo, onVolver }: { id: string; modo: "edicion"
   return (
     <GrupoCinta titulo="Vista">
       {onVolver ? (
-        <BotonGrande icono={<RetornoCirculo />} texto="Volver" onClick={onVolver} />
+        <BotonGrande icono={<Undo2 />} texto="Volver" onClick={onVolver} />
       ) : (
-        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<RetornoCirculo />} texto="Volver" /></Link>
+        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<Undo2 />} texto="Volver" /></Link>
 
       )}
       {modo === "vista" && (
-        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<LapizRegla />} texto="Edición" /></Link>
+        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<Pencil />} texto="Edición" /></Link>
       )}
       {modo === "edicion" && (
         <Link to="/cotizacion-vista" search={{ id }}><BotonGrande icono={<Eye />} texto={"Vista\nprevia"} /></Link>
