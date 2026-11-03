@@ -266,7 +266,8 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
       {error && <p className="mt-2 text-xs text-bad">{error}</p>}
 
       <div className="mt-2 flex min-h-0 flex-1 gap-2">
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-md border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-md border">
+          <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div ref={tablaRef as unknown as React.RefObject<HTMLDivElement>}>
             <table className="w-full text-xs">
               <colgroup><col className="w-16" /><col /><col className="w-24" /><col className="w-20" /><col className="w-20" /><col className="w-28" /><col className="w-28" /></colgroup>
@@ -336,6 +337,21 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             </table>
           </div>
         </div>
+        <div className="grid shrink-0 grid-cols-1 border-t text-xs">
+          {([
+            ["Costo directo total", costoDirecto, ""],
+            ["(+) Total gastos generales fijos", fijos, ""],
+            ["(+) Total gastos generales variables", variables, ""],
+            ["(=) Subtotal valor referencial del proyecto", res.subtotal, "font-semibold bg-muted/40"],
+            [`(+) Margen de utilidad (${util.toFixed(2)} %)`, res.utilidad, ""],
+            ["(=) Valor venta neto total", res.venta, "font-semibold bg-muted/40"],
+            [`(+) IGV (${aplicaIgv ? "18.00" : "0.00"} %)`, res.igv, ""],
+            ["(=) PRESUPUESTO FINAL TOTAL", res.total, "font-bold bg-muted text-primary"],
+          ] as const).map(([t, v, c], i) => (
+            <div key={t} className={cn("flex justify-between px-3 py-1", i < 7 && "border-b", c)}><span>{t}</span><span className="tabular-nums">{fmt(v)}</span></div>
+          ))}
+        </div>
+        </div>
         {!soloLectura && (
           <div className="sticky top-0 self-start"><BarraIconosHoja objeto="fila de gastos generales" haySeleccion={Boolean(sel)} onEditar={() => enfocarFila(sel)} onCopiar={copiar} onEliminar={eliminar}
             extras={<>
@@ -347,20 +363,6 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
               <BotonIcono etiqueta="Bajar" disabled={!sel || !moverGG(filas, filas.findIndex((f) => f.id === sel), 1)} onClick={() => void mover(1)}><ArrowDown size={15} /></BotonIcono>
             </>} /></div>
         )}
-      </div>
-      <div className="ml-auto mt-2 grid w-full max-w-4xl shrink-0 grid-flow-col grid-cols-2 grid-rows-4 rounded-md border text-xs">
-        {([
-          ["Costo directo total", costoDirecto, ""],
-          ["(+) Total gastos generales fijos", fijos, ""],
-          ["(+) Total gastos generales variables", variables, ""],
-          ["(=) Subtotal valor referencial del proyecto", res.subtotal, "font-semibold bg-muted/40"],
-          [`(+) Margen de utilidad (${util.toFixed(2)} %)`, res.utilidad, ""],
-          ["(=) Valor venta neto total", res.venta, "font-semibold bg-muted/40"],
-          [`(+) IGV (${aplicaIgv ? "18.00" : "0.00"} %)`, res.igv, ""],
-          ["(=) PRESUPUESTO FINAL TOTAL", res.total, "font-bold bg-muted text-primary"],
-        ] as const).map(([t, v, c]) => (
-          <div key={t} className={cn("flex justify-between border-b px-3 py-1", c)}><span>{t}</span><span className="tabular-nums">{fmt(v)}</span></div>
-        ))}
       </div>
       </div>
       )}
