@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Boton } from "@/components/ui-kit";
 import { HojaGastosGenerales } from "@/components/cotizaciones/HojaGastosGenerales";
@@ -20,10 +20,10 @@ export const Route = createFileRoute("/_authenticated/gg-vista")({
 
 function VistaGG() {
   const { id } = Route.useSearch();
-  const router = useRouter();
+  const navigate = useNavigate();
   return (
     <div className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-md border border-line">
-      <HojaGastosGenerales id={id} acciones={<Boton variante="linea" onClick={() => router.history.back()}><ArrowLeft size={13} /> Volver</Boton>} />
+      <HojaGastosGenerales id={id} acciones={<Boton variante="linea" onClick={() => void navigate({ to: "/cotizacion-vista", search: { id } })}><ArrowLeft size={13} /> Volver</Boton>} />
     </div>
   );
 }
