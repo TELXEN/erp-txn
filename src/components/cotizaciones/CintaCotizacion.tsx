@@ -42,13 +42,13 @@ export function GrupoVista({ id, modo, onVolver }: { id: string; modo: "edicion"
   return (
     <GrupoCinta titulo="Vista">
       {onVolver ? (
-        <BotonGrande icono={<RetornoCirculo />} texto="Volver" onClick={onVolver} />
+        <BotonGrande icono={<Undo2 />} texto="Volver" onClick={onVolver} />
       ) : (
-        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<RetornoCirculo />} texto="Volver" /></Link>
+        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<Undo2 />} texto="Volver" /></Link>
 
       )}
       {modo === "vista" && (
-        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<LapizRegla />} texto="Edición" /></Link>
+        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<Pencil />} texto="Edición" /></Link>
       )}
       {modo === "edicion" && (
         <Link to="/cotizacion-vista" search={{ id }}><BotonGrande icono={<Eye />} texto={"Vista\nprevia"} /></Link>
