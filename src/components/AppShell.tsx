@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Banknote, Barcode } from "lucide-react";
 import { Binary, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
 import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
-import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Contact, Container, Database, Drill, Factory } from "lucide-react";
+import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Contact, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
 import { FileCheck2, FileDigit, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
 import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
 import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, LifeBuoy, ListChecks } from "lucide-react";
