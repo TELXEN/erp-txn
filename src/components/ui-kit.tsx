@@ -67,6 +67,7 @@ export function VentanaFlotante({
   ancho = "max-w-5xl",
   ocultarBarra = false,
   pantallaCompleta = false,
+  sinMargen = false,
   acciones,
 }: {
   titulo: string;
@@ -77,6 +78,7 @@ export function VentanaFlotante({
   ancho?: string;
   ocultarBarra?: boolean;
   pantallaCompleta?: boolean;
+  sinMargen?: boolean;
   acciones?: ReactNode;
 }) {
   useEffect(() => {
@@ -89,12 +91,12 @@ export function VentanaFlotante({
   if (!abierta || typeof document === "undefined") return null;
   // Al cuerpo del documento: así no hereda colores ni trazos de la cinta cuando se abre desde ella.
   return createPortal(
-    <div className={`fixed inset-0 z-50 flex items-start justify-center bg-ink/40 text-ink ${pantallaCompleta ? "overflow-hidden p-2" : "overflow-y-auto p-4"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
+    <div className={`fixed inset-0 z-50 flex items-start justify-center bg-ink/40 text-ink ${pantallaCompleta ? (sinMargen ? "overflow-hidden p-0" : "overflow-hidden p-2") : "overflow-y-auto p-4"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
       <section
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className={cn(`panel flex ${pantallaCompleta ? "h-[calc(100dvh-1rem)]" : `my-4 ${ocultarBarra ? "max-h-[calc(100dvh-4rem)]" : "max-h-[calc(100vh-2rem)]"}`} w-full flex-col overflow-hidden shadow-xl`, ancho)}
+        className={cn(`panel flex ${pantallaCompleta ? (sinMargen ? "h-dvh rounded-none" : "h-[calc(100dvh-1rem)]") : `my-4 ${ocultarBarra ? "max-h-[calc(100dvh-4rem)]" : "max-h-[calc(100vh-2rem)]"}`} w-full flex-col overflow-hidden shadow-xl`, ancho)}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">

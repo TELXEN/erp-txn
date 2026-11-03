@@ -215,7 +215,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const celda = "h-6 w-full rounded border border-transparent bg-transparent px-1 text-xs tabular-nums hover:border-line focus:border-primary focus:outline-none disabled:hover:border-transparent";
 
   return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
       acciones={
         <div className="flex items-center gap-1 text-xs">
           {([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const).map(([m, t, ic]) => (
