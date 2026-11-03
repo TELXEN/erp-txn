@@ -409,6 +409,9 @@ function VistaCotizacion() {
 
   return (
     <>
+      <VentanaFlotante titulo="Gastos generales" subtitulo="Vista previa del desagregado" abierta={verGG} onCerrar={() => setVerGG(false)} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta>
+        {verGG && <HojaGastosGenerales id={id} />}
+      </VentanaFlotante>
       <Encabezado
         soloCinta={SOLO_COTIZ}
         titulo="Vista previa de cotización"
