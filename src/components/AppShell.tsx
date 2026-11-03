@@ -4,18 +4,18 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { createPortal } from "react-dom";
 
 import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Banknote, Barcode } from "lucide-react";
-import { Binary, BookOpen, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays } from "lucide-react";
-import { Car, ChartGantt, ChartLine, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp, ClipboardCheck } from "lucide-react";
-import { ClipboardList, ClipboardPen, Coins, Contact, Database, Drill, Factory, FileCheck2 } from "lucide-react";
-import { FileDigit, FileMinus, FilePlus, FileSignature, FileText, FileX2, FolderClosed, FolderKanban } from "lucide-react";
+import { Binary, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
+import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
+import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Contact, Container, Database, Drill, Factory } from "lucide-react";
+import { FileCheck2, FileDigit, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
 import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
 import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, LifeBuoy, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
 import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
-import { Settings, Settings2, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, Signature, SlidersHorizontal } from "lucide-react";
-import { Sprout, Stamp, Tag, TrendingUp, Truck, Type, UserCog, UserMinus } from "lucide-react";
-import { UserRoundCheck, Users, Vault, Wallet, Warehouse, Wrench } from "lucide-react";
+import { Settings, Settings2, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
+import { Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Users, Vault, Wallet, Warehouse, Wrench } from "lucide-react";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -162,7 +162,7 @@ const SECCIONES_VISTAS = [
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: ReceiptText, grande: true },
-  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: Signature, grande: true },
+  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: FileUser, grande: true },
 ];
 // Opciones del grupo Beneficios Sociales: Datos de AFP grande a la izquierda y las demás en una columna vertical.
 const SECCIONES_BENEFICIOS = [
@@ -184,7 +184,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
-      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: Palette, subFilas: 3, sub: [
+      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: SwatchBook, subFilas: 3, sub: [
         { texto: "Temas de colores", corto: "Temas", a: "/tema-colores", icono: Palette, grande: true },
         { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
       ] },
@@ -195,7 +195,7 @@ const MENU: Categoria[] = [
     titulo: "Comercial",
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: Contact },
-      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: FileText, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: Files, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Banknote },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ScanBarcode, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
@@ -208,7 +208,7 @@ const MENU: Categoria[] = [
       { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Factory },
       { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: ListChecks },
       { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
-      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: ChartGantt, sub: SECCIONES_VISTAS, subFilas: 3 },
+      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: CalendarRange, sub: SECCIONES_VISTAS, subFilas: 3 },
       { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
       { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
       { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
@@ -222,9 +222,9 @@ const MENU: Categoria[] = [
       { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
       { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
       { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
-      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: Warehouse, sub: SECCIONES_ALMACEN },
+      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: Container, sub: SECCIONES_ALMACEN },
 
-      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
+      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: CarFront, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
     ],
   },
   {
@@ -232,12 +232,12 @@ const MENU: Categoria[] = [
     items: [
       { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: ChartLine },
       { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
-      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: Briefcase, sub: SECCIONES_GG, subFilas: 3 },
+      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ChartPie, sub: SECCIONES_GG, subFilas: 3 },
       { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet, unaLinea: true },
-      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: Landmark, sub: SECCIONES_TESORERIA, subFilas: 3 },
+      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: DollarSign, sub: SECCIONES_TESORERIA, subFilas: 3 },
 
 
-      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: TrendingUp, sub: SECCIONES_FLUJO, subFilas: 3 },
+      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: ChartArea, sub: SECCIONES_FLUJO, subFilas: 3 },
       { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck2 },
     ],
   },
@@ -246,7 +246,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
       { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
-      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: ReceiptText, sub: SECCIONES_NOMINA },
+      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: BookUser, sub: SECCIONES_NOMINA },
       { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS, subFilas: 3 },
       {
         a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
