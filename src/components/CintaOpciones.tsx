@@ -346,7 +346,9 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const nPeq = subs.length - nGrande;
       // Con más filas (p. ej. tres opciones pequeñas bajo el botón grande) las filas se afinan para no agrandar la cinta.
       const filasPeq = m.subFilas ?? 2;
-      const alto = filasPeq > 2 ? 20 : hayGrande ? 26 : 24;
+      // El botón grande lleva icono de 32 px más su rótulo: las filas se ensanchan lo justo para que no se corte.
+      const lineasGrande = Math.max(1, ...idxGrande.map((i) => (subs[i].corto ?? subs[i].texto).split("\n").length));
+      const alto = Math.max(filasPeq > 2 ? 20 : 24, Math.ceil((32 + 4 + lineasGrande * 14 + 2) / filasPeq));
       // Los grandes ocupan todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const colsPeq = Math.ceil(nPeq / filasPeq);
