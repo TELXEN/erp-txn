@@ -619,7 +619,7 @@ function Cotizaciones() {
                 </Columna>
               </GrupoCinta>
               <GrupoCinta titulo="Obra">
-                <BotonGrande icono={<Building2 />} texto={cot.proyecto_id ? "Obra\ngenerada" : "Convertir\nen obra"} onClick={() => void convertirEnObra()}
+                <BotonGrande icono={<Building2 style={{ color: "var(--color-cinta-icono-acento)" }} />} texto={cot.proyecto_id ? "Obra\ngenerada" : "Convertir\nen obra"} onClick={() => void convertirEnObra()}
                   disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"}
                   title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined} />
               </GrupoCinta>
