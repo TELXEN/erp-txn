@@ -63,7 +63,7 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
       const html2pdf = (await import("html2pdf.js")).default;
       await html2pdf().set({
         margin: [7, 5, 7, 5], filename: `GG_${cot?.codigo ?? "cotizacion"}.pdf`, image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false, onclone: colorearParaExportar },
+        html2canvas: { scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false, onclone: (doc: Document) => { colorearParaExportar(doc); const e = doc.getElementById("gg-impresion"); e?.classList.remove("space-y-6"); e?.querySelectorAll("section").forEach((x) => x.classList.remove("shadow-lg", "ring-1")); } },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"], avoid: ["tr"] },
       } as never).from(el).save();
