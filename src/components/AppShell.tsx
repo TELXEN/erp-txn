@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { createPortal } from "react-dom";
 
 import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Barcode } from "lucide-react";
-import { Binary, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
+import { FileKey2, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
 import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
 import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
 import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileSpreadsheet, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
