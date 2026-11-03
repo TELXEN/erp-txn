@@ -211,3 +211,4 @@
 - [x] Cinta de cotización: «Edición» con icono propio a color (LapizRegla): lápiz amarillo con goma rosa, casquillón metálico y punta de madera con mina, sobre regla gris clara con marcas; verificado en vista previa.
 
 
+- [x] Iconos realistas en los accesos principales de la cinta: Cotizaciones, Empresa, Codificación, Unidades, Materiales, Márgenes, Resumen de vehículos, Almacén, Gastos Generales, Flujo de Caja, Honorarios, AFP, Temas y Ayuda; verificados en las cinco pestañas, compilación OK.
