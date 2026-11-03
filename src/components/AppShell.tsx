@@ -1,5 +1,3 @@
-import { LogOut, FileDigit, Ruler, Percent } from "lucide-react";
-import { LayoutDashboard, PiggyBank } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -52,9 +50,6 @@ const SECCIONES_MAESTRO_CFG = [
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
-import { ScanBarcode, ReceiptText, FileDigit, ChartLine, FileCheck2, PackageCheck, ShieldCheck, ClipboardCheck, ClipboardPen, ChartGantt, ChartSpline, ClipboardList, Receipt, FileMinus, FilePlus, Landmark, Vault, ListChecks, Boxes, Contact, FileText, Building2, Binary, Ruler, Package, Percent, LayoutDashboard, Warehouse, Briefcase, TrendingUp, Signature, PiggyBank, Palette, LifeBuoy } from "@/components/icons";
-import { SlidersHorizontal, Settings, Palette, CircleHelp, NotebookText, BadgeInfo, Stamp, UserRoundCheck, Scale, Plug, Type, FolderKanban, UserCog, Coins, BookOpen, Database, Shapes, FolderTree, Network, Tag, ListTree, FileSignature, Drill, Hammer, Pickaxe, BadgeDollarSign, Barcode, Calculator, LayoutTemplate, FileText, Banknote, FolderClosed, Gauge, Factory, Activity, Handshake, Inbox, ShoppingCart, Plane, Truck, Warehouse, Car, CalendarClock, Route, Wrench, PackagePlus, History, HardHat, ShoppingBag, Briefcase, Wallet, TrendingUp, ScrollText, Settings2, Fuel, Grid3x3, ArrowDownLeft, ArrowUpRight, BadgePercent, CircleDollarSign, FileX2, Users, CalendarDays, HandCoins, Sprout, Gift, UserMinus } from "@/components/icons-realistas";
-import { ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
   const [activa, setActiva] = useState(false);
@@ -81,7 +76,6 @@ function BotonPantallaCompleta({ className = "grid size-7 place-items-center rou
     </button>
   );
 }
-import { BarChart3, Building2, Package, ReceiptText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 import { aplicarTema, leerTema } from "@/lib/temas";
