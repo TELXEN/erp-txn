@@ -216,3 +216,4 @@
 - [x] Medidas fijas de la cinta: iconos grandes 32x32 px y pequeños 16x16 px; verificado midiendo todos los iconos de las seis pestañas y de la ranura contextual de cotización.
 - [x] Cinta en lucide-react: los iconos del menú superior pasan a componentes de lucide-react con size={32} (grandes) y size={16} (pequeños), trazo uniforme strokeWidth={1.75}; verificado midiendo 41 grandes y 49 pequeños en las seis pestañas y en la cinta de cotización.
 - [x] Iconos de la cinta en estilo Flat/Minimalista: estructura azul oscuro uniforme (#22466b), acento naranja solo en «Convertir en obra», dorado solo en Tesorería; sin bordes negros gruesos (trazo 1.75).
+- [x] Opciones pequeñas de la cinta sin fondo activo permanente: Títulos WBS y demás subopciones quedan transparentes con icono azul y solo se resaltan al pasar el mouse.
