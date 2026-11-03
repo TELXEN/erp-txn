@@ -443,7 +443,7 @@ function Dashboard() {
               </Select>
             </div>}
             <Boton variante="linea" onClick={excel}>
-              <Upload size={13} /> Exportar a Excel
+              <Upload size={13} className="text-[var(--color-cinta-icono)]" /> Exportar a Excel
             </Boton>
             <Boton onClick={pdf} disabled={exportandoPdf}>
               {exportandoPdf ? "Generando..." : "Exportar a PDF"}
