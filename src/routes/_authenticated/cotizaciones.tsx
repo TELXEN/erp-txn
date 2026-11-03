@@ -767,8 +767,8 @@ function Cotizaciones() {
               onClick={() => setPestana(p)}
               className={`-mb-px min-h-9 border-b-2 px-3 py-2 text-xs font-medium transition-colors ${
                 pestana === p
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:border-line hover:text-ink"
+                  ? "border-cinta-seleccion text-ink"
+                  : "border-transparent text-muted-foreground hover:border-cinta-seleccion/50 hover:text-ink"
               }`}
             >
               {p} <span className="opacity-60">({n})</span>
