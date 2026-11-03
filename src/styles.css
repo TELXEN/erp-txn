@@ -561,12 +561,5 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 .dash-chip { display: block; border-radius: 0.25rem; padding: 0.3rem 0.5rem; font-size: 0.75rem; background: color-mix(in oklab, var(--card) 22%, transparent); }
 .dash-chip-activo { background: var(--card); color: var(--primary); font-weight: 600; }
 
-/* Iconos dorados: sobre el botón seleccionado (fondo dorado) pasan al color del texto activo para no perderse. */
-.cinta-opciones a.cinta-activo .text-cinta-oro,
-.cinta-opciones a.cinta-activo .text-cinta-verde,
-.cinta-opciones a.cinta-activo .text-cinta-rojo,
-.cinta-opciones a.cinta-activo .text-cinta-azul,
-.cinta-opciones a.cinta-activo .text-cinta-marron,
-.cinta-opciones a.cinta-activo .text-cinta-negro { color: var(--cta-foreground); }
 
 
