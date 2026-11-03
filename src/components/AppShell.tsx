@@ -224,7 +224,7 @@ const MENU: Categoria[] = [
       { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
       { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: Warehouse, sub: SECCIONES_ALMACEN },
 
-      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car, sub: SECCIONES_VEHICULOS, subFilas: 3, subColumnas: true },
+      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: Car, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
     ],
   },
   {
