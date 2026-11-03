@@ -3,6 +3,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
+import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Banknote, Barcode } from "lucide-react";
+import { Binary, BookOpen, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays } from "lucide-react";
+import { Car, ChartGantt, ChartLine, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp, ClipboardCheck } from "lucide-react";
+import { ClipboardList, ClipboardPen, Coins, Contact, Database, Drill, Factory, FileCheck2 } from "lucide-react";
+import { FileDigit, FileMinus, FilePlus, FileSignature, FileText, FileX2, FolderClosed, FolderKanban } from "lucide-react";
+import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
+import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, LifeBuoy, ListChecks } from "lucide-react";
+import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
+import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
+import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
+import { Settings, Settings2, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, Signature, SlidersHorizontal } from "lucide-react";
+import { Sprout, Stamp, Tag, TrendingUp, Truck, Type, UserCog, UserMinus } from "lucide-react";
+import { UserRoundCheck, Users, Vault, Wallet, Warehouse, Wrench } from "lucide-react";
+
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
 /** true cuando las acciones de pantalla viven en la cinta. */
