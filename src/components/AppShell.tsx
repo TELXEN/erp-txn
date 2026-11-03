@@ -16,7 +16,7 @@ import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollTex
 import { Settings, Settings2, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
 import { Stamp, SwatchBook, Table, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse, Wrench } from "lucide-react";
-import { GrupoPersonas } from "./icono-grupo";
+import { GrupoPersonas, LlantaLlave } from "./icono-grupo";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -119,7 +119,7 @@ const SECCIONES_VEHICULOS = [
   { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: CalendarClock },
   { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route },
 
-  { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: Wrench },
+  { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: LlantaLlave },
 ];
 
 const SECCIONES_ALMACEN = [
@@ -137,7 +137,7 @@ const SECCIONES_OP_ESP = [
 const SECCIONES_GG = [
   { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: Briefcase, grande: true },
   { texto: "Gastos generales", corto: "Detalle de Gastos", seccion: "gastos", campo: "pestana", icono: ScrollText },
-  { texto: "Mantenimiento de flota", corto: "Mantenimiento de Flota", seccion: "mantenimiento", campo: "pestana", icono: Settings2 },
+  { texto: "Mantenimiento de flota", corto: "Mantenimiento de Flota", seccion: "mantenimiento", campo: "pestana", icono: LlantaLlave },
   { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: Fuel },
 ];
 
