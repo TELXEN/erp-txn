@@ -136,8 +136,10 @@
   --color-lapiz-grafito: #3a3226;
   --color-lapiz-goma: #e8807d;
   --color-lapiz-metal: #b9bdc4;
-  --color-regla-cuerpo: #d7dbe0;
-  --color-regla-cuerpo-claro: #eef1f4;
+  --color-regla-cuerpo: #dfe4e9;
+  --color-regla-cuerpo-claro: #f4f7f9;
+  --color-regla-trazo: #7c848e;
+
 
 
   --color-chip-mat: var(--chip-mat);

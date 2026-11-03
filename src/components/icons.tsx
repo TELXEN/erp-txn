@@ -692,11 +692,12 @@ export function LapizRegla({ className, ...props }: SVGProps<SVGSVGElement>) {
       className={className}
       {...props}
     >
-      {/* Regla de metal, cruzada por detrás, con marcas de medición */}
-      <g transform="rotate(-32 12 12)">
-        <rect fill="var(--color-regla-cuerpo)" stroke="var(--color-cinta-negro)" strokeWidth={1} x="1.8" y="9.3" width="20.4" height="5.7" rx="1.1" />
-        <path stroke="var(--color-cinta-negro)" strokeWidth={0.85} d="M5.6 9.3v2.2M8.4 9.3v1.5M11.2 9.3v2.2M14 9.3v1.5M16.8 9.3v2.2M19.6 9.3v1.5" />
+      {/* Regla de metal, cruzada por detrás, casi horizontal y con pocas marcas largas */}
+      <g transform="rotate(-18 12 12)">
+        <rect fill="var(--color-regla-cuerpo)" stroke="var(--color-regla-trazo)" strokeWidth={1} x="1.6" y="13.4" width="20.8" height="5.4" rx="1.1" />
+        <path stroke="var(--color-regla-trazo)" strokeWidth={1} d="M5.4 13.4v2.6M9 13.4v2.6M12.6 13.4v2.6M16.2 13.4v2.6M19.8 13.4v2.6" />
       </g>
+
       {/* Lápiz amarillo, en diagonal por delante */}
       <g transform="rotate(36 12 12)">
         {/* Goma rosa */}
