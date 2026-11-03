@@ -6,7 +6,8 @@ import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Encabezado } from "@/components/AppShell";
-import { Boton, Panel, Vacio } from "@/components/ui-kit";
+import { Boton, Panel, Vacio, VentanaFlotante } from "@/components/ui-kit";
+import { HojaGastosGenerales } from "@/components/cotizaciones/HojaGastosGenerales";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
@@ -136,6 +137,7 @@ function VistaCotizacion() {
     },
   });
   const [pdfCargando, setPdfCargando] = useState(false);
+  const [verGG, setVerGG] = useState(false);
   const [enlaceCopiado, setEnlaceCopiado] = useState(false);
   const calculo = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
@@ -407,6 +409,9 @@ function VistaCotizacion() {
 
   return (
     <>
+      <VentanaFlotante titulo="Gastos generales" subtitulo="Vista previa del desagregado" abierta={verGG} onCerrar={() => setVerGG(false)} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta>
+        {verGG && <HojaGastosGenerales id={id} />}
+      </VentanaFlotante>
       <Encabezado
         soloCinta={SOLO_COTIZ}
         titulo="Vista previa de cotización"
@@ -430,7 +435,7 @@ function VistaCotizacion() {
                 <BotonPequeno icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
               </Columna>
               <Columna>
-                <BotonPequeno icono={<Receipt />} texto="Gastos generales" onClick={() => void navigate({ to: "/gg-vista", search: { id } })} />
+                <BotonPequeno icono={<Receipt />} texto="Gastos generales" onClick={() => setVerGG(true)} />
               </Columna>
             </GrupoCinta>
           </div>
