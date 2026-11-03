@@ -1,8 +1,8 @@
 import * as React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowUp, ChevronDown, Printer, ChevronRight, FolderPlus, ListPlus, Rows3 } from "lucide-react";
+import { HojaGastosGenerales } from "@/components/cotizaciones/HojaGastosGenerales";
+import { ArrowDown, ArrowUp, ChevronDown, Eye, PencilRuler, ChevronRight, FolderPlus, ListPlus, Rows3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BotonIcono, VentanaFlotante } from "@/components/ui-kit";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
@@ -17,10 +17,12 @@ const db = supabase as unknown as { from: (t: string) => any };
 const TABLA = "cotizacion_gastos_generales";
 
 export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, costoDirecto, pctActual, moneda, soloLectura,
-  pctUtilidad, aplicaIgv, duracionMeses }: {
+  pctUtilidad, aplicaIgv, duracionMeses, modoInicial = "edicion" }: {
   abierta: boolean; onCerrar: () => void; cotizacionId: string; costoDirecto: number; pctActual: number;
-  moneda: string; soloLectura: boolean; pctUtilidad: number; aplicaIgv: boolean; duracionMeses: number;
+  moneda: string; soloLectura: boolean; pctUtilidad: number; aplicaIgv: boolean; duracionMeses: number; modoInicial?: "edicion" | "vista";
 }) {
+  const [modo, setModo] = useState<"edicion" | "vista">(modoInicial);
+  useEffect(() => { if (abierta) setModo(modoInicial); }, [abierta, modoInicial]);
   const [duracion, setDuracion] = useState(duracionMeses || 1);
   const [util, setUtil] = useState(pctUtilidad);
   useEffect(() => { setDuracion(duracionMeses || 1); setUtil(pctUtilidad); }, [abierta, duracionMeses, pctUtilidad]);
@@ -214,6 +216,15 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
 
   return (
     <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta>
+      <div className="flex shrink-0 items-center gap-1 border-b border-line px-4 py-1.5 text-xs">
+        {([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const).map(([m, t, ic]) => (
+          <button key={m} type="button" onClick={() => setModo(m)}
+            className={cn("inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 font-medium", modo === m ? "bg-cinta-seleccion text-cinta-seleccion-foreground" : "text-muted-foreground hover:bg-cinta-seleccion/20")}>
+            {ic} {t}
+          </button>
+        ))}
+      </div>
+      {modo === "vista" ? <HojaGastosGenerales key={String(abierta)} id={cotizacionId} /> : (
       <div className="flex min-h-0 flex-1 flex-col p-4">
       <div className="grid shrink-0 grid-cols-3 gap-3">
         {[
@@ -246,9 +257,6 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
         </label>
         <div className="ml-auto flex items-center gap-3">
           {!soloLectura && <button type="button" onClick={() => void cargarEstandar()} className="font-medium text-muted-foreground hover:text-foreground hover:underline">Cargar estructura estándar</button>}
-          <Link to="/gg-vista" search={{ id: cotizacionId }} className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
-            <Printer size={13} /> Generar reporte / Imprimir
-          </Link>
         </div>
       </div>
       {total <= 0 && <p className="mt-2 text-xs text-muted-foreground">Mientras el total sea cero, la cotización conserva su % manual ({Number(pctActual).toFixed(2)} %).</p>}
@@ -353,6 +361,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
         ))}
       </div>
       </div>
+      )}
     </VentanaFlotante>
   );
 }
