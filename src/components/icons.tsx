@@ -881,14 +881,14 @@ export function MaletinGG({ className, ...props }: SVGProps<SVGSVGElement>) {
 export function FlujoCajaGraf({ className, ...props }: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
-      {/* Plano del gráfico */}
-      <rect fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" x="2.5" y="2.5" width="19" height="19" rx="2" />
-      {/* Ejes */}
-      <path stroke="var(--color-icono-contorno)" strokeWidth={1.1} d="M5.5 5.5v13h13" />
-      {/* Barras */}
-      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} x="7.5" y="13" width="2.4" height="5.5" />
-      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} x="11" y="10.5" width="2.4" height="8" />
-      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} x="14.5" y="8" width="2.4" height="10.5" />
+      {/* Plano del gráfico: papel blanco con marco gris medio, sin bloque oscuro */}
+      <rect fill="var(--color-icono-papel)" stroke="var(--color-icono-linea)" strokeWidth={1} x="3" y="3" width="18" height="18" rx="2.5" />
+      {/* Ejes suaves */}
+      <path stroke="var(--color-icono-papel-sombra)" strokeWidth={1} d="M6.5 6.5v11h11" />
+      {/* Barras en azul claro */}
+      <rect fill="#4da3d1" stroke="none" x="7.5" y="13" width="2.4" height="5.5" />
+      <rect fill="#3b90c2" stroke="none" x="11" y="10.5" width="2.4" height="8" />
+      <rect fill="#2c7fb0" stroke="none" x="14.5" y="8" width="2.4" height="10.5" />
       {/* Flecha ascendente */}
       <path fill="none" stroke="var(--color-icono-verde)" strokeWidth={1.7} d="m7 11 3.5-3.5 2.5 2.5 4.5-4.5" />
       <path fill="var(--color-icono-verde)" stroke="none" d="M15 4.6h4.6v4.6l-1.5-1.5-1.6 1.5-1.5-1.5 1.6-1.6Z" />
