@@ -670,6 +670,52 @@ export function RetornoCirculo({ className, ...props }: SVGProps<SVGSVGElement>)
   );
 }
 
+/**
+ * Lápiz y regla.
+ *
+ * Icono propio de «Edición»: un lápiz amarillo con punta de madera, mina de
+ * grafito y goma rosa cruza por delante de una regla de metal con marcas. Se
+ * dibuja a color y con contorno oscuro para que se lea como herramienta real
+ * dentro de la cinta.
+ */
+export function LapizRegla({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.1}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+      {...props}
+    >
+      {/* Regla de metal, cruzada por detrás, con marcas de medición */}
+      <g transform="rotate(-32 12 12)">
+        <rect fill="var(--color-regla-cuerpo)" stroke="var(--color-cinta-negro)" strokeWidth={1} x="1.8" y="9.3" width="20.4" height="5.7" rx="1.1" />
+        <path stroke="var(--color-cinta-negro)" strokeWidth={0.85} d="M5.6 9.3v2.2M8.4 9.3v1.5M11.2 9.3v2.2M14 9.3v1.5M16.8 9.3v2.2M19.6 9.3v1.5" />
+      </g>
+      {/* Lápiz amarillo, en diagonal por delante */}
+      <g transform="rotate(36 12 12)">
+        {/* Goma rosa */}
+        <rect fill="var(--color-lapiz-goma)" stroke="var(--color-cinta-negro)" strokeWidth={1} x="9.4" y="2.1" width="5.2" height="2.5" rx="1.2" />
+        {/* Casquillón de metal */}
+        <rect fill="var(--color-lapiz-metal)" stroke="var(--color-cinta-negro)" strokeWidth={1} x="9.4" y="4.4" width="5.2" height="1.9" />
+        {/* Cuerpo amarillo con una faceta más clara */}
+        <rect fill="var(--color-lapiz-cuerpo)" stroke="var(--color-cinta-negro)" strokeWidth={1} x="9.4" y="6.1" width="5.2" height="9.6" />
+        <path stroke="var(--color-lapiz-cuerpo-claro)" strokeWidth={1.1} d="M11 6.6v8.6" />
+        {/* Punta de madera afilada */}
+        <path fill="var(--color-lapiz-madera)" stroke="var(--color-cinta-negro)" strokeWidth={1} d="M9.4 15.5 12 20.4l2.6-4.9Z" />
+        {/* Mina de grafito */}
+        <path fill="var(--color-lapiz-grafito)" stroke="none" d="M11.1 18.5 12 20.4l.9-1.9Z" />
+      </g>
+    </svg>
+  );
+}
+
+
 
 
 
