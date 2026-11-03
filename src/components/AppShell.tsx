@@ -13,9 +13,9 @@ import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, Lif
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
 import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
-import { Settings, Settings2, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
+import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
 import { Stamp, SwatchBook, Table, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
-import { Users, Vault, Wallet, Warehouse, Wrench } from "lucide-react";
+import { Users, Vault, Wallet, Warehouse } from "lucide-react";
 import { GrupoPersonas, LlantaLlave } from "./icono-grupo";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
