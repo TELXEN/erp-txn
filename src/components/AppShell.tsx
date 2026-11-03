@@ -1,5 +1,5 @@
-import { LogOut, FileDigit, FolderKanban, Scale, Plug, Ruler, Shapes, FolderTree, Network, Tag, ListTree, Wrench, Hammer, Percent, LayoutTemplate } from "lucide-react";
-import { Factory, Type, UserRoundCheck, Coins, Barcode, Drill, FileSignature, BadgeDollarSign, BookOpen, History, LayoutDashboard, CircleDollarSign, CalendarClock, Route, UserCog, Database, Pickaxe, PackagePlus, ScrollText, ToolCase, Fuel, PiggyBank, ArrowDownLeft, ArrowUpRight, BadgePercent, CircleHelp, NotebookText, BadgeInfo, Stamp } from "lucide-react";
+import { LogOut, FileDigit, Ruler, Percent } from "lucide-react";
+import { LayoutDashboard, PiggyBank } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
@@ -53,7 +53,8 @@ const SECCIONES_MAESTRO_CFG = [
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
 import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado, PortapapelesVerificado, PortapapelesLapiz, GanttLineas, CurvaAzul, PortapapelesDatos, BoletaDolar, NotaCreditoRoja, NotaDebitoAzul, TesoreriaEdificio, BovedaRetenciones, PartidasTresColores, CajasInventario, FichaCliente, CotizacionHoja, EmpresaEdificio, CodificacionHoja, ReglaUnidades, MaterialesPila, MargenMoneda, PanelResumen, AlmacenGalpon, MaletinGG, FlujoCajaGraf, ReciboHonorarios, ChanchitoAFP, PaletaTemas, AyudaSalvavidas } from "@/components/icons";
-import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
+import { SlidersHorizontal, Settings, Palette, CircleHelp, NotebookText, BadgeInfo, Stamp, UserRoundCheck, Scale, Plug, Type, FolderKanban, UserCog, Coins, BookOpen, Database, Shapes, FolderTree, Network, Tag, ListTree, FileSignature, Drill, Hammer, Pickaxe, BadgeDollarSign, Barcode, Calculator, LayoutTemplate, FileText, Banknote, FolderClosed, Gauge, Factory, Activity, Handshake, Inbox, ShoppingCart, Plane, Truck, Warehouse, Car, CalendarClock, Route, Wrench, PackagePlus, History, HardHat, ShoppingBag, Briefcase, Wallet, TrendingUp, ScrollText, ToolCase, Fuel, Grid3x3, ArrowDownLeft, ArrowUpRight, BadgePercent, CircleDollarSign, FileX2, Users, CalendarDays, HandCoins, Sprout, Gift, UserMinus } from "@/components/icons-realistas";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
   const [activa, setActiva] = useState(false);
@@ -80,44 +81,7 @@ function BotonPantallaCompleta({ className = "grid size-7 place-items-center rou
     </button>
   );
 }
-import {
-  Activity,
-  Banknote,
-  BarChart3,
-  Briefcase,
-  Building2,
-  CalendarDays,
-  Car,
-  FileText,
-  FileX2,
-  Gauge,
-  ShoppingBag,
-  Palette,
-
-  Package,
-
-  ShoppingCart,
-  Plane,
-  Warehouse,
-  Settings,
-  SlidersHorizontal,
-  TrendingUp,
-  Handshake,
-  Truck,
-  Users,
-  ReceiptText,
-  HandCoins,
-  Wallet,
-  FolderClosed,
-  HardHat,
-  Inbox,
-  Grid3x3,
-  Sprout,
-  Gift,
-  UserMinus,
-
-
-} from "lucide-react";
+import { BarChart3, Building2, Package, ReceiptText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ETIQUETA_ROL, useAuth, type Rol } from "@/lib/auth";
 import { aplicarTema, leerTema } from "@/lib/temas";
