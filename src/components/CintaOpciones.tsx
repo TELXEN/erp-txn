@@ -478,7 +478,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           ))}
           {enCtx && (
             <div ref={onRanuraContextual}
-              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde pb-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-start [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
+              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde pb-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-start [&>div]:gap-2 [&_svg]:size-4 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
           )}
         </div>
       )}
