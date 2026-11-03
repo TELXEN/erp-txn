@@ -67,6 +67,7 @@ export function VentanaFlotante({
   ancho = "max-w-5xl",
   ocultarBarra = false,
   pantallaCompleta = false,
+  acciones,
 }: {
   titulo: string;
   subtitulo?: string;
@@ -76,6 +77,7 @@ export function VentanaFlotante({
   ancho?: string;
   ocultarBarra?: boolean;
   pantallaCompleta?: boolean;
+  acciones?: ReactNode;
 }) {
   useEffect(() => {
     if (!abierta) return;
