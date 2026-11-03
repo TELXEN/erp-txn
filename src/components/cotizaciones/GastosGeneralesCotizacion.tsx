@@ -215,26 +215,28 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const celda = "h-6 w-full rounded border border-transparent bg-transparent px-1 text-xs tabular-nums hover:border-line focus:border-primary focus:outline-none disabled:hover:border-transparent";
 
   return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta>
-      <div className="flex shrink-0 items-center gap-1 border-b border-line px-4 py-1.5 text-xs">
-        {([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const).map(([m, t, ic]) => (
-          <button key={m} type="button" onClick={() => setModo(m)}
-            className={cn("inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 font-medium", modo === m ? "bg-cinta-seleccion text-cinta-seleccion-foreground" : "text-muted-foreground hover:bg-cinta-seleccion/20")}>
-            {ic} {t}
-          </button>
-        ))}
-      </div>
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-[calc(100vw-1rem)]" ocultarBarra pantallaCompleta
+      acciones={
+        <div className="flex items-center gap-1 text-xs">
+          {([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const).map(([m, t, ic]) => (
+            <button key={m} type="button" onClick={() => setModo(m)}
+              className={cn("inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 font-medium", modo === m ? "bg-cinta-seleccion text-cinta-seleccion-foreground" : "text-muted-foreground hover:bg-cinta-seleccion/20")}>
+              {ic} {t}
+            </button>
+          ))}
+        </div>
+      }>
       {modo === "vista" ? <HojaGastosGenerales key={String(abierta)} id={cotizacionId} /> : (
-      <div className="flex min-h-0 flex-1 flex-col p-4">
-      <div className="grid shrink-0 grid-cols-3 gap-3">
+      <div className="flex min-h-0 flex-1 flex-col p-3">
+      <div className="grid shrink-0 grid-cols-3 gap-2">
         {[
           ["Costo directo", fmt(costoDirecto), ""],
           ["Total gastos generales", fmt(total), ""],
           ["% Gastos generales", `${pct.toFixed(2)} %`, "text-primary"],
         ].map(([t, v, c]) => (
-          <div key={t} className="rounded-md border bg-card p-3">
+          <div key={t} className="rounded-md border bg-card p-2">
             <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t}</div>
-            <div className={cn("mt-1 text-xl font-semibold tabular-nums", c)}>{v}</div>
+            <div className={cn("mt-0.5 text-lg font-semibold tabular-nums", c)}>{v}</div>
           </div>
         ))}
       </div>
@@ -263,7 +265,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
       {soloLectura && <p className="mt-2 text-xs text-muted-foreground">Revisión histórica: solo lectura.</p>}
       {error && <p className="mt-2 text-xs text-bad">{error}</p>}
 
-      <div className="mt-3 flex min-h-0 flex-1 gap-2">
+      <div className="mt-2 flex min-h-0 flex-1 gap-2">
         <div className="min-h-0 min-w-0 flex-1 overflow-y-auto rounded-md border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div ref={tablaRef as unknown as React.RefObject<HTMLDivElement>}>
             <table className="w-full text-xs">
@@ -346,7 +348,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             </>} /></div>
         )}
       </div>
-      <div className="ml-auto mt-3 grid w-full max-w-4xl shrink-0 grid-flow-col grid-cols-2 grid-rows-4 rounded-md border text-xs">
+      <div className="ml-auto mt-2 grid w-full max-w-4xl shrink-0 grid-flow-col grid-cols-2 grid-rows-4 rounded-md border text-xs">
         {([
           ["Costo directo total", costoDirecto, ""],
           ["(+) Total gastos generales fijos", fijos, ""],
