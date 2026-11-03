@@ -337,7 +337,9 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             </table>
           </div>
         </div>
-        <div className="grid shrink-0 grid-cols-1 border-t text-xs">
+        <div className="flex shrink-0 justify-end border-t text-xs">
+          <div className="grid w-full max-w-[420px] shrink-0 grid-cols-1">
+
           {([
             ["Costo directo total", costoDirecto, ""],
             ["(+) Total gastos generales fijos", fijos, ""],
@@ -348,9 +350,11 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             [`(+) IGV (${aplicaIgv ? "18.00" : "0.00"} %)`, res.igv, ""],
             ["(=) PRESUPUESTO FINAL TOTAL", res.total, "font-bold bg-muted text-primary"],
           ] as const).map(([t, v, c], i) => (
-            <div key={t} className={cn("flex justify-between px-3 py-1", i < 7 && "border-b", c)}><span>{t}</span><span className="tabular-nums">{fmt(v)}</span></div>
+            <div key={t} className={cn("flex items-baseline justify-between gap-6 px-3 py-1", i < 7 && "border-b", c)}><span className="truncate">{t}</span><span className="w-28 shrink-0 text-right tabular-nums">{fmt(v)}</span></div>
           ))}
+          </div>
         </div>
+
         </div>
         {!soloLectura && (
           <div className="sticky top-0 self-start"><BarraIconosHoja objeto="fila de gastos generales" haySeleccion={Boolean(sel)} onEditar={() => enfocarFila(sel)} onCopiar={copiar} onEliminar={eliminar}
