@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Eye } from "lucide-react";
-import { LapizRegla, RetornoCirculo } from "@/components/icons";
+import { Eye, Pencil, Undo2 } from "lucide-react";
 
 
 import { GrupoCinta } from "@/components/CintaOpciones";
