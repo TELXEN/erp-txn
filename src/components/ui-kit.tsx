@@ -97,14 +97,17 @@ export function VentanaFlotante({
         className={cn(`panel flex ${pantallaCompleta ? "h-[calc(100dvh-1rem)]" : `my-4 ${ocultarBarra ? "max-h-[calc(100dvh-4rem)]" : "max-h-[calc(100vh-2rem)]"}`} w-full flex-col overflow-hidden shadow-xl`, ancho)}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-4 py-2">
           <div>
             <h2 className="text-sm font-bold text-ink">{titulo}</h2>
             {subtitulo && <p className="mt-0.5 text-xs text-muted-foreground">{subtitulo}</p>}
           </div>
-          <Boton type="button" variante="linea" onClick={onCerrar} className="h-8 w-8 px-0" aria-label="Cerrar" title="Cerrar">
-            <X size={14} />
-          </Boton>
+          <div className="flex shrink-0 items-center gap-2">
+            {acciones}
+            <Boton type="button" variante="linea" onClick={onCerrar} className="h-8 w-8 px-0" aria-label="Cerrar" title="Cerrar">
+              <X size={14} />
+            </Boton>
+          </div>
         </div>
         <div className={`min-h-0 ${pantallaCompleta ? "flex flex-1 flex-col overflow-hidden" : "overflow-y-auto"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>{children}</div>
       </section>
