@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
@@ -287,6 +287,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     if (!rutas.includes(pathname)) return;
     setRecientes((r) => { const n = [pathname, ...r.filter((x) => x !== pathname)].slice(0, 5); try { localStorage.setItem(LS_REC, JSON.stringify(n)); } catch { /* */ } return n; });
   }, [pathname]);
+  const busqueda = useSearch({ strict: false }) as Record<string, string | undefined>;
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
@@ -317,7 +318,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const boton = (m: ItemCinta) => {
     const act = pathname === m.a;
     const I = m.icono;
-    const tono = act ? "bg-cinta-acento text-cinta-acento-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-hover";
+    const tono = act ? "bg-cinta-seleccion text-cinta-seleccion-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-seleccion/20";
     if (modo === "simplificada") {
       const link = (
         <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
@@ -367,16 +368,18 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: 1 }
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
-        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
+        const cls = `whitespace-nowrap rounded-md text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
+        const actCelda = o.a ? pathname === o.a : (o.seccion != null && pathname === m.a && busqueda[o.campo ?? "seccion"] === o.seccion);
+        const tonoCelda = actCelda ? "bg-cinta-seleccion text-cinta-seleccion-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-seleccion/20";
         const contenido = grande ? <><SI size={32} strokeWidth={1.25} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI size={16} strokeWidth={1.5} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
         if (o.a) {
           return (
-            <Link key={`${o.a}|${o.texto}`} to={o.a} title={o.texto} className={`${cls} text-cinta-texto hover:bg-cinta-hover`} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}>{contenido}</Link>
+            <Link key={`${o.a}|${o.texto}`} to={o.a} title={o.texto} className={`${cls} ${tonoCelda}`} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}>{contenido}</Link>
           );
         }
         return (
-          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={`${cls} text-cinta-texto hover:bg-cinta-hover`} {...(sitio ? { style: sitio } : {})}>{contenido}</Link>
+          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={`${cls} ${tonoCelda}`} {...(sitio ? { style: sitio } : {})}>{contenido}</Link>
         );
       };
       return (
