@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Eye, PencilRuler } from "lucide-react";
-import { RetornoCirculo } from "@/components/icons";
+import { Eye } from "lucide-react";
+import { LapizRegla, RetornoCirculo } from "@/components/icons";
+
 
 import { GrupoCinta } from "@/components/CintaOpciones";
 import { cn } from "@/lib/utils";
@@ -48,7 +49,7 @@ export function GrupoVista({ id, modo, onVolver }: { id: string; modo: "edicion"
 
       )}
       {modo === "vista" && (
-        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<PencilRuler color="var(--color-icono-naranja)" />} texto="Edición" /></Link>
+        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<LapizRegla />} texto="Edición" /></Link>
       )}
       {modo === "edicion" && (
         <Link to="/cotizacion-vista" search={{ id }}><BotonGrande icono={<Eye />} texto={"Vista\nprevia"} /></Link>
