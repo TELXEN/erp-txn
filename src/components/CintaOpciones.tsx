@@ -347,7 +347,6 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       // Con más filas (p. ej. tres opciones pequeñas bajo el botón grande) las filas se afinan para no agrandar la cinta.
       const filasPeq = m.subFilas ?? 2;
       const alto = filasPeq > 2 ? 20 : 24;
-      const padBloque = filasPeq > 2 ? "py-1" : "py-2.5";
       // Los grandes ocupan todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const colsPeq = Math.ceil(nPeq / filasPeq);
@@ -366,7 +365,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : nPeq === 1 ? { gridColumn: nGrande + 1, gridRow: 1 }
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
-        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-center gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
+        const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
         const contenido = grande ? <><SI className={`size-6 shrink-0 ${o.iconoClase ?? ""}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI className={`size-3.5 shrink-0 ${o.iconoClase ?? ""}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
         if (o.a) {
@@ -385,7 +384,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
         );
       };
       return (
-        <div key={m.a} className={`grid shrink-0 content-center ${padBloque}`} style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: `${alto}px`, columnGap: 4 }}>
+        <div key={m.a} className="grid shrink-0 content-start pt-1.5 pb-1" style={{ gridTemplateColumns: `repeat(${cols}, auto)`, gridAutoRows: `${alto}px`, columnGap: 4 }}>
           {subs.map(celda)}
         </div>
       );
@@ -469,7 +468,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
             <div key={g.titulo} className={`flex items-center gap-1 ${i ? "border-l border-cinta-borde pl-1" : ""}`}>{g.items.map(boton)}</div>
           ) : (
             <div key={g.titulo} className={clasesGrupo(g, i)}>
-              <div className={`flex flex-1 gap-0.5 ${g.sub ? "items-center" : "items-start"}`}>{g.items.map(boton)}</div>
+              <div className="flex flex-1 items-start gap-0.5">{g.items.map(boton)}</div>
               <p className="flex items-center justify-center gap-1 whitespace-nowrap px-1 py-0.5 text-center text-[10px] text-cinta-tenue">
                 {g.titulo === "Recientes" && <Clock className="size-2.5" />}{g.titulo === "Favoritos" && <Star className="size-2.5" />}{g.titulo}
               </p>
@@ -477,7 +476,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           ))}
           {enCtx && (
             <div ref={onRanuraContextual}
-              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde py-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
+              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde pb-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
           )}
         </div>
       )}
