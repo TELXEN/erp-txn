@@ -27,7 +27,7 @@ export function BotonGrande({ icono, texto, onClick, disabled, activo, title }: 
 export function BotonPequeno({ icono, texto, onClick, disabled, title }: Base) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} title={title}
-      className="flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] text-cinta-texto transition-colors hover:bg-black/5 disabled:opacity-40 [&_svg]:size-4 [&_svg]:stroke-[1.75] [&_svg]:text-[var(--color-cinta-icono)]">
+      className="flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded px-1.5 text-[11px] text-cinta-texto transition-colors hover:bg-black/5 disabled:opacity-40 [&_svg]:size-4 [&_svg]:stroke-[2.25] [&_svg]:text-[var(--color-cinta-icono)]">
       {icono}{texto}
     </button>
   );
