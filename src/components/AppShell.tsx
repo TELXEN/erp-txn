@@ -7,14 +7,14 @@ import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, Badg
 import { FileKey2, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
 import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
 import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
-import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileSpreadsheet, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
+import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
 import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
 import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, LifeBuoy, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
 import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
 import { Settings, Settings2, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
-import { Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Stamp, SwatchBook, Table, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse, Wrench } from "lucide-react";
 import { GrupoPersonas } from "./icono-grupo";
 
@@ -195,7 +195,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: GrupoPersonas },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: Files, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
-      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: FileSpreadsheet },
+      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Table },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ScanBarcode, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
     ],
