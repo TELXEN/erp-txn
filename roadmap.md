@@ -218,3 +218,4 @@
 - [x] Iconos de la cinta en estilo Flat/Minimalista: estructura azul oscuro uniforme (#22466b), acento naranja solo en «Convertir en obra», dorado solo en Tesorería; sin bordes negros gruesos (trazo 1.75).
 - [x] Opciones pequeñas de la cinta sin fondo activo permanente: Títulos WBS y demás subopciones quedan transparentes con icono azul y solo se resaltan al pasar el mouse.
 - [x] Grupo Vehículos en Logística: cuatro opciones pequeñas en grilla 2x2 (Flota/Tareo | Traslados/Mantenimiento), Mantenimiento ya no se desplaza a la derecha.
+- [x] Trazo por tamaño en la cinta: iconos pequeños (16 px) con strokeWidth 2.25 y grandes (32 px) con 1.75, para igual peso visual.
