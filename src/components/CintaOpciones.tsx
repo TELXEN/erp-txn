@@ -253,7 +253,7 @@ export type ContextoCinta = { titulo: string; subtitulo: string; solo?: string[]
 export function GrupoCinta({ titulo, children }: { titulo?: string; children: React.ReactNode }) {
   return (
     <div className="grupo-cinta flex flex-col justify-between">
-      <div className="flex flex-1 flex-wrap items-center gap-2">{children}</div>
+      <div className="flex flex-1 flex-wrap items-start gap-2">{children}</div>
       {titulo && <p className="whitespace-nowrap pt-0.5 text-center text-[10px] text-cinta-tenue">{titulo}</p>}
     </div>
   );
@@ -331,7 +331,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       <Link key={m.a} to={m.a} title={`${m.texto} — clic derecho: ${favoritos.includes(m.a) ? "quitar de" : "anclar a"} Inicio`} onContextMenu={(e) => { e.preventDefault(); alternarFav(m.a); }}
         className={`relative flex w-auto max-w-none min-w-[62px] shrink-0 flex-col items-center gap-1 rounded-md px-1.5 py-1.5 text-center text-[11px] leading-tight ${tono}`}
         style={{ width: rotulos[m.texto]?.ancho ?? anchoEtiqueta(m.texto, m.unaLinea) }}>
-        <I className={`size-6 shrink-0 ${m.iconoClase ?? ""}`} />
+        <I className={`size-8 shrink-0 ${m.iconoClase ?? ""}`} />
         <span lang="es" className={`line-clamp-2 w-full break-words${m.unaLinea ? " whitespace-nowrap" : " whitespace-pre-line"}`}>{rotulos[m.texto]?.texto ?? renglones(m.texto, m.unaLinea).join("\n")}</span><Insignia a={m.a} />
 
         {favoritos.includes(m.a) && <Star className="absolute left-1 top-1 size-2.5 fill-current text-cinta-acento" />}
@@ -346,7 +346,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
       const nPeq = subs.length - nGrande;
       // Con más filas (p. ej. tres opciones pequeñas bajo el botón grande) las filas se afinan para no agrandar la cinta.
       const filasPeq = m.subFilas ?? 2;
-      const alto = filasPeq > 2 ? 20 : 24;
+      const alto = filasPeq > 2 ? 20 : hayGrande ? 26 : 24;
       // Los grandes ocupan todas las filas a la izquierda; las demás se reparten en columnas a su derecha.
       // Cada columna mide lo que mide su etiqueta más larga: así las opciones cortas no arrastran huecos.
       const colsPeq = Math.ceil(nPeq / filasPeq);
@@ -366,7 +366,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
-        const contenido = grande ? <><SI className={`size-6 shrink-0 ${o.iconoClase ?? ""}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI className={`size-3.5 shrink-0 ${o.iconoClase ?? ""}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
+        const contenido = grande ? <><SI className={`size-8 shrink-0 ${o.iconoClase ?? ""}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI className={`size-4 shrink-0 ${o.iconoClase ?? ""}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
         if (o.a) {
           return (
@@ -476,7 +476,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           ))}
           {enCtx && (
             <div ref={onRanuraContextual}
-              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde pb-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-center [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
+              className="ml-auto flex min-h-11 shrink-0 items-stretch gap-2 border-l border-cinta-borde pb-1.5 pl-2 text-xs [&>div]:flex [&>div]:flex-wrap [&>div]:items-start [&>div]:gap-2 [&_.grupo-cinta+.grupo-cinta]:border-l [&_.grupo-cinta+.grupo-cinta]:border-cinta-borde [&_.grupo-cinta+.grupo-cinta]:pl-2" />
           )}
         </div>
       )}
