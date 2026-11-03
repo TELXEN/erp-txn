@@ -97,7 +97,7 @@ export function VentanaFlotante({
         className={cn(`panel flex ${pantallaCompleta ? "h-[calc(100dvh-1rem)]" : `my-4 ${ocultarBarra ? "max-h-[calc(100dvh-4rem)]" : "max-h-[calc(100vh-2rem)]"}`} w-full flex-col overflow-hidden shadow-xl`, ancho)}
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-4 py-2">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">
           <div>
             <h2 className="text-sm font-bold text-ink">{titulo}</h2>
             {subtitulo && <p className="mt-0.5 text-xs text-muted-foreground">{subtitulo}</p>}
