@@ -129,6 +129,17 @@
   /* Negro del frontón y la línea de base del icono de Tesorería. */
   --color-cinta-negro: #000000;
 
+  /* Colores reales del lápiz y la regla del icono de Edición. */
+  --color-lapiz-cuerpo: #f2c230;
+  --color-lapiz-cuerpo-claro: #ffd95e;
+  --color-lapiz-madera: #d9a066;
+  --color-lapiz-grafito: #3a3226;
+  --color-lapiz-goma: #e8807d;
+  --color-lapiz-metal: #b9bdc4;
+  --color-regla-cuerpo: #d7dbe0;
+  --color-regla-cuerpo-claro: #eef1f4;
+
+
   --color-chip-mat: var(--chip-mat);
   --color-chip-mo: var(--chip-mo);
   --color-chip-eq: var(--chip-eq);
