@@ -21,7 +21,6 @@ const MA = "var(--color-icono-madera)";
 const MD = "var(--color-icono-madera-clara)";
 const VN = "var(--color-icono-ventana)";
 const TE = "var(--color-icono-techo)";
-const RS = "var(--color-icono-rosa)";
 const PIEL = "#f1c27d";
 
 type P = SVGProps<SVGSVGElement>;
