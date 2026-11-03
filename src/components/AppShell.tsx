@@ -36,7 +36,7 @@ const SECCIONES_CONFIG = [
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación de\nDocumentos", seccion: "codificacion", campo: "pestana", icono: Binary, grande: true },
+  { texto: "Codificación", corto: "Codificación de\nDocumentos", seccion: "codificacion", campo: "pestana", icono: FileKey2, grande: true },
   { texto: "Parámetros de proyectos", corto: "Parametros de Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Recursos Humanos", corto: "Recursos Humanos", seccion: "cargos", campo: "pestana", icono: UserCog },
   { texto: "Costos y Finanzas", corto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana", icono: Coins },
