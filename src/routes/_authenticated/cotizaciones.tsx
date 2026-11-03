@@ -835,6 +835,7 @@ function Cotizaciones() {
       )}
         </>
       )}
+      {ventanaEditor}
     </>
   );
 }
