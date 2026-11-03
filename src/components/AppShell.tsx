@@ -9,14 +9,14 @@ import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline,
 import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
 import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
 import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
-import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, LifeBuoy, ListChecks } from "lucide-react";
+import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
 import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
 import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
 import { Stamp, SwatchBook, Table, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
-import { GrupoPersonas, LlantaLlave } from "./icono-grupo";
+import { GrupoPersonas, LibroAyuda, LlantaLlave } from "./icono-grupo";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -24,7 +24,7 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 // Grupo Ayuda: el botón grande abre el centro de ayuda y las tres opciones pequeñas van apiladas a su derecha.
 const SECCIONES_AYUDA = [
-  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: LifeBuoy, grande: true },
+  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: LibroAyuda, grande: true },
   { texto: "Manual de usuario", corto: "Manual de usuario", a: "/ayuda", search: { seccion: "manual" }, icono: NotebookText },
   { texto: "Acerca de", corto: "Acerca de", a: "/ayuda", search: { seccion: "acerca" }, icono: BadgeInfo },
   { texto: "Licencia", corto: "Licencia", a: "/ayuda", search: { seccion: "licencia" }, icono: Stamp },

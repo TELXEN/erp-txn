@@ -23,3 +23,13 @@ const llanta: IconNode = [
 ];
 
 export const LlantaLlave = (props: LucideProps) => <Icon iconNode={llanta} {...props} />;
+
+/** Libro abierto con signo de pregunta, mismo trazo de lucide. */
+const libroAyuda: IconNode = [
+  ["path", { d: "M12 7v14", key: "l" }],
+  ["path", { d: "M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z", key: "b" }],
+  ["path", { d: "M15.5 8.5a1.8 1.8 0 1 1 2.3 1.7c-.5.2-.8.6-.8 1.1v.4", key: "q" }],
+  ["path", { d: "M17 14h.01", key: "p" }],
+];
+
+export const LibroAyuda = (props: LucideProps) => <Icon iconNode={libroAyuda} {...props} />;
