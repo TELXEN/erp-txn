@@ -140,6 +140,23 @@
   --color-regla-cuerpo-claro: #f4f7f9;
   --color-regla-trazo: #7c848e;
 
+  /* Colores reales de los iconos grandes de la cinta (papel, metal, madera, ladrillo). */
+  --color-icono-papel: #fdfdf8;
+  --color-icono-papel-sombra: #e3e1d4;
+  --color-icono-linea: #9aa3ad;
+  --color-icono-contorno: #3f4650;
+  --color-icono-metal: #b9bdc4;
+  --color-icono-metal-claro: #dfe4e9;
+  --color-icono-madera: #b07845;
+  --color-icono-madera-clara: #d9a066;
+  --color-icono-ladrillo: #c25b3a;
+  --color-icono-ladrillo-claro: #d97b57;
+  --color-icono-cemento: #c9cdd4;
+  --color-icono-rosa: #e8a0a8;
+  --color-icono-dorado: #e0a92e;
+  --color-icono-ventana: #9fc8e8;
+  --color-icono-techo: #8a5a33;
+
 
 
   --color-chip-mat: var(--chip-mat);
