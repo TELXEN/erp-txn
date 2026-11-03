@@ -7,7 +7,7 @@ import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, Badg
 import { Binary, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
 import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
 import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Contact, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
-import { FileCheck2, FileDigit, FileMinus, FilePlus, FileSignature, FileSpreadsheet, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
+import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileSpreadsheet, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
 import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
 import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, LifeBuoy, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
@@ -103,7 +103,7 @@ const SECCIONES_COTIZ = [
 ];
 
 const SECCIONES_FACTURACION = [
-  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: FileDigit, grande: true },
+  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: FileBadge, grande: true },
   { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
   { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: FileMinus },
   { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: FilePlus },
