@@ -12,3 +12,14 @@ const nodo: IconNode = [
 ];
 
 export const GrupoPersonas = (props: LucideProps) => <Icon iconNode={nodo} {...props} />;
+
+/** Llanta con llave inglesa cruzada, mismo trazo de lucide. */
+const llanta: IconNode = [
+  ["circle", { cx: "10", cy: "14", r: "7.5", key: "t" }],
+  ["circle", { cx: "10", cy: "14", r: "3", key: "r" }],
+  ["path", { d: "M10 6.5v4.5M10 17v4.5M2.5 14H7M13 14h4.5", key: "s" }],
+  ["path", { d: "M15.5 8.5 19 5", key: "m" }],
+  ["path", { d: "M19 5a2.5 2.5 0 1 0 2-2.9l-1.2 1.2.4 1.3 1.3.4 1.2-1.2", key: "w" }],
+];
+
+export const LlantaLlave = (props: LucideProps) => <Icon iconNode={llanta} {...props} />;
