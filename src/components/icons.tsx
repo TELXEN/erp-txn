@@ -709,9 +709,260 @@ export function LapizRegla({ className, ...props }: SVGProps<SVGSVGElement>) {
         <path stroke="var(--color-lapiz-cuerpo-claro)" strokeWidth={1.1} d="M11 6.6v8.6" />
         {/* Punta de madera afilada */}
         <path fill="var(--color-lapiz-madera)" stroke="var(--color-cinta-negro)" strokeWidth={1} d="M9.4 15.5 12 20.4l2.6-4.9Z" />
-        {/* Mina de grafito */}
-        <path fill="var(--color-lapiz-grafito)" stroke="none" d="M11.1 18.5 12 20.4l.9-1.9Z" />
+      {/* Mina de grafito */}
+      <path fill="var(--color-lapiz-grafito)" stroke="none" d="M11.1 18.5 12 20.4l.9-1.9Z" />
+    </g>
+  </svg>
+  );
+}
+
+/* =====================================================================
+ * Iconos realistas de los accesos principales de la cinta.
+ *
+ * A diferencia de los iconos de trazo (lucide), estos se dibujan con
+ * rellenos y contorno oscuro fino para que a 24 px se lean como objetos
+ * reales: papel, metal, madera, ladrillo. Los colores viven en tokens
+ * (--color-icono-*) para que combinen con cualquier tema.
+ * ===================================================================== */
+
+/** Hoja de cotización con esquina doblada, renglones y lápiz azul. */
+export function CotizacionHoja({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Hoja con esquina doblada */}
+      <path fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" d="M5 2.5h8.5l5 5V20a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 20V4A1.5 1.5 0 0 1 5 2.5Z" />
+      <path fill="var(--color-icono-papel-sombra)" stroke="var(--color-icono-contorno)" d="M13.5 2.5v5h5Z" />
+      {/* Renglones del presupuesto */}
+      <path stroke="var(--color-icono-linea)" strokeWidth={1.1} d="M6.5 10h7M6.5 13h7M6.5 16h4.5" />
+      {/* Lápiz azul en diagonal, por delante */}
+      <g transform="rotate(38 16 15)">
+        <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" x="14.9" y="9.5" width="2.6" height="8" />
+        <path fill="var(--color-lapiz-madera)" stroke="var(--color-icono-contorno)" d="M14.9 17.5 16.2 20.4l1.3-2.9Z" />
+        <path fill="var(--color-lapiz-grafito)" stroke="none" d="M15.75 19.2 16.2 20.4l.45-1.2Z" />
+        <rect fill="var(--color-lapiz-goma)" stroke="var(--color-icono-contorno)" x="14.9" y="7.8" width="2.6" height="1.7" rx="0.8" />
       </g>
+    </svg>
+  );
+}
+
+/** Edificio de oficinas con ventanas celestes y puerta. */
+export function EmpresaEdificio({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Torre principal */}
+      <rect fill="var(--color-icono-metal-claro)" stroke="var(--color-icono-contorno)" x="4" y="3" width="11" height="18" rx="1" />
+      {/* Ventanas de la torre */}
+      <g fill="var(--color-icono-ventana)" stroke="var(--color-icono-contorno)" strokeWidth={0.8}>
+        <rect x="6" y="5.5" width="2.4" height="2.4" /><rect x="10.4" y="5.5" width="2.4" height="2.4" />
+        <rect x="6" y="9.4" width="2.4" height="2.4" /><rect x="10.4" y="9.4" width="2.4" height="2.4" />
+        <rect x="6" y="13.3" width="2.4" height="2.4" /><rect x="10.4" y="13.3" width="2.4" height="2.4" />
+      </g>
+      {/* Anexo bajo a la derecha */}
+      <rect fill="var(--color-icono-metal)" stroke="var(--color-icono-contorno)" x="15" y="10" width="5.5" height="11" rx="1" />
+      <rect fill="var(--color-icono-ventana)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="16.6" y="12" width="2.3" height="2.3" />
+      {/* Puerta */}
+      <rect fill="var(--color-icono-madera)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="8" y="17" width="3" height="4" />
+    </svg>
+  );
+}
+
+/** Hoja de codificación con números grandes. */
+export function CodificacionHoja({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      <path fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" d="M5 2.5h8.5l5 5V20a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 20V4A1.5 1.5 0 0 1 5 2.5Z" />
+      <path fill="var(--color-icono-papel-sombra)" stroke="var(--color-icono-contorno)" d="M13.5 2.5v5h5Z" />
+      {/* Números del correlativo */}
+      <text x="6.3" y="14.5" fontSize="7" fontWeight="700" fill="var(--color-icono-azul)" stroke="none" fontFamily="sans-serif">01</text>
+      <path stroke="var(--color-icono-linea)" strokeWidth={1.1} d="M6.5 17.5h11" />
+      <path stroke="var(--color-icono-linea)" strokeWidth={1.1} d="M6.5 19.5h7" />
+    </svg>
+  );
+}
+
+/** Regla de madera con marcas de centímetros. */
+export function ReglaUnidades({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      <g transform="rotate(-30 12 12)">
+        <rect fill="var(--color-icono-madera-clara)" stroke="var(--color-icono-contorno)" x="2" y="9" width="20" height="6" rx="1" />
+        {/* Marcas de medida */}
+        <path stroke="var(--color-icono-contorno)" strokeWidth={0.9} d="M5 9v2.6M8 9v1.7M11 9v2.6M14 9v1.7M17 9v2.6M20 9v1.7" />
+        {/* Veta de la madera */}
+        <path stroke="var(--color-icono-madera)" strokeWidth={0.8} d="M3 13.4h18" />
+      </g>
+    </svg>
+  );
+}
+
+/** Pila de ladrillos con un saco de cemento detrás. */
+export function MaterialesPila({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Saco de cemento detrás */}
+      <path fill="var(--color-icono-cemento)" stroke="var(--color-icono-contorno)" d="M13 3.5h5a2 2 0 0 1 2 2v6h-9v-6a2 2 0 0 1 2-2Z" />
+      <path stroke="var(--color-icono-linea)" strokeWidth={0.9} d="M13.5 6h4" />
+      {/* Ladrillos: dos abajo, uno arriba */}
+      <g stroke="var(--color-icono-contorno)">
+        <rect fill="var(--color-icono-ladrillo)" x="2.5" y="15" width="9.5" height="4" rx="0.6" />
+        <rect fill="var(--color-icono-ladrillo-claro)" x="12.5" y="15" width="9" height="4" rx="0.6" />
+        <rect fill="var(--color-icono-ladrillo-claro)" x="4.5" y="10.5" width="9.5" height="4" rx="0.6" />
+      </g>
+      {/* Juntas de mortero */}
+      <path stroke="var(--color-icono-papel)" strokeWidth={0.8} d="M7.2 15v4M16.8 15v4M9.2 10.5v4" />
+      {/* Base */}
+      <path stroke="var(--color-icono-contorno)" strokeWidth={1.2} d="M2 21h20" />
+    </svg>
+  );
+}
+
+/** Moneda dorada con signo de porcentaje. */
+export function MargenMoneda({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Moneda con canto */}
+      <circle fill="var(--color-icono-dorado)" stroke="var(--color-icono-contorno)" cx="12" cy="12" r="9" />
+      <circle fill="none" stroke="var(--color-icono-contorno)" strokeWidth={0.8} cx="12" cy="12" r="6.8" />
+      {/* Signo % */}
+      <path stroke="var(--color-icono-contorno)" strokeWidth={1.6} d="m8.8 15.2 6.4-6.4" />
+      <circle fill="none" stroke="var(--color-icono-contorno)" strokeWidth={1.3} cx="9.4" cy="9.4" r="1.6" />
+      <circle fill="none" stroke="var(--color-icono-contorno)" strokeWidth={1.3} cx="14.6" cy="14.6" r="1.6" />
+    </svg>
+  );
+}
+
+/** Tablero de resumen con cuatro paneles de colores. */
+export function PanelResumen({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      <rect fill="var(--color-icono-metal-claro)" stroke="var(--color-icono-contorno)" x="2.5" y="2.5" width="19" height="19" rx="2" />
+      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="5" y="5" width="8" height="6" rx="1" />
+      <rect fill="var(--color-icono-verde)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="15" y="5" width="4" height="6" rx="1" />
+      <rect fill="var(--color-icono-naranja)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="5" y="13" width="4" height="6" rx="1" />
+      <rect fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="11" y="13" width="8" height="6" rx="1" />
+    </svg>
+  );
+}
+
+/** Galpón de almacén con puerta de persiana y caja dentro. */
+export function AlmacenGalpon({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Techo a dos aguas */}
+      <path fill="var(--color-icono-techo)" stroke="var(--color-icono-contorno)" d="M12 2.8 2.5 8.2v2h19v-2Z" />
+      {/* Muro */}
+      <rect fill="var(--color-icono-metal-claro)" stroke="var(--color-icono-contorno)" x="3.5" y="10.2" width="17" height="10.3" />
+      {/* Puerta de persiana */}
+      <rect fill="var(--color-icono-metal)" stroke="var(--color-icono-contorno)" x="7" y="12" width="10" height="8.5" />
+      <path stroke="var(--color-icono-contorno)" strokeWidth={0.8} d="M7 14.2h10M7 16.4h10M7 18.6h10" />
+      {/* Base */}
+      <path stroke="var(--color-icono-contorno)" strokeWidth={1.2} d="M2 21.5h20" />
+    </svg>
+  );
+}
+
+/** Maletín de cuero con asa y broche. */
+export function MaletinGG({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Asa */}
+      <path fill="none" stroke="var(--color-icono-contorno)" strokeWidth={1.6} d="M9 7V5.2A1.7 1.7 0 0 1 10.7 3.5h2.6A1.7 1.7 0 0 1 15 5.2V7" />
+      {/* Cuerpo del maletín */}
+      <rect fill="var(--color-icono-madera)" stroke="var(--color-icono-contorno)" x="2.5" y="7" width="19" height="13" rx="2" />
+      {/* Tapa más clara */}
+      <path fill="var(--color-icono-madera-clara)" stroke="var(--color-icono-contorno)" d="M4.5 7h15a2 2 0 0 1 2 2v3.5h-19V9a2 2 0 0 1 2-2Z" />
+      {/* Broche */}
+      <rect fill="var(--color-icono-dorado)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="10.4" y="11.2" width="3.2" height="2.6" rx="0.6" />
+    </svg>
+  );
+}
+
+/** Gráfico de flujo con flecha ascendente verde. */
+export function FlujoCajaGraf({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Plano del gráfico */}
+      <rect fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" x="2.5" y="2.5" width="19" height="19" rx="2" />
+      {/* Ejes */}
+      <path stroke="var(--color-icono-contorno)" strokeWidth={1.1} d="M5.5 5.5v13h13" />
+      {/* Barras */}
+      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} x="7.5" y="13" width="2.4" height="5.5" />
+      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} x="11" y="10.5" width="2.4" height="8" />
+      <rect fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} x="14.5" y="8" width="2.4" height="10.5" />
+      {/* Flecha ascendente */}
+      <path fill="none" stroke="var(--color-icono-verde)" strokeWidth={1.7} d="m7 11 3.5-3.5 2.5 2.5 4.5-4.5" />
+      <path fill="var(--color-icono-verde)" stroke="none" d="M15 4.6h4.6v4.6l-1.5-1.5-1.6 1.5-1.5-1.5 1.6-1.6Z" />
+    </svg>
+  );
+}
+
+/** Recibo de honorarios con borde dentado y sello. */
+export function ReciboHonorarios({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Recibo con bordes dentados */}
+      <path fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" d="M6 2.5v19l1.8-1.2 1.8 1.2 1.7-1.2 1.7 1.2 1.8-1.2 1.7 1.2 1.8-1.2 1.7 1.2v-19l-1.7 1.2-1.8-1.2-1.7 1.2-1.8-1.2-1.7 1.2-1.7-1.2-1.8 1.2Z" />
+      {/* Renglones */}
+      <path stroke="var(--color-icono-linea)" strokeWidth={1.1} d="M8.5 7h7M8.5 10h7M8.5 13h4.5" />
+      {/* Símbolo S/ del honorario */}
+      <text x="8.2" y="19.4" fontSize="5.5" fontWeight="700" fill="var(--color-icono-verde)" stroke="none" fontFamily="sans-serif">S/</text>
+      {/* Firma */}
+      <path stroke="var(--color-icono-azul)" strokeWidth={1} d="M13 18.2c1-1.6 1.8-1.6 2 .2.2-1.4 1-1.8 2-.6" />
+    </svg>
+  );
+}
+
+/** Alcancía de cerdito con moneda entrando. */
+export function ChanchitoAFP({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Moneda que entra por la ranura */}
+      <circle fill="var(--color-icono-dorado)" stroke="var(--color-icono-contorno)" cx="12" cy="4.4" r="2.4" />
+      {/* Cuerpo del cerdito */}
+      <path fill="var(--color-icono-rosa)" stroke="var(--color-icono-contorno)" d="M5 12.5a7 5.6 0 0 1 14 0v1.2a2.4 2.4 0 0 1-2.4 2.4h-.8l-.5 2.4h-2l-.4-2h-1.8l-.4 2h-2l-.5-2.4h-.8A2.4 2.4 0 0 1 5 13.7Z" />
+      {/* Oreja */}
+      <path fill="var(--color-icono-rosa)" stroke="var(--color-icono-contorno)" d="m8.2 8 1.4-2 1.4 2Z" />
+      {/* Hocico */}
+      <ellipse fill="var(--color-icono-rosa)" stroke="var(--color-icono-contorno)" cx="19.4" cy="12.8" rx="1.7" ry="1.4" />
+      {/* Ojo y ranura */}
+      <circle fill="var(--color-icono-contorno)" stroke="none" cx="15.6" cy="11" r="0.7" />
+      <path stroke="var(--color-icono-contorno)" strokeWidth={1.1} d="M10.5 7.6h3" />
+      {/* Colita */}
+      <path fill="none" stroke="var(--color-icono-contorno)" strokeWidth={1} d="M5 12.5c-1.2-.3-1.6-1.3-1-2.2" />
+    </svg>
+  );
+}
+
+/** Paleta de pintor con cinco colores. */
+export function PaletaTemas({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Paleta de madera con el hueco del pulgar */}
+      <path fill="var(--color-icono-madera-clara)" stroke="var(--color-icono-contorno)" d="M12 2.8a9.2 9.2 0 1 0 0 18.4c1.2 0 1.8-.8 1.8-1.7 0-.8-.6-1.3-.6-2.1 0-1 .8-1.7 1.9-1.7h2.1a3.3 3.3 0 0 0 3.3-3.3C20.4 7 16.6 2.8 12 2.8Z" />
+      {/* Gotas de pintura */}
+      <circle fill="var(--color-icono-rojo)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} cx="7.2" cy="8.6" r="1.6" />
+      <circle fill="var(--color-icono-dorado)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} cx="11.6" cy="6.4" r="1.6" />
+      <circle fill="var(--color-icono-verde)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} cx="15.8" cy="8.8" r="1.6" />
+      <circle fill="var(--color-icono-azul)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} cx="7.6" cy="13.6" r="1.6" />
+    </svg>
+  );
+}
+
+/** Salvavidas de ayuda con franjas rojas. */
+export function AyudaSalvavidas({ className, ...props }: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
+      {/* Aro exterior */}
+      <circle fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" cx="12" cy="12" r="9.2" />
+      {/* Franjas rojas del salvavidas */}
+      <path fill="var(--color-icono-rojo)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} d="M12 2.8a9.2 9.2 0 0 1 6.5 2.7l-2.5 2.5a5.2 5.2 0 0 0-4-1.6 5.2 5.2 0 0 0-4 1.6L5.5 5.5A9.2 9.2 0 0 1 12 2.8Z" />
+      <path fill="var(--color-icono-rojo)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} d="M12 21.2a9.2 9.2 0 0 1-6.5-2.7l2.5-2.5a5.2 5.2 0 0 0 4 1.6 5.2 5.2 0 0 0 4-1.6l2.5 2.5a9.2 9.2 0 0 1-6.5 2.7Z" />
+      <path fill="var(--color-icono-rojo)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} d="M2.8 12a9.2 9.2 0 0 1 2.7-6.5L8 8a5.2 5.2 0 0 0-1.6 4c0 1.6.6 3 1.6 4l-2.5 2.5A9.2 9.2 0 0 1 2.8 12Z" />
+      <path fill="var(--color-icono-rojo)" stroke="var(--color-icono-contorno)" strokeWidth={0.7} d="M21.2 12a9.2 9.2 0 0 1-2.7 6.5L16 16a5.2 5.2 0 0 0 1.6-4c0-1.6-.6-3-1.6-4l2.5-2.5a9.2 9.2 0 0 1 2.7 6.5Z" />
+      {/* Aro interior */}
+      <circle fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" cx="12" cy="12" r="5.2" />
+      {/* Signo de pregunta */}
+      <text x="9.3" y="15.6" fontSize="8.5" fontWeight="700" fill="var(--color-icono-azul)" stroke="none" fontFamily="sans-serif">?</text>
     </svg>
   );
 }

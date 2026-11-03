@@ -11,25 +11,25 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 // Grupo Ayuda: el botón grande abre el centro de ayuda y las tres opciones pequeñas van apiladas a su derecha.
 const SECCIONES_AYUDA = [
-  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: CircleHelp, grande: true },
+  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: AyudaSalvavidas, grande: true },
   { texto: "Manual de usuario", corto: "Manual de usuario", a: "/ayuda", search: { seccion: "manual" }, icono: NotebookText },
   { texto: "Acerca de", corto: "Acerca de", a: "/ayuda", search: { seccion: "acerca" }, icono: BadgeInfo },
   { texto: "Licencia", corto: "Licencia", a: "/ayuda", search: { seccion: "licencia" }, icono: Stamp },
 ];
 const SECCIONES_CONFIG = [
-  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2, grande: true },
+  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: EmpresaEdificio, grande: true },
   { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UserRoundCheck },
   { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: Scale },
   { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación de\nDocumentos", seccion: "codificacion", campo: "pestana", icono: FileDigit, grande: true },
+  { texto: "Codificación", corto: "Codificación de\nDocumentos", seccion: "codificacion", campo: "pestana", icono: CodificacionHoja, grande: true },
   { texto: "Parámetros de proyectos", corto: "Parametros de Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
   { texto: "Recursos Humanos", corto: "Recursos Humanos", seccion: "cargos", campo: "pestana", icono: UserCog },
   { texto: "Costos y Finanzas", corto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana", icono: Coins },
 ];
 const SECCIONES_CATALOGO = [
-  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler, grande: true },
+  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: ReglaUnidades, grande: true },
   { texto: "Especialidades", corto: "Especialidades", seccion: "especialidades", campo: "pestana", icono: Shapes },
   { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: FolderTree },
   { texto: "Subcategorías", corto: "Subcategorías", seccion: "subfamilias", campo: "pestana", icono: Network },
@@ -37,7 +37,7 @@ const SECCIONES_CATALOGO = [
   { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: ListTree },
 ];
 const SECCIONES_MAESTRO = [
-  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package, grande: true },
+  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: MaterialesPila, grande: true },
   { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
 ];
 const SECCIONES_MAESTRO_RECURSOS = [
@@ -46,13 +46,13 @@ const SECCIONES_MAESTRO_RECURSOS = [
   { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
 ];
 const SECCIONES_MAESTRO_CFG = [
-  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent, grande: true },
+  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: MargenMoneda, grande: true },
   { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: BadgeDollarSign },
   { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Barcode },
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
-import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado, PortapapelesVerificado, PortapapelesLapiz, GanttLineas, CurvaAzul, PortapapelesDatos, BoletaDolar, NotaCreditoRoja, NotaDebitoAzul, TesoreriaEdificio, BovedaRetenciones, PartidasTresColores, CajasInventario, FichaCliente } from "@/components/icons";
+import { ReciboCodigoBarras, NominaBoletas, FacturaSello, GraficoFinanciero, HojaVerificada, CajaVerificada, EscudoVerificado, PortapapelesVerificado, PortapapelesLapiz, GanttLineas, CurvaAzul, PortapapelesDatos, BoletaDolar, NotaCreditoRoja, NotaDebitoAzul, TesoreriaEdificio, BovedaRetenciones, PartidasTresColores, CajasInventario, FichaCliente, CotizacionHoja, EmpresaEdificio, CodificacionHoja, ReglaUnidades, MaterialesPila, MargenMoneda, PanelResumen, AlmacenGalpon, MaletinGG, FlujoCajaGraf, ReciboHonorarios, ChanchitoAFP, PaletaTemas, AyudaSalvavidas } from "@/components/icons";
 import { Calculator, ChevronDown, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from "lucide-react";
 
 function BotonPantallaCompleta({ className = "grid size-7 place-items-center rounded-md text-brand-foreground/70 transition-colors hover:bg-brand-foreground/10 hover:text-brand-foreground" }: { className?: string }) {
@@ -125,7 +125,7 @@ import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documento
 
 
 const SECCIONES_COTIZ = [
-  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText, grande: true },
+  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: CotizacionHoja, grande: true },
   { texto: "Análisis de Precios Unitarios (APU)", corto: "APU", a: "/datos-apu", icono: Calculator, iconoClase: "text-cinta-verde" },
   { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
 ];
@@ -143,7 +143,7 @@ const SECCIONES_GUIAS = [
 ];
 
 const SECCIONES_VEHICULOS = [
-  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: LayoutDashboard, grande: true },
+  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: PanelResumen, grande: true },
   { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car, iconoClase: "text-cinta-verde" },
   { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: CalendarClock, iconoClase: "text-cinta-azul" },
   { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route, iconoClase: "text-cinta-marron" },
@@ -152,7 +152,7 @@ const SECCIONES_VEHICULOS = [
 ];
 
 const SECCIONES_ALMACEN = [
-  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
+  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: AlmacenGalpon, grande: true },
   { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: CajasInventario, grande: true },
 ];
 
@@ -164,14 +164,14 @@ const SECCIONES_OP_ESP = [
 ];
 
 const SECCIONES_GG = [
-  { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: Briefcase, grande: true },
+  { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: MaletinGG, grande: true },
   { texto: "Gastos generales", corto: "Detalle de Gastos", seccion: "gastos", campo: "pestana", icono: ScrollText },
   { texto: "Mantenimiento de flota", corto: "Mantenimiento de Flota", seccion: "mantenimiento", campo: "pestana", icono: ToolCase },
   { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: Fuel },
 ];
 
 const SECCIONES_FLUJO = [
-  { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: TrendingUp, grande: true },
+  { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: FlujoCajaGraf, grande: true },
   { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
 ];
 
@@ -190,11 +190,11 @@ const SECCIONES_VISTAS = [
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: NominaBoletas, grande: true },
-  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReceiptText, grande: true },
+  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: ReciboHonorarios, grande: true },
 ];
 // Opciones del grupo Beneficios Sociales: Datos de AFP grande a la izquierda y las demás en una columna vertical.
 const SECCIONES_BENEFICIOS = [
-  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: PiggyBank, grande: true },
+  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: ChanchitoAFP, grande: true },
   { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: Sprout, iconoClase: "text-cinta-verde" },
   { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: Gift, iconoClase: "text-cinta-azul" },
   { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: UserMinus, iconoClase: "text-cinta-rojo" },
@@ -213,7 +213,7 @@ const MENU: Categoria[] = [
       { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
       { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
       { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: Palette, subFilas: 3, sub: [
-        { texto: "Temas de colores", corto: "Temas", a: "/tema-colores", icono: Palette, grande: true },
+        { texto: "Temas de colores", corto: "Temas", a: "/tema-colores", icono: PaletaTemas, grande: true },
         { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
       ] },
       { a: "/ayuda", texto: "Ayuda", roles: ["ingeniero", "administrador", "gerente"], icono: CircleHelp, sub: SECCIONES_AYUDA, subFilas: 3 },
