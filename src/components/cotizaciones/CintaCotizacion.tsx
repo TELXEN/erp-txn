@@ -1,58 +1,45 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { Eye, Pencil, Undo2 } from "lucide-react";
+import { Eye, PencilRuler } from "lucide-react";
 
-
-import { GrupoCinta } from "@/components/CintaOpciones";
 import { cn } from "@/lib/utils";
 
-/** Rutas que la cinta conserva visibles mientras se edita o se ve una cotización. */
-export const SOLO_COTIZ = ["/cotizaciones"];
+/**
+ * Herramientas de la cotización dentro de su ventana flotante (no en la cinta),
+ * con el mismo conmutador «Edición | Vista previa» que Gastos Generales.
+ */
+type Base = { icono: ReactNode; texto: string; onClick?: () => void; disabled?: boolean; title?: string | undefined };
 
-type Base = { icono: ReactNode; texto: string; onClick?: () => void; disabled?: boolean; activo?: boolean; title?: string | undefined };
-
-/** Botón grande de la cinta de cotización (icono arriba, rótulo en hasta dos líneas). */
-export function BotonGrande({ icono, texto, onClick, disabled, activo, title }: Base) {
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} title={title} aria-pressed={activo}
-      className={cn("flex h-[76px] min-w-[56px] max-w-[84px] flex-col items-center justify-start gap-1 rounded-md px-1.5 pt-1.5 text-center text-[11px] leading-tight text-cinta-texto transition-colors hover:bg-cinta-seleccion/20 disabled:opacity-40",
-        activo && "bg-cinta-seleccion text-cinta-seleccion-foreground hover:bg-cinta-seleccion")}>
-      <span className="[&>svg]:!size-8 [&>svg]:stroke-[1.25] [&>svg]:text-[var(--color-cinta-icono)]">{icono}</span>
-      <span className="whitespace-pre-line">{texto}</span>
-    </button>
-  );
-}
-
-/** Botón pequeño (icono + texto) para columnas de tres filas. */
-export function BotonPequeno({ icono, texto, onClick, disabled, title }: Base) {
+export function BotonBarra({ icono, texto, onClick, disabled, title }: Base) {
   return (
     <button type="button" onClick={onClick} disabled={disabled} title={title}
-      className="flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 text-[11px] text-cinta-texto transition-colors hover:bg-cinta-seleccion/20 disabled:opacity-40 [&_svg]:size-4 [&_svg]:stroke-[1.5] [&_svg]:text-[var(--color-cinta-icono)]">
+      className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-xs text-ink transition-colors hover:bg-cinta-seleccion/20 disabled:opacity-40 [&_svg]:size-4 [&_svg]:stroke-[1.5]">
       {icono}{texto}
     </button>
   );
 }
 
-export function Columna({ children }: { children: ReactNode }) {
-  return <div className="flex h-[76px] flex-col items-start justify-start gap-0.5 pt-0.5">{children}</div>;
+export function SeparadorBarra() {
+  return <span className="mx-1 h-5 w-px shrink-0 bg-line" aria-hidden />;
 }
 
-/** Grupo «Vista»: sustituye a las pestañas Volver · Edición · Vista previa. */
-export function GrupoVista({ id, modo, onVolver }: { id: string; modo: "edicion" | "vista"; onVolver?: () => void }) {
-  return (
-    <GrupoCinta titulo="Vista">
-      {onVolver ? (
-        <BotonGrande icono={<Undo2 />} texto="Volver" onClick={onVolver} />
-      ) : (
-        <Link to="/cotizaciones" search={{}}><BotonGrande icono={<Undo2 />} texto="Volver" /></Link>
+export function BarraHerramientas({ children }: { children: ReactNode }) {
+  return <div className="no-print flex shrink-0 flex-wrap items-center gap-0.5 border-b border-line bg-card px-3 py-1">{children}</div>;
+}
 
-      )}
-      {modo === "vista" && (
-        <Link to="/cotizaciones" search={{ abrir: id }}><BotonGrande icono={<Pencil />} texto="Edición" /></Link>
-      )}
-      {modo === "edicion" && (
-        <Link to="/cotizacion-vista" search={{ id }}><BotonGrande icono={<Eye />} texto={"Vista\nprevia"} /></Link>
-      )}
-    </GrupoCinta>
+export type ModoCotizacion = "edicion" | "vista";
+
+export function ConmutadorModo({ modo, onCambiar, sinEdicion }: { modo: ModoCotizacion; onCambiar: (m: ModoCotizacion) => void; sinEdicion?: boolean }) {
+  const opciones = ([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const)
+    .filter(([m]) => !(sinEdicion && m === "edicion"));
+  return (
+    <div className="no-print flex overflow-hidden rounded-md border border-line">
+      {opciones.map(([m, t, ic]) => (
+        <button key={m} type="button" onClick={() => onCambiar(m)} aria-pressed={modo === m}
+          className={cn("flex h-8 items-center gap-1.5 px-3 text-xs transition-colors",
+            modo === m ? "bg-cinta-seleccion font-semibold text-cinta-seleccion-foreground" : "bg-card text-ink hover:bg-cinta-seleccion/20")}>
+          {ic}{t}
+        </button>
+      ))}
+    </div>
   );
 }

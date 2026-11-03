@@ -1,11 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { GrupoCinta } from "@/components/CintaOpciones";
-import { BotonGrande, BotonPequeno, Columna, GrupoVista, SOLO_COTIZ } from "@/components/cotizaciones/CintaCotizacion";
+import { BarraHerramientas, BotonBarra, ConmutadorModo, SeparadorBarra } from "@/components/cotizaciones/CintaCotizacion";
 import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { HojaGastosGenerales } from "@/components/cotizaciones/HojaGastosGenerales";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +14,7 @@ import { useAuth } from "@/lib/auth";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
-import { ArrowLeft, FileDown, FileSpreadsheet, Calculator, Files, Receipt } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Eslogan en dos líneas: se corta en la primera coma. */
@@ -46,7 +44,7 @@ export const Route = createFileRoute("/_authenticated/cotizacion-vista")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: VistaCotizacion,
+  component: RutaVistaCotizacion,
 });
 
 // Vista previa e impresión con la paleta documental TELXEN.
@@ -112,9 +110,26 @@ function construirFilas(items: ItemCot[], _opts: { multi?: boolean; alcance?: st
 }
 
 
-function VistaCotizacion() {
+/** Ruta directa: abre la misma ventana flotante, en modo vista previa. */
+function RutaVistaCotizacion() {
   const navigate = useNavigate();
   const { id } = Route.useSearch();
+  const { data: cotizaciones = [] } = useCotizaciones();
+  const cot = cotizaciones.find((c) => c.id === id) ?? null;
+  const editable = Boolean(cot) && cot?.estado !== "Retomada" && !cotizaciones.some((c) => c.id !== cot?.id && c.codigo === cot?.codigo && (c.revision ?? "") > (cot?.revision ?? ""));
+  const cerrar = () => void navigate({ to: "/cotizaciones", search: {} });
+  return (
+    <VentanaFlotante titulo={cot?.nombre || cot?.codigo || "Cotización"} subtitulo={cot ? `Cotización ${cot.codigo ?? ""} · vista previa` : "Vista previa"}
+      abierta onCerrar={cerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
+      acciones={<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} />}>
+      <VistaPreviaCotizacion id={id} />
+    </VentanaFlotante>
+  );
+}
+
+/** Hoja A4 de la cotización con sus herramientas de salida; se usa dentro de la ventana flotante. */
+export function VistaPreviaCotizacion({ id }: { id: string }) {
+  const navigate = useNavigate();
   const { data: cotizaciones = [], isLoading: cargandoCotizaciones } = useCotizaciones();
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null, true);
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
@@ -412,38 +427,23 @@ function VistaCotizacion() {
       <VentanaFlotante titulo="Gastos generales" subtitulo="Vista previa del desagregado" abierta={verGG} onCerrar={() => setVerGG(false)} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen>
         {verGG && <HojaGastosGenerales id={id} />}
       </VentanaFlotante>
-      <Encabezado
-        soloCinta={SOLO_COTIZ}
-        titulo="Vista previa de cotización"
-        subtitulo={`${cot.codigo ?? "Sin código"} · ${cot.cliente || "Cliente sin registrar"}`}
-        acciones={
-          <div className="no-print flex items-stretch gap-2">
-            <GrupoVista id={id} modo="vista" />
-            <GrupoCinta titulo="Formato">
-              <Columna>
-                <label className="flex h-[20px] cursor-pointer items-center gap-1.5 px-1.5 text-[11px] text-cinta-texto select-none" title="Imprimir y exportar la hoja en A4 horizontal">
-                  <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
-                  A4 horizontal
-                </label>
-              </Columna>
-            </GrupoCinta>
-            <GrupoCinta titulo="Exportar">
-              <BotonGrande icono={<FileDown />} texto={pdfCargando ? "Generando..." : "Descargar\nPDF"} onClick={() => void descargarPdf()} disabled={pdfCargando} />
-              <Columna>
-                <BotonPequeno icono={<Files />} texto="PDF cotización + dossier" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU" />
-                <BotonPequeno icono={<FileSpreadsheet />} texto="Exportar a Excel" onClick={() => void exportarExcel()} disabled={items.length === 0} />
-                <BotonPequeno icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
-              </Columna>
-              <Columna>
-                <BotonPequeno icono={<Receipt />} texto="Gastos generales" onClick={() => setVerGG(true)} />
-              </Columna>
-            </GrupoCinta>
-          </div>
-        }
-      />
+      <BarraHerramientas>
+        <label className="flex h-7 cursor-pointer items-center gap-1.5 px-2 text-xs text-ink select-none" title="Imprimir y exportar la hoja en A4 horizontal">
+          <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
+          A4 horizontal
+        </label>
+        <SeparadorBarra />
+        <BotonBarra icono={<Printer />} texto="Imprimir" onClick={() => window.print()} />
+        <BotonBarra icono={<FileDown />} texto={pdfCargando ? "Generando..." : "Descargar PDF"} onClick={() => void descargarPdf()} disabled={pdfCargando} />
+        <BotonBarra icono={<Files />} texto="PDF + dossier" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU" />
+        <BotonBarra icono={<FileSpreadsheet />} texto="Excel" onClick={() => void exportarExcel()} disabled={items.length === 0} />
+        <SeparadorBarra />
+        <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVerGG(true)} />
+        <BotonBarra icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
+      </BarraHerramientas>
       <style>{horizontal ? "@page { size: A4 landscape; }" : "@page { size: A4 portrait; }"}</style>
 
-      <div className="overflow-x-auto pb-8">
+      <div className="min-h-0 flex-1 overflow-auto bg-muted/60 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="mx-auto" style={{ width: interiorW }}>
         <div
           id="cotizacion-impresion"
