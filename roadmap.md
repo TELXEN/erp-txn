@@ -219,3 +219,4 @@
 - [x] Opciones pequeñas de la cinta sin fondo activo permanente: Títulos WBS y demás subopciones quedan transparentes con icono azul y solo se resaltan al pasar el mouse.
 - [x] Grupo Vehículos en Logística: cuatro opciones pequeñas en grilla 2x2 (Flota/Tareo | Traslados/Mantenimiento), Mantenimiento ya no se desplaza a la derecha.
 - [x] Trazo por tamaño en la cinta: iconos pequeños (16 px) con strokeWidth 2.25 y grandes (32 px) con 1.75, para igual peso visual.
+- [x] Trazo fino en la cinta: iconos grandes (32 px) con strokeWidth 1.25 y pequeños (16 px) con 1.5, verificado en las siete pestañas.
