@@ -750,7 +750,7 @@ export function EmpresaEdificio({ className, ...props }: SVGProps<SVGSVGElement>
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className} {...props}>
       {/* Torre principal */}
-      <rect fill="var(--color-icono-metal-claro)" stroke="var(--color-icono-contorno)" x="4" y="3" width="11" height="18" rx="1" />
+      <rect fill="var(--color-icono-papel)" stroke="var(--color-icono-contorno)" x="4" y="3" width="11" height="18" rx="1" />
       {/* Ventanas de la torre */}
       <g fill="var(--color-icono-ventana)" stroke="var(--color-icono-contorno)" strokeWidth={0.8}>
         <rect x="6" y="5.5" width="2.4" height="2.4" /><rect x="10.4" y="5.5" width="2.4" height="2.4" />
@@ -758,7 +758,7 @@ export function EmpresaEdificio({ className, ...props }: SVGProps<SVGSVGElement>
         <rect x="6" y="13.3" width="2.4" height="2.4" /><rect x="10.4" y="13.3" width="2.4" height="2.4" />
       </g>
       {/* Anexo bajo a la derecha */}
-      <rect fill="var(--color-icono-metal)" stroke="var(--color-icono-contorno)" x="15" y="10" width="5.5" height="11" rx="1" />
+      <rect fill="var(--color-icono-metal-claro)" stroke="var(--color-icono-contorno)" x="15" y="10" width="5.5" height="11" rx="1" />
       <rect fill="var(--color-icono-ventana)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="16.6" y="12" width="2.3" height="2.3" />
       {/* Puerta */}
       <rect fill="var(--color-icono-madera)" stroke="var(--color-icono-contorno)" strokeWidth={0.8} x="8" y="17" width="3" height="4" />
