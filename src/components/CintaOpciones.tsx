@@ -372,17 +372,11 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
 
         if (o.a) {
           return (
-            <Link key={`${o.a}|${o.texto}`} to={o.a} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}
-              activeOptions={{ includeSearch: true }}
-              activeProps={{ className: "cinta-activo bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
-              inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
+            <Link key={`${o.a}|${o.texto}`} to={o.a} title={o.texto} className={`${cls} text-cinta-texto hover:bg-cinta-hover`} {...(sitio ? { style: sitio } : {})} {...(o.search ? { search: o.search as never } : {})}>{contenido}</Link>
           );
         }
         return (
-          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={cls} {...(sitio ? { style: sitio } : {})}
-            activeOptions={{ includeSearch: true }}
-            activeProps={{ className: "cinta-activo bg-cinta-acento text-cinta-acento-foreground font-semibold" }}
-            inactiveProps={{ className: "text-cinta-texto hover:bg-cinta-hover" }}>{contenido}</Link>
+          <Link key={o.seccion} to={m.a} search={{ [o.campo ?? "seccion"]: o.seccion } as never} title={o.texto} className={`${cls} text-cinta-texto hover:bg-cinta-hover`} {...(sitio ? { style: sitio } : {})}>{contenido}</Link>
         );
       };
       return (
