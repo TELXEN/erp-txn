@@ -98,7 +98,10 @@
   --color-sidebar-cinta-inf: var(--color-cinta-inf);
   --color-cinta-texto: var(--cinta-texto, #333333);
   --color-cinta-tenue: var(--cinta-tenue, color-mix(in oklab, #333333 68%, #f5f5f5));
-  --color-cinta-hover: var(--cinta-hover, color-mix(in oklab, #333333 10%, #f5f5f5));
+  /* Seleccionado en la cinta: amarillo institucional del logo TXN; hover: el mismo amarillo tenue. */
+  --color-cinta-seleccion: #f2c12e;
+  --color-cinta-seleccion-foreground: #000000;
+  --color-cinta-hover: var(--cinta-hover, rgb(242 193 46 / 0.2));
   --color-cinta-borde: var(--cinta-borde, color-mix(in oklab, #333333 18%, #f5f5f5));
   --color-cinta-acento: var(--cinta-acento, var(--cta));
   --color-cinta-acento-foreground: var(--cinta-acento-fore, var(--cta-foreground));
