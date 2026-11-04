@@ -18,12 +18,8 @@ const llave =
   "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z";
 
 const llaves: IconNode = [
-  ["g", { transform: "scale(0.78)", key: "a" }, [
-    ["path", { d: llave, key: "a1" }],
-  ]],
-  ["g", { transform: "translate(24 0) scale(-0.78 0.78)", key: "b" }, [
-    ["path", { d: llave, key: "b1" }],
-  ]],
+  ["path", { d: llave, transform: "scale(0.78)", key: "a" }],
+  ["path", { d: llave, transform: "translate(24 0) scale(-0.78 0.78)", key: "b" }],
 ];
 
 export const LlavesMecanico = (props: LucideProps) => <Icon iconNode={llaves} {...props} />;
