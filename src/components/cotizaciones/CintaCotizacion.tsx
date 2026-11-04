@@ -28,6 +28,17 @@ export function BarraHerramientas({ children }: { children: ReactNode }) {
 
 export type ModoCotizacion = "edicion" | "vista";
 
+/** Indicadores de la barra de título: orientación de la hoja e IGV, a la derecha sobre el recuadro COTIZACIÓN. */
+export function IndicadoresCotizacion({ horizontal, conIgv }: { horizontal: boolean; conIgv: boolean }) {
+  const chip = "inline-flex h-6 items-center rounded border border-line bg-card px-2 text-xs text-ink";
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={chip}>{horizontal ? "A4 horizontal" : "A4 vertical"}</span>
+      <span className={chip}>{conIgv ? "Con IGV (18%)" : "Sin IGV"}</span>
+    </div>
+  );
+}
+
 export function ConmutadorModo({ modo, onCambiar, sinEdicion }: { modo: ModoCotizacion; onCambiar: (m: ModoCotizacion) => void; sinEdicion?: boolean }) {
   const opciones = ([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const)
     .filter(([m]) => !(sinEdicion && m === "edicion"));

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { BarraHerramientas, BotonBarra, ConmutadorModo, SeparadorBarra } from "@/components/cotizaciones/CintaCotizacion";
+import { BarraHerramientas, BotonBarra, ConmutadorModo, IndicadoresCotizacion, SeparadorBarra } from "@/components/cotizaciones/CintaCotizacion";
 import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -10,7 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { useAuth } from "@/lib/auth";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { useTotalGGHoja } from "@/lib/gastos-generales-total";
@@ -122,7 +121,7 @@ function RutaVistaCotizacion() {
   return (
     <VentanaFlotante titulo={cot?.nombre || cot?.codigo || "Cotización"} subtitulo={cot ? `Cotización ${cot.codigo ?? ""} · vista previa` : "Vista previa"}
       abierta onCerrar={cerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} />}>
+      acciones={<div className="flex items-center gap-3">{cot && <IndicadoresCotizacion horizontal={cot.orientacion === "horizontal"} conIgv={cot.aplica_igv !== false} />}<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} /></div>}>
       <VistaPreviaCotizacion id={id} />
     </VentanaFlotante>
   );
@@ -135,7 +134,6 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null, true);
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
-  const { nombre, email } = useAuth();
   const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
   const ggHoja = useTotalGGHoja(id);
   const original = cot?.retoma_de_id ? cotizaciones.find((fila) => fila.id === cot.retoma_de_id) ?? null : null;
@@ -203,7 +201,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
       alto: (fila) => altos.get(fila.llave) ?? 0,
       encabezado: (fila) => fila.clase !== "item",
       primera: limite - (cabecera.getBoundingClientRect().bottom - origen),
-      siguientes: limite - (encabezado.getBoundingClientRect().bottom - origen + 16 + cabecera.getBoundingClientRect().height),
+      siguientes: limite - (cabecera.getBoundingClientRect().bottom - origen),
       cierre: cierre.getBoundingClientRect().height,
     }).map((pagina) => pagina.map((fila) => fila.llave));
     if (JSON.stringify(nuevo) !== JSON.stringify(reparto)) setReparto(nuevo);
@@ -383,50 +381,71 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
 
   const revision = `Rev. ${((cot as unknown as { revision?: string } | null)?.revision?.trim() || "00").padStart(2, "0")}`;
 
+  /** Encabezado completo (empresa, recuadro COTIZACIÓN, datos del cliente y proyecto); se repite en todas las hojas. */
   function encabezadoHoja(numero: number, totalHojas: number) {
-    const light = { fontFamily: DOC_FUENTE_CSS, fontWeight: 300 } as const;
-    return (
-      <div style={{ display: "flex", gap: 22, alignItems: "flex-start", borderBottom: `3px solid ${C.emerald700}`, paddingBottom: 14 }}>
-        <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {empresa?.logo_url ? (
-            <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 92, maxHeight: 54, objectFit: "contain" }} />
-          ) : (
-            <div style={{ width: 52, height: 52, borderRadius: 9, background: C.emerald700, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
-              TX
-            </div>
-          )}
-        </div>
-
-        <div style={{ flex: 1, minHeight: 76, textAlign: "right", display: "flex", flexDirection: "column", justifyContent: "flex-start" }}>
-          <b style={{ fontSize: 11, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>
-            {esloganDosLineas(empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL")}
-          </div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.direccion || "—"}</div>
-          <div style={{ ...light, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "right" }}>{empresa?.web || "—"}</div>
-        </div>
-
-        <div style={{ width: 248, textAlign: "center", flexShrink: 0 }}>
-          <div style={{ background: C.emerald50, borderTop: `4px solid ${C.emerald700}`, borderRadius: 5, padding: "10px 8px", color: C.slate900 }}>
-            <div style={{ ...light, fontSize: 10 }}>COTIZACIÓN</div>
-            <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
-            <div style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}>{cot?.codigo ?? "SIN CÓDIGO"}</div>
-            {retomaDe && <div style={{ fontSize: 7.5, marginTop: 2, color: C.slate500 }}>{retomaDe}</div>}
-          </div>
-          <div style={{ position: "relative", marginTop: 4, fontSize: 7.5, color: C.slate500, textAlign: "center" }}>
-            <span>Hoja {numero} de {totalHojas}</span>
-            <span style={{ position: "absolute", right: 0, top: 0 }}>{revision}</span>
-          </div>
-        </div>
+    if (!cot) return null;
+    const txt = { fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.35, color: C.slate900 } as const;
+    const condicion = (cot as unknown as Record<string, string>)["condiciones_pago"] || "—";
+    const dias = Number(cot.validez_dias) || 0;
+    const validez = dias ? `${dias} días (hasta ${F(vigenciaHasta(cot.fecha_emision, dias))})` : "—";
+    const izquierda: [string, string][] = [
+      ["RUC", cliente?.numero_documento || "—"],
+      ["CLIENTE", cliente?.razon_social || cot.cliente || "—"],
+      ["DIRECCIÓN", cot.ubicacion || cliente?.direccion || "—"],
+      ["ATENCIÓN", cliente?.contacto || "—"],
+    ];
+    const derecha: [string, string][] = [
+      ["FECHA DE EMISIÓN", F(cot.fecha_emision)],
+      ["MONEDA", esUsd ? "Dólares (USD)" : "Soles (PEN)"],
+      ["CONDICIÓN DE VENTA", condicion],
+      ["VALIDEZ DE OFERTA", validez],
+      ...(esUsd && tc > 0 ? [["TIPO CAMBIO", tc.toFixed(3)] as [string, string]] : []),
+    ];
+    const fila = ([e, v]: [string, string], ancho: number, alinear: "left" | "right" = "left") => (
+      <div key={e} style={{ display: "flex", ...txt }}>
+        <span style={{ width: ancho, flexShrink: 0, textAlign: alinear }}>{e}</span>
+        <span style={{ width: 12, textAlign: "center", flexShrink: 0 }}>:</span>
+        <span style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{v}</span>
       </div>
     );
-  }
-
-  function filaDato(etiqueta: string, valor: string) {
     return (
-      <div className="flex" style={{ fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", fontWeight: 300, lineHeight: 1.3 }}>
-        <span style={{ width: 76, flexShrink: 0, fontWeight: 300, color: C.slate500, textTransform: "uppercase", letterSpacing: 0, paddingTop: 1 }}>{etiqueta}</span>
-        <span style={{ fontWeight: 300, color: C.slate900 }}>{valor}</span>
+      <div>
+        <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
+          <div style={{ width: 120, height: 76, display: "flex", alignItems: "center", flexShrink: 0 }}>
+            {empresa?.logo_url ? (
+              <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 120, maxHeight: 64, objectFit: "contain" }} />
+            ) : (
+              <b style={{ fontSize: 20, color: C.slate900 }}>Telxen</b>
+            )}
+          </div>
+          <div style={{ flex: 1, fontFamily: DOC_FUENTE_CSS, fontSize: "8.5pt", lineHeight: 1.3, color: C.slate900 }}>
+            <b style={{ fontSize: 12, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b>
+            <div>{esloganDosLineas(empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL")}</div>
+            <div>{empresa?.direccion || "—"}</div>
+            <div>{empresa?.web || "—"}</div>
+          </div>
+          <div style={{ width: 200, flexShrink: 0, textAlign: "right", fontFamily: DOC_FUENTE_CSS }}>
+            <div style={{ border: `3px solid ${C.slate900}`, padding: "8px 6px", textAlign: "center", color: C.slate900 }}>
+              <div style={{ fontSize: 15 }}>COTIZACIÓN</div>
+              <div style={{ fontSize: 10, marginTop: 3 }}>{cot.codigo ?? "SIN CÓDIGO"}</div>
+            </div>
+            <div style={{ fontSize: 8.5, marginTop: 3, color: C.slate900 }}>{revision}</div>
+            {retomaDe && <div style={{ fontSize: 7.5, color: C.slate500 }}>{retomaDe}</div>}
+            <div style={{ fontSize: 7.5, color: C.slate500 }}>Hoja {numero} de {totalHojas}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 16, marginTop: 10, alignItems: "flex-start" }}>
+          <div style={{ flex: 1.3, minWidth: 0 }}>{izquierda.map((d) => fila(d, 70))}</div>
+          <div style={{ flex: 0.8, minWidth: 0, paddingTop: 15 }}>{fila(["TELÉFONO", cliente?.celular_contacto || cliente?.telefono || "—"], 60)}</div>
+          <div style={{ width: 270, flexShrink: 0 }}>{derecha.map((d) => fila(d, 118, "right"))}</div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", marginTop: 8, ...txt }}>
+          <span style={{ width: 70, flexShrink: 0 }}>PROYECTO</span>
+          <span style={{ width: 12, textAlign: "center", flexShrink: 0 }}>:</span>
+          <div style={{ flex: 1, border: `2.5px solid ${C.slate900}`, padding: "4px 8px", fontWeight: 600, textAlign: "justify" }}>{cot.nombre || "—"}</div>
+        </div>
       </div>
     );
   }
@@ -473,7 +492,6 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
           style={{ width: paginaW, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {paginas.map((itemsPagina, paginaIndex) => {
-            const esPrimera = paginaIndex === 0;
             const esUltima = paginaIndex === paginas.length - 1;
             return (
               <section
@@ -482,34 +500,6 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                 style={{ position: "relative", width: interiorW, height: paginaH, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
-
-                {esPrimera && (
-                  <div style={{ marginTop: 14 }}>
-                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px", fontFamily: DOC_FUENTE_CSS }}>
-                      <div>
-                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
-                        {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
-                        {filaDato("RUC / DNI", cliente?.numero_documento || "—")}
-                        {filaDato("Atención", cliente?.contacto || "—")}
-                        {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
-                      </div>
-                      <div style={{ justifySelf: "end", width: 234 }}>
-                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
-                        {filaDato("Emisión", F(cot.fecha_emision))}
-                        {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
-                        {filaDato("Moneda", esUsd ? "Dólares (USD)" : "Soles (PEN)")}
-                        {esUsd && tc > 0 && filaDato("T. cambio", tc.toFixed(3))}
-                        {filaDato("Por", nombre || email || "—")}
-                        {filaDato("Celular", empresa?.telefono || "—")}
-                        {filaDato("E-mail", empresa?.email || "—")}
-                      </div>
-                    </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
-                      <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
-                      <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
-                    </div>
-                  </div>
-                )}
 
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
                   <colgroup>

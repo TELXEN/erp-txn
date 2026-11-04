@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { GrupoCinta } from "@/components/CintaOpciones";
-import { BarraHerramientas, BotonBarra, ConmutadorModo, SeparadorBarra, type ModoCotizacion } from "@/components/cotizaciones/CintaCotizacion";
+import { BarraHerramientas, BotonBarra, ConmutadorModo, IndicadoresCotizacion, SeparadorBarra, type ModoCotizacion } from "@/components/cotizaciones/CintaCotizacion";
 import { VistaPreviaCotizacion } from "@/routes/_authenticated/cotizacion-vista";
 import { Building2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -586,7 +586,7 @@ function Cotizaciones() {
     <VentanaFlotante titulo={cot.nombre || cot.codigo || "Cotización"}
       subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""}`}
       abierta onCerrar={cerrarEditor} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={<ConmutadorModo modo={modoVentana} sinEdicion={!esUltimaRevision} onCambiar={setModoVentana} />}>
+      acciones={<div className="flex items-center gap-3"><IndicadoresCotizacion horizontal={cot.orientacion === "horizontal"} conIgv={cot.aplica_igv !== false} /><ConmutadorModo modo={modoVentana} sinEdicion={!esUltimaRevision} onCambiar={setModoVentana} /></div>}>
       {modoVentana === "vista" ? <VistaPreviaCotizacion id={cot.id} /> : (
       <div className="flex min-h-0 flex-1 flex-col bg-background lg:overflow-hidden">
         <BarraHerramientas>
