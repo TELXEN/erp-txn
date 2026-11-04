@@ -194,7 +194,7 @@ function EnvolturaEncabezado({ ventana, children }: { ventana?: undefined | { ab
   if (!ventana) return <>{children}</>;
   return (
     <VentanaFlotante titulo="Encabezado de la cotización" subtitulo="Los cambios se guardan al salir de cada campo" abierta={ventana.abierta} onCerrar={ventana.onCerrar} ancho="max-w-6xl" superpuesta>
-      <div style={{ background: C.white, color: C.ink, fontFamily: DOC_FUENTE_CSS, fontSize: 12.5, padding: 8 }}>{children}</div>
+      <div style={{ background: C.white, color: C.ink, fontFamily: DOC_FUENTE_CSS, fontSize: 12.5, padding: "20px 24px" }}>{children}</div>
     </VentanaFlotante>
   );
 }
