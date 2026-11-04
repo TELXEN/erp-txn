@@ -14,7 +14,7 @@ import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package,
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
 import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
 import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
-import { Milestone, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
 import { GrupoPersonas, IconoCotizaciones, IconoPreliquidaciones, LibroAyuda, LlantaLlave } from "./icono-grupo";
 
