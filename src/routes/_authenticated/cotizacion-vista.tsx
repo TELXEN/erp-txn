@@ -122,7 +122,7 @@ function RutaVistaCotizacion() {
   return (
     <VentanaFlotante titulo={cot?.nombre || cot?.codigo || "Cotización"} subtitulo={cot ? `Cotización ${cot.codigo ?? ""} · vista previa` : "Vista previa"}
       abierta onCerrar={cerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} />}>
+      acciones={<div className="flex items-center gap-3">{cot && <IndicadoresCotizacion horizontal={cot.orientacion === "horizontal"} conIgv={cot.aplica_igv !== false} />}<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} /></div>}>
       <VistaPreviaCotizacion id={id} />
     </VentanaFlotante>
   );

@@ -586,7 +586,7 @@ function Cotizaciones() {
     <VentanaFlotante titulo={cot.nombre || cot.codigo || "Cotización"}
       subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""}`}
       abierta onCerrar={cerrarEditor} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={<ConmutadorModo modo={modoVentana} sinEdicion={!esUltimaRevision} onCambiar={setModoVentana} />}>
+      acciones={<div className="flex items-center gap-3"><IndicadoresCotizacion horizontal={cot.orientacion === "horizontal"} conIgv={cot.aplica_igv !== false} /><ConmutadorModo modo={modoVentana} sinEdicion={!esUltimaRevision} onCambiar={setModoVentana} /></div>}>
       {modoVentana === "vista" ? <VistaPreviaCotizacion id={cot.id} /> : (
       <div className="flex min-h-0 flex-1 flex-col bg-background lg:overflow-hidden">
         <BarraHerramientas>
