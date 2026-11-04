@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Boton, Panel, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { HojaGastosGenerales } from "@/components/cotizaciones/HojaGastosGenerales";
+import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
@@ -14,7 +15,7 @@ import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacio
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { useTotalGGHoja } from "@/lib/gastos-generales-total";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
-import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt, FileText } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Eslogan en dos líneas: se corta en la primera coma. */
