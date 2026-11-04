@@ -19,10 +19,10 @@ const llave =
 
 const llaves: IconNode = [
   ["path", { d: llave, transform: "translate(19 2) scale(-0.78 0.78)", key: "a" }],
-  ["path", { d: llave, transform: "translate(5 2) scale(0.78)", key: "b" }],
+  ["path", { d: llave, transform: "translate(5 2) scale(0.78)", key: "b", className: "acento" }],
 ];
 
-export const LlavesMecanico = (props: LucideProps) => <Icon iconNode={llaves} {...props} />;
+export const LlavesMecanico = (props: LucideProps) => <Icon iconNode={llaves} className={`icono-dt ${props.className ?? ""}`} {...props} />;
 
 /** Libro abierto con signo de pregunta, mismo trazo de lucide. */
 const libroAyuda: IconNode = [

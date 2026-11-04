@@ -4,19 +4,20 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { createPortal } from "react-dom";
 
 import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Barcode } from "lucide-react";
-import { FileKey2, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
-import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
-import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
+import { FileKey2, BookOpen, BookUser, Briefcase, Building2, Calculator, CalendarDays, CalendarRange } from "lucide-react";
+import { ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
+import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Database, DollarSign, Drill, Factory } from "lucide-react";
 import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
-import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
-import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, ListChecks } from "lucide-react";
+import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins } from "lucide-react";
+import { HardHat, History, Landmark, LayoutTemplate, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
-import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
-import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
-import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
-import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
-import { Users, Vault, Wallet, Warehouse } from "lucide-react";
+import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank } from "lucide-react";
+import { Plug, Receipt, ReceiptText, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
+import { Settings, Shapes, ShieldCheck, ShoppingBag, SlidersHorizontal, Sprout } from "lucide-react";
+import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Users, Vault, Wallet } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
+import { AlmacenContDT, AlmacenDT, BandejaReqDT, FlotaDT, ImportacionesDT, InventarioDT, OrdenCompraDT, ProveedoresDT, ResumenDT, TareoVehicularDT, TransportistasDT, TrasladosDT, VehiculosDT } from "./icono-logistica";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
 import { AcercaDT, AyudaDT, AyudaGrupoDT, CodificacionDT, ConfigSistemaDT, CostosFinanzasDT, DisenoDT, EmpresaDT, IntegracionesDT, LicenciaDT, ManualDT, NormativaDT, ParametrosDT, ParamProyectosDT, RecursosHumanosDT, TemasDT, TipografiaDT, UsuariosDT } from "./icono-inicio";
 import { AprobacionesDT, AvanceDT, CalendarioDT, CurvaSDT, DashboardProyectosDT, GanttDT, PartidasDT, ProyectosDT, RequerimientoDT, ValorizacionesDT } from "./icono-operaciones";
@@ -117,17 +118,17 @@ const SECCIONES_GUIAS = [
 ];
 
 const SECCIONES_VEHICULOS = [
-  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: LayoutDashboard, grande: true },
-  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car },
-  { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: CalendarClock },
-  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route },
+  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: ResumenDT, grande: true },
+  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: FlotaDT },
+  { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: TareoVehicularDT },
+  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: TrasladosDT },
 
   { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: LlavesMecanico },
 ];
 
 const SECCIONES_ALMACEN = [
-  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
-  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes, grande: true },
+  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: AlmacenDT, grande: true },
+  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: InventarioDT, grande: true },
 ];
 
 
@@ -219,14 +220,14 @@ const MENU: Categoria[] = [
   {
     titulo: "Logística",
     items: [
-      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Handshake },
-      { a: "/requerimientos", texto: "Bandeja de Requerimientos", roles: ["administrador", "gerente"], icono: Inbox },
-      { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
-      { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
-      { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
-      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: Container, sub: SECCIONES_ALMACEN },
+      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: ProveedoresDT },
+      { a: "/requerimientos", texto: "Bandeja de Requerimientos", roles: ["administrador", "gerente"], icono: BandejaReqDT },
+      { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: OrdenCompraDT },
+      { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: ImportacionesDT },
+      { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: TransportistasDT },
+      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: AlmacenContDT, sub: SECCIONES_ALMACEN },
 
-      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: CarFront, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
+      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: VehiculosDT, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
     ],
   },
   {
