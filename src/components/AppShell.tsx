@@ -18,6 +18,7 @@ import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserC
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
+import { AcercaDT, AyudaDT, AyudaGrupoDT, CodificacionDT, ConfigSistemaDT, CostosFinanzasDT, DisenoDT, EmpresaDT, IntegracionesDT, LicenciaDT, ManualDT, NormativaDT, ParametrosDT, ParamProyectosDT, RecursosHumanosDT, TemasDT, TipografiaDT, UsuariosDT } from "./icono-inicio";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -25,22 +26,22 @@ const RanuraEncabezado = createContext<Ranura | null>(null);
 export function useEnCinta() { return !!useContext(RanuraEncabezado)?.cinta; }
 // Grupo Ayuda: el botón grande abre el centro de ayuda y las tres opciones pequeñas van apiladas a su derecha.
 const SECCIONES_AYUDA = [
-  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: LibroAyuda, grande: true },
-  { texto: "Manual de usuario", corto: "Manual de usuario", a: "/ayuda", search: { seccion: "manual" }, icono: NotebookText },
-  { texto: "Acerca de", corto: "Acerca de", a: "/ayuda", search: { seccion: "acerca" }, icono: BadgeInfo },
-  { texto: "Licencia", corto: "Licencia", a: "/ayuda", search: { seccion: "licencia" }, icono: Stamp },
+  { texto: "Ayuda", corto: "Ayuda", a: "/ayuda", icono: AyudaDT, grande: true },
+  { texto: "Manual de usuario", corto: "Manual de usuario", a: "/ayuda", search: { seccion: "manual" }, icono: ManualDT },
+  { texto: "Acerca de", corto: "Acerca de", a: "/ayuda", search: { seccion: "acerca" }, icono: AcercaDT },
+  { texto: "Licencia", corto: "Licencia", a: "/ayuda", search: { seccion: "licencia" }, icono: LicenciaDT },
 ];
 const SECCIONES_CONFIG = [
-  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: Building2, grande: true },
-  { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UserRoundCheck },
-  { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: Scale },
-  { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: Plug },
+  { texto: "Datos de la empresa", corto: "Empresa", seccion: "empresa", icono: EmpresaDT, grande: true },
+  { texto: "Usuarios y Roles", corto: "Usuarios", seccion: "usuarios", icono: UsuariosDT },
+  { texto: "Valores normativos (RMV / UIT)", corto: "Normativa", seccion: "normativa", icono: NormativaDT },
+  { texto: "Integraciones", corto: "Integraciones", seccion: "integraciones", icono: IntegracionesDT },
 ];
 const SECCIONES_DATOS = [
-  { texto: "Codificación", corto: "Codificación de\nDocumentos", seccion: "codificacion", campo: "pestana", icono: FileKey2, grande: true },
-  { texto: "Parámetros de proyectos", corto: "Parametros de Proyectos", seccion: "configuracion", campo: "pestana", icono: FolderKanban },
-  { texto: "Recursos Humanos", corto: "Recursos Humanos", seccion: "cargos", campo: "pestana", icono: UserCog },
-  { texto: "Costos y Finanzas", corto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana", icono: Coins },
+  { texto: "Codificación", corto: "Codificación de\nDocumentos", seccion: "codificacion", campo: "pestana", icono: CodificacionDT, grande: true },
+  { texto: "Parámetros de proyectos", corto: "Parametros de Proyectos", seccion: "configuracion", campo: "pestana", icono: ParamProyectosDT },
+  { texto: "Recursos Humanos", corto: "Recursos Humanos", seccion: "cargos", campo: "pestana", icono: RecursosHumanosDT },
+  { texto: "Costos y Finanzas", corto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana", icono: CostosFinanzasDT },
 ];
 const SECCIONES_CATALOGO = [
   { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler, grande: true },
@@ -182,13 +183,13 @@ const MENU: Categoria[] = [
   {
     titulo: "Inicio",
     items: [
-      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: SlidersHorizontal, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
-      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: Settings, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
-      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: SwatchBook, subFilas: 3, sub: [
-        { texto: "Temas de colores", corto: "Temas", a: "/tema-colores", icono: Palette, grande: true },
-        { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: Type },
+      { a: "/configuracion-sistema", texto: "Configuración del Sistema", roles: ["gerente"], icono: ConfigSistemaDT, sub: SECCIONES_CONFIG, subFilas: 3, subColumnas: true },
+      { a: "/datos", texto: "Parámetros Generales", roles: ["administrador", "gerente"], icono: ParametrosDT, sub: SECCIONES_DATOS, subFilas: 3, subColumnas: true },
+      { a: "/tema-colores", texto: "Diseño", roles: ["ingeniero", "administrador", "gerente"], icono: DisenoDT, subFilas: 3, sub: [
+        { texto: "Temas de colores", corto: "Temas", a: "/tema-colores", icono: TemasDT, grande: true },
+        { texto: "Tipografía de documentos", corto: "Tipografía", a: "/configuracion-sistema", search: { seccion: "tipografia" }, icono: TipografiaDT },
       ] },
-      { a: "/ayuda", texto: "Ayuda", roles: ["ingeniero", "administrador", "gerente"], icono: CircleHelp, sub: SECCIONES_AYUDA, subFilas: 3 },
+      { a: "/ayuda", texto: "Ayuda", roles: ["ingeniero", "administrador", "gerente"], icono: AyudaGrupoDT, sub: SECCIONES_AYUDA, subFilas: 3 },
     ],
   },
   {
