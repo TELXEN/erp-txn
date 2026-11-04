@@ -158,6 +158,11 @@ const LS_TEMA = "erp-telxen-tema";
 export function aplicarTema(id: TemaId) {
   const tema = TEMAS.find((t) => t.id === id) ?? TEMAS[0]!;
   const raiz = document.documentElement;
+  // Detalles de iconos: solo Word/Excel/PowerPoint usan su tono oscuro; el resto, azul #0072BB.
+  const acentoIcono = ["word", "excel", "powerpoint"].includes(tema.id)
+    ? tema.vars["--sidebar-panel"]!
+    : "#0072BB";
+  raiz.style.setProperty("--color-cinta-icono-acento", acentoIcono);
   for (const [clave, valor] of Object.entries(tema.vars)) {
     raiz.style.setProperty(clave, valor);
   }
