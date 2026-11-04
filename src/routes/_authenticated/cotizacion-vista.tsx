@@ -154,7 +154,21 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   });
   const [pdfCargando, setPdfCargando] = useState(false);
   const [verGG, setVerGG] = useState(false);
+  const [verEncabezado, setVerEncabezado] = useState(false);
   const [enlaceCopiado, setEnlaceCopiado] = useState(false);
+  const { data: clientes = [] } = useQuery({
+    queryKey: ["terceros", "clientes-activos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("terceros")
+        .select("id, razon_social, numero_documento")
+        .eq("es_cliente", true)
+        .eq("activo", true)
+        .order("razon_social");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
   const calculo = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), ggHoja)
     : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
