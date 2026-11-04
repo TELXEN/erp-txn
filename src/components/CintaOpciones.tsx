@@ -110,6 +110,16 @@ const GRUPO: Record<string, string> = {
   "/nomina": "Remuneraciones", "/honorarios": "Remuneraciones", "/beneficios": "Beneficios Sociales",
 };
 const INICIO = "__inicio";
+/** Pantalla principal que abre cada pestaña de la cinta. */
+const PRINCIPAL: Record<string, { a: string; search?: Record<string, string> }> = {
+  "Inicio": { a: "/configuracion-sistema" },
+  "Comercial": { a: "/cotizaciones" },
+  "Operaciones": { a: "/dashboard-proyectos" },
+  "Logística": { a: "/requerimientos" },
+  "Finanzas y Contabilidad": { a: "/dashboard" },
+  "Recursos Humanos": { a: "/personal" },
+  "Datos": { a: "/maestro-insumos", search: { seccion: "MAT" } },
+};
 const LS_REC = "erp-telxen-recientes";
 const LS_FAV = "erp-telxen-favoritos";
 function leerLista(k: string): string[] { try { const v = JSON.parse(localStorage.getItem(k) || "[]"); return Array.isArray(v) ? v : []; } catch { return []; } }
@@ -291,6 +301,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
   const alternarFav = (a: string) => setFavoritos((f) => { const n = f.includes(a) ? f.filter((x) => x !== a) : [...f, a]; try { localStorage.setItem(LS_FAV, JSON.stringify(n)); } catch { /* */ } return n; });
   const activa = categorias.find((c) => contiene(c, pathname))?.titulo ?? categorias[0]?.titulo;
   const [pestana, setPestana] = useState(activa);
+  const navegar = useNavigate();
   const [contraida, setContraida] = useState(false);
   useEffect(() => { try { setContraida(localStorage.getItem("erp-telxen-cinta-contraida") === "1"); } catch { /* */ } }, []);
   useEffect(() => { setPestana(activa); }, [activa]);
@@ -307,6 +318,14 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
     if (contraida && pestana === t) alternarContraer();
     if (t === pestana) return;
     setPestana(t);
+    // Cada pestaña abre su pantalla principal fija para que la hoja coincida con la cinta.
+    if (t === INICIO || t === activa) return;
+    const c = categorias.find((x) => x.titulo === t);
+    const p = PRINCIPAL[t];
+    const disponible = (r: string) => c?.items.some((m) => m.a === r || m.hijos?.some((h) => h.a === r));
+    if (p && disponible(p.a)) { navegar({ to: p.a, search: p.search } as never); return; }
+    const primero = c?.items.flatMap((m) => m.hijos ?? [m]).find((m) => m.a.startsWith("/"));
+    if (primero) navegar({ to: primero.a } as never);
   };
   const cat = enInicio ? null : categorias.find((c) => c.titulo === pestana) ?? categorias[0];
 
