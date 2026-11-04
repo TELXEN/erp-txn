@@ -117,17 +117,17 @@ const SECCIONES_GUIAS = [
 ];
 
 const SECCIONES_VEHICULOS = [
-  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: LayoutDashboard, grande: true },
-  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: Car },
-  { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: CalendarClock },
-  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: Route },
+  { texto: "Resumen", corto: "Resumen", seccion: "resumen", campo: "pestana", icono: ResumenDT, grande: true },
+  { texto: "Flota", corto: "Flota", seccion: "flota", campo: "pestana", icono: FlotaDT },
+  { texto: "Tareo vehicular", corto: "Tareo de Vehículos", seccion: "tareo", campo: "pestana", icono: TareoVehicularDT },
+  { texto: "Traslados", corto: "Traslados", seccion: "traslados", campo: "pestana", icono: TrasladosDT },
 
   { texto: "Mantenimiento", corto: "Mantenimiento", seccion: "mantenimiento", campo: "pestana", icono: LlavesMecanico },
 ];
 
 const SECCIONES_ALMACEN = [
-  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: Warehouse, grande: true },
-  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: Boxes, grande: true },
+  { texto: "Almacén", corto: "Almacén", a: "/almacen", icono: AlmacenDT, grande: true },
+  { texto: "Inventario", corto: "Inventario", a: "/inventario", icono: InventarioDT, grande: true },
 ];
 
 
@@ -219,14 +219,14 @@ const MENU: Categoria[] = [
   {
     titulo: "Logística",
     items: [
-      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: Handshake },
-      { a: "/requerimientos", texto: "Bandeja de Requerimientos", roles: ["administrador", "gerente"], icono: Inbox },
-      { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: ShoppingCart },
-      { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: Plane },
-      { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: Truck },
-      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: Container, sub: SECCIONES_ALMACEN },
+      { a: "/proveedores", texto: "Proveedores", roles: ["administrador", "gerente"], icono: ProveedoresDT },
+      { a: "/requerimientos", texto: "Bandeja de Requerimientos", roles: ["administrador", "gerente"], icono: BandejaReqDT },
+      { a: "/ordenes-compra", texto: "Órdenes de Compra", roles: ["administrador", "gerente"], icono: OrdenCompraDT },
+      { a: "/importaciones", texto: "Importaciones", roles: ["administrador", "gerente"], icono: ImportacionesDT },
+      { a: "/transportistas", texto: "Transportistas", roles: ["administrador", "gerente"], icono: TransportistasDT },
+      { a: "/almacen", texto: "Almacén e Inventario", roles: ["administrador", "gerente"], icono: AlmacenContDT, sub: SECCIONES_ALMACEN },
 
-      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: CarFront, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
+      { a: "/vehiculos", texto: "Vehículos", roles: ["ingeniero", "administrador", "gerente"], icono: VehiculosDT, sub: SECCIONES_VEHICULOS, subFilas: 2, subColumnas: true },
     ],
   },
   {
