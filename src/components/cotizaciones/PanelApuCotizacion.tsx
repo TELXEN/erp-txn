@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTotalGGHoja } from "@/lib/gastos-generales-total";
+import { cierreCotizacion } from "@/lib/cotizacion-comercial";
 import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
@@ -437,8 +438,8 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
   }
   const gg = ggHoja ?? (cd * Number(cot.pct_gastos_generales || 0)) / 100;
   const ut = (cd * Number(cot.pct_utilidad || 0)) / 100;
-  const parcialT = cd + gg + ut;
-  const igv = cot.aplica_igv === false ? 0 : parcialT * 0.18;
+  const conIgv = cot.aplica_igv !== false;
+  const { subtotal: parcialT, igv } = cierreCotizacion(cd, gg, ut, conIgv);
   const filasInc: [string, string][] = [
     ...GRUPOS_RECURSO.map(([t, nombre]): [string, string] => [t, t === "EQ" ? "EQUIPOS Y HERRAMIENTAS" : nombre]),
     ["OTROS", "SIN APU"],
@@ -490,9 +491,9 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
               <td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(v)}</td>
             </tr>
           ))}
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Monto parcial</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(parcialT)}</td></tr>
-          <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV</td><td className="px-1 py-0.5"><span className="flex items-center gap-1"><Select aria-label="Porcentaje de IGV" title="Cambiar IGV: 18.00% o 0.00%" disabled={soloLectura} value={cot.aplica_igv === false ? "0" : "18"} onChange={(e) => void cambiarIgv(e.target.value === "18")} className="min-w-0 appearance-none rounded px-1 py-0 text-right text-[11px] tabular-nums"><option value="18">18.00</option><option value="0">0.00</option></Select><span className="shrink-0 text-muted-foreground">%</span></span></td><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>
-          <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td /><td className="px-2 py-1 text-right whitespace-nowrap">{sim} {num(parcialT + igv)}</td></tr>
+          <tr className="border-b border-line/40"><td className="px-2 py-0.5">Subtotal</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(parcialT)}</td></tr>
+          {conIgv && <tr className="border-b border-line/40"><td className="px-2 py-0.5">IGV (18.00%)</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">{sim} {num(igv)}</td></tr>}
+          {conIgv && <tr className="font-semibold text-primary"><td className="px-2 py-1">TOTAL</td><td /><td className="px-2 py-1 text-right whitespace-nowrap">{sim} {num(parcialT + igv)}</td></tr>}
           {cot.moneda === "USD" && Number(cot.tipo_cambio) > 0 && (
             <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>
           )}

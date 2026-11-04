@@ -67,7 +67,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
         {fila("TELÉFONO", cliente?.celular_contacto || cliente?.telefono || "—")}
       </div>
       <div>
-        {fila("FECHA DE EMISIÓN", campo("fecha_emision", cot.fecha_emision, "date"), 118)}
+        {fila("FECHA DE EMISIÓN", editable ? campo("fecha_emision", cot.fecha_emision, "date") : fecha(cot.fecha_emision), 118)}
         {fila("MONEDA", editable ? menu("Moneda", cot.moneda, [["USD", "Dólares"], ["PEN", "Soles"]], (v) => void moneda(v)) : cot.moneda === "USD" ? "Dólares" : "Soles", 118)}
         {fila("CONDICIÓN DE VENTA", editable ? menu("Condición de venta", cot.condicion_venta || "", [["Crédito", "Crédito"], ["Contado", "Contado"]], (v) => void guardar({ condicion_venta: v })) : cot.condicion_venta || "—", 118)}
         {fila("VALIDEZ DE OFERTA", editable ? campo("validez_dias", cot.validez_dias, "number") : `${cot.validez_dias} días (hasta ${fecha(vigenciaHasta(cot.fecha_emision, cot.validez_dias))})`, 118)}
