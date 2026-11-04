@@ -40,6 +40,7 @@ function temaOffice(
       "--cinta-pestanas": c.panel,
       "--cinta-pestanas-texto": "#FFFFFF",
       "--cinta-pestanas-acento": c.muted,
+      "--cinta-seleccion": c.muted,
     },
   };
 }
@@ -79,6 +80,7 @@ export const TEMAS: Tema[] = [
       "--cinta-pestanas": "#002A44",
       "--cinta-pestanas-texto": "#FFFFFF",
       "--cinta-pestanas-acento": "#FFC709",
+      "--cinta-seleccion": "#FFC709",
     },
   },
   {
@@ -106,6 +108,7 @@ export const TEMAS: Tema[] = [
       "--cinta-pestanas": "#1C1C1F",
       "--cinta-pestanas-texto": "#FFFFFF",
       "--cinta-pestanas-acento": "#FFC709",
+      "--cinta-seleccion": "#FFC709",
     },
   },
   temaOffice("word", "Microsoft Word", "Azul Word de Microsoft 365", {
