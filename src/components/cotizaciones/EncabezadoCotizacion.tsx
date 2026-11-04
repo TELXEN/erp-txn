@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEmpresa } from "@/lib/empresa";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
@@ -7,6 +8,7 @@ import { convertirMonedaCotizacion, vigenciaHasta, type Cotizacion } from "@/lib
 import { supabase } from "@/integrations/supabase/client";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 
 type Cliente = { id: string; razon_social: string; numero_documento: string };
 
@@ -18,6 +20,11 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
   const { data: cambio } = useTipoCambioHoy();
   const qc = useQueryClient();
   const [error, setError] = useState("");
+  const consultarDocumento = useServerFn(consultarDocumentoSunat);
+  const [consultandoRuc, setConsultandoRuc] = useState(false);
+  const rucActual = useRef(cot.ruc_cliente || "");
+  const timerRuc = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timerRuc.current), []);
   const { data: cliente } = useQuery({
     queryKey: ["tercero-cotizacion", cot.cliente_id], enabled: Boolean(cot.cliente_id),
     queryFn: async () => {
@@ -33,6 +40,29 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
     const { error } = await supabase.from("cotizaciones").update(campos as never).eq("id", cot.id);
     if (error) { setError("No se pudo guardar el encabezado."); return; }
     setError(""); await actualizar();
+  }
+  async function completarRuc(numero: string) {
+    if (!/^\d{11}$/.test(numero)) {
+      setError("Ingresa un RUC de 11 dígitos.");
+      return;
+    }
+    setConsultandoRuc(true); setError("");
+    try {
+      const resultado = await qc.fetchQuery({
+        queryKey: ["decolecta-documento", numero],
+        queryFn: () => consultarDocumento({ data: { numero } }),
+        staleTime: 5 * 60 * 1000, retry: false,
+      });
+      if (rucActual.current !== numero) return;
+      const registrado = clientes.find((c) => c.numero_documento === numero);
+      if (!resultado.encontrado) {
+        setError(resultado.mensaje || "No se encontró el RUC. Puedes completar los datos manualmente.");
+        return;
+      }
+      await guardar({ ruc_cliente: numero, cliente_id: registrado?.id ?? null, cliente: resultado.razonSocial, ubicacion: resultado.direccion });
+    } catch {
+      if (rucActual.current === numero) setError("No se pudo consultar Decolecta. Reintenta o completa los datos manualmente.");
+    } finally { setConsultandoRuc(false); }
   }
   const campo = (nombre: string, valor: string | number, tipo = "text") => editable
     ? <input key={`${nombre}-${valor}`} aria-label={nombre === "nombre" ? "Proyecto" : nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-dashed border-line bg-transparent py-0.5 font-semibold outline-none focus:border-primary" onBlur={(e) => { if (String(valor) !== e.target.value) void guardar({ [nombre]: tipo === "number" ? Number(e.target.value) : e.target.value }); }} />
@@ -60,7 +90,17 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
     </div>
     <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,270px)]">
       <div>
-        {fila("RUC", editable ? <><input aria-label="RUC" list={`ruc-${cot.id}`} defaultValue={ruc} key={ruc} className="w-full border-b border-dashed border-line bg-transparent py-0.5 outline-none" onBlur={(e) => { const ruc = e.target.value.trim(); const c = clientes.find((c) => c.numero_documento === ruc); void guardar({ ruc_cliente: ruc, cliente_id: c?.id ?? null, ...(c ? { cliente: c.razon_social } : {}) }); }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—")}
+        {fila("RUC", editable ? <><input aria-label="RUC" aria-busy={consultandoRuc} inputMode="numeric" maxLength={11} list={`ruc-${cot.id}`} defaultValue={ruc} key={ruc} className="w-full border-b border-dashed border-line bg-transparent py-0.5 outline-none" onChange={(e) => {
+          const numero = e.target.value.trim(); rucActual.current = numero;
+          clearTimeout(timerRuc.current);
+          if (/^\d{11}$/.test(numero)) timerRuc.current = setTimeout(() => void completarRuc(numero), 400);
+        }} onBlur={(e) => {
+          const numero = e.target.value.trim(); rucActual.current = numero;
+          if (numero === ruc) return;
+          if (!/^\d{11}$/.test(numero)) { setError("Ingresa un RUC de 11 dígitos."); return; }
+          // The pending automatic lookup saves all client fields together.
+          if (!timerRuc.current) void completarRuc(numero);
+        }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—")}
         {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""))}
         {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""))}
         {fila("ATENCIÓN", cliente?.contacto || "—")}
@@ -76,6 +116,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       </div>
     </div>
     <div className="mt-2">{fila("PROYECTO", <div style={{ border: `2.5px solid ${DOC.dark}`, padding: "4px 8px" }}>{campo("nombre", cot.nombre)}</div>)}</div>
+    {consultandoRuc && <p role="status" className="mt-2 text-xs text-muted-foreground">Consultando RUC…</p>}
     {error && <p role="alert" className="mt-2 text-xs text-bad">{error}</p>}
   </div>;
 }
