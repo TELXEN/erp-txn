@@ -3,21 +3,22 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Barcode } from "lucide-react";
-import { FileKey2, BookOpen, BookUser, Briefcase, Building2, Calculator, CalendarDays, CalendarRange } from "lucide-react";
-import { ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
-import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Database, DollarSign, Drill, Factory } from "lucide-react";
-import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
-import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins } from "lucide-react";
-import { HardHat, History, Landmark, LayoutTemplate, ListChecks } from "lucide-react";
+import { Activity, BadgeDollarSign, BadgeInfo, Barcode } from "lucide-react";
+import { FileKey2, BookOpen, BookUser, Building2, Calculator, CalendarDays, CalendarRange } from "lucide-react";
+import { ChartGantt, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
+import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Database, Drill, Factory } from "lucide-react";
+import { FileBadge, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
+import { FolderTree, Gauge, Gift, Hammer, HandCoins } from "lucide-react";
+import { HardHat, History, LayoutTemplate, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank } from "lucide-react";
-import { Plug, Receipt, ReceiptText, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
-import { Settings, Shapes, ShieldCheck, ShoppingBag, SlidersHorizontal, Sprout } from "lucide-react";
-import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
-import { Users, Vault, Wallet } from "lucide-react";
+import { Plug, Receipt, ReceiptText, Ruler, Scale, ScanBarcode } from "lucide-react";
+import { Settings, Shapes, ShieldCheck, SlidersHorizontal, Sprout } from "lucide-react";
+import { FileChartColumn, Stamp, SwatchBook, Tag, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Users, Vault } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
 import { AlmacenContDT, AlmacenDT, BandejaReqDT, FlotaDT, ImportacionesDT, InventarioDT, OrdenCompraDT, ProveedoresDT, ResumenDT, TareoVehicularDT, TransportistasDT, TrasladosDT, VehiculosDT } from "./icono-logistica";
+import { CajaChicaDT, CombustibleDT, CostosDirectosDT, CxcDT, CxpDT, DashboardFinDT, DetalleGastosDT, FlujoCajaDT, FlujoResumenDT, GastosGeneralesDT, GGResumenDT, MatrizDT, PrestamosDT, SireDT, TesoreriaDT, TesoreriaResumenDT } from "./icono-finanzas";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
 import { AcercaDT, AyudaDT, AyudaGrupoDT, CodificacionDT, ConfigSistemaDT, CostosFinanzasDT, DisenoDT, EmpresaDT, IntegracionesDT, LicenciaDT, ManualDT, NormativaDT, ParametrosDT, ParamProyectosDT, RecursosHumanosDT, TemasDT, TipografiaDT, UsuariosDT } from "./icono-inicio";
 import { AprobacionesDT, AvanceDT, CalendarioDT, CurvaSDT, DashboardProyectosDT, GanttDT, PartidasDT, ProyectosDT, RequerimientoDT, ValorizacionesDT } from "./icono-operaciones";
@@ -139,23 +140,23 @@ const SECCIONES_OP_ESP = [
 ];
 
 const SECCIONES_GG = [
-  { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: Briefcase, grande: true },
-  { texto: "Gastos generales", corto: "Detalle de Gastos", seccion: "gastos", campo: "pestana", icono: ScrollText },
+  { texto: "Gastos Generales", corto: "Gastos Generales", seccion: "resumen", campo: "pestana", icono: GGResumenDT, grande: true },
+  { texto: "Gastos generales", corto: "Detalle de Gastos", seccion: "gastos", campo: "pestana", icono: DetalleGastosDT },
   { texto: "Mantenimiento de flota", corto: "Mantenimiento de Flota", seccion: "mantenimiento", campo: "pestana", icono: LlavesMecanico },
-  { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: Fuel },
+  { texto: "Combustible de flota", corto: "Combustible", seccion: "combustible", campo: "pestana", icono: CombustibleDT },
 ];
 
 const SECCIONES_FLUJO = [
-  { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: TrendingUp, grande: true },
-  { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: Grid3x3 },
+  { texto: "Flujo de Caja", corto: "Flujo de Caja", seccion: "resumen", campo: "pestana", icono: FlujoResumenDT, grande: true },
+  { texto: "Matriz anual", corto: "Matriz anual", seccion: "matriz", campo: "pestana", icono: MatrizDT },
 ];
 
 // Caja y bancos: el icono grande abre las tarjetas de resumen; al lado, en una sola columna, las tres gestiones.
 const SECCIONES_TESORERIA = [
-  { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: Landmark, grande: true },
-  { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: ArrowDownLeft },
-  { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: ArrowUpRight },
-  { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: BadgePercent },
+  { texto: "Tesorería", corto: "Tesorería", seccion: "resumen", campo: "pestana", icono: TesoreriaResumenDT, grande: true },
+  { texto: "Cuentas por cobrar", corto: "Cuentas por cobrar", seccion: "cxc", campo: "pestana", icono: CxcDT },
+  { texto: "Cuentas por pagar", corto: "Cuentas por pagar", seccion: "cxp", campo: "pestana", icono: CxpDT },
+  { texto: "Préstamos", corto: "Préstamos", seccion: "financiamiento", campo: "pestana", icono: PrestamosDT },
 ];
 
 // Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
@@ -233,15 +234,15 @@ const MENU: Categoria[] = [
   {
     titulo: "Finanzas y Contabilidad",
     items: [
-      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: ChartLine },
-      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: ShoppingBag },
-      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: ChartPie, sub: SECCIONES_GG, subFilas: 3 },
-      { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: Wallet, unaLinea: true },
-      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: DollarSign, sub: SECCIONES_TESORERIA, subFilas: 3 },
+      { a: "/dashboard", texto: "Dashboard Financiero", roles: ["gerente"], icono: DashboardFinDT },
+      { a: "/gastos-directos", texto: "Costos Directos", roles: ["administrador", "gerente"], icono: CostosDirectosDT },
+      { a: "/gastos-generales", texto: "Gastos Generales", roles: ["administrador", "gerente"], icono: GastosGeneralesDT, sub: SECCIONES_GG, subFilas: 3 },
+      { a: "/caja-chica", texto: "Caja Chica", roles: ["administrador", "gerente"], icono: CajaChicaDT, unaLinea: true },
+      { a: "/tesoreria", texto: "Tesorería", roles: ["administrador", "gerente"], icono: TesoreriaDT, sub: SECCIONES_TESORERIA, subFilas: 3 },
 
 
-      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: ChartArea, sub: SECCIONES_FLUJO, subFilas: 3 },
-      { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: FileCheck2 },
+      { a: "/flujo-caja", texto: "Flujo de Caja", roles: ["administrador", "gerente"], icono: FlujoCajaDT, sub: SECCIONES_FLUJO, subFilas: 3 },
+      { a: "/sire", texto: "SIRE SUNAT", roles: ["administrador", "gerente"], icono: SireDT },
     ],
   },
   {
