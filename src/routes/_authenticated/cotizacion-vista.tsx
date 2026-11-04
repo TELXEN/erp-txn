@@ -484,6 +484,12 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
       <VentanaFlotante titulo="Gastos generales" subtitulo="Vista previa del desagregado" abierta={verGG} onCerrar={() => setVerGG(false)} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen>
         {verGG && <HojaGastosGenerales id={id} />}
       </VentanaFlotante>
+      {verEncabezado && cot && (
+        <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={false}
+          ventanaEncabezado={{ abierta: verEncabezado, onCerrar: () => setVerEncabezado(false) }}>
+          {null}
+        </HojaCotizacion>
+      )}
       <BarraHerramientas>
         <label className="flex h-7 cursor-pointer items-center gap-1.5 px-2 text-xs text-ink select-none" title="Imprimir y exportar la hoja en A4 horizontal">
           <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
