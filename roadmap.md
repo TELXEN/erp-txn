@@ -225,3 +225,7 @@
 - [x] Trazo por tamaño en la cinta: iconos pequeños (16 px) con strokeWidth 2.25 y grandes (32 px) con 1.75, para igual peso visual.
 - [x] Trazo fino en la cinta: iconos grandes (32 px) con strokeWidth 1.25 y pequeños (16 px) con 1.5, verificado en las siete pestañas.
 - [x] Iconos de la cinta monocromáticos en negro puro (#000000): sin dorado en Tesorería ni acento naranja; trazos 1.25/1.5 conservados; verificado en las siete pestañas.
+
+## Iconos de la cinta
+- [ ] Preliquidaciones: icono FileChartColumn (documento con barras de avance).
+- [ ] Mantenimiento: llaves de mecánico cruzadas (Logística y Finanzas).

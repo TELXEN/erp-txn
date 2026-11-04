@@ -13,16 +13,20 @@ const nodo: IconNode = [
 
 export const GrupoPersonas = (props: LucideProps) => <Icon iconNode={nodo} {...props} />;
 
-/** Llanta con llave inglesa cruzada, mismo trazo de lucide. */
-const llanta: IconNode = [
-  ["circle", { cx: "10", cy: "14", r: "7.5", key: "t" }],
-  ["circle", { cx: "10", cy: "14", r: "3", key: "r" }],
-  ["path", { d: "M10 6.5v4.5M10 17v4.5M2.5 14H7M13 14h4.5", key: "s" }],
-  ["path", { d: "M15.5 8.5 19 5", key: "m" }],
-  ["path", { d: "M19 5a2.5 2.5 0 1 0 2-2.9l-1.2 1.2.4 1.3 1.3.4 1.2-1.2", key: "w" }],
+/** Dos llaves de mecánico cruzadas, mismo trazo de lucide. */
+const llave =
+  "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z";
+
+const llaves: IconNode = [
+  ["g", { transform: "scale(0.78)", key: "a" }, [
+    ["path", { d: llave, key: "a1" }],
+  ]],
+  ["g", { transform: "translate(24 0) scale(-0.78 0.78)", key: "b" }, [
+    ["path", { d: llave, key: "b1" }],
+  ]],
 ];
 
-export const LlantaLlave = (props: LucideProps) => <Icon iconNode={llanta} {...props} />;
+export const LlavesMecanico = (props: LucideProps) => <Icon iconNode={llaves} {...props} />;
 
 /** Libro abierto con signo de pregunta, mismo trazo de lucide. */
 const libroAyuda: IconNode = [
