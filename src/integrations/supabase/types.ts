@@ -1748,8 +1748,10 @@ export type Database = {
           condicion_venta: string | null
           condiciones: string
           condiciones_pago: string
+          correo_elaborado: string
           created_at: string
           duracion_meses: number
+          elaborado_por: string
           estado: string
           fecha_emision: string
           fecha_envio: string | null
@@ -1766,6 +1768,7 @@ export type Database = {
           revision: string
           ruc_cliente: string
           telefono: string
+          telefono_elaborado: string
           tiempo_ejecucion: string
           tipo_cambio: number
           tipo_cambio_fecha: string | null
@@ -1783,8 +1786,10 @@ export type Database = {
           condicion_venta?: string | null
           condiciones?: string
           condiciones_pago?: string
+          correo_elaborado?: string
           created_at?: string
           duracion_meses?: number
+          elaborado_por?: string
           estado?: string
           fecha_emision?: string
           fecha_envio?: string | null
@@ -1801,6 +1806,7 @@ export type Database = {
           revision?: string
           ruc_cliente?: string
           telefono?: string
+          telefono_elaborado?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
           tipo_cambio_fecha?: string | null
@@ -1818,8 +1824,10 @@ export type Database = {
           condicion_venta?: string | null
           condiciones?: string
           condiciones_pago?: string
+          correo_elaborado?: string
           created_at?: string
           duracion_meses?: number
+          elaborado_por?: string
           estado?: string
           fecha_emision?: string
           fecha_envio?: string | null
@@ -1836,6 +1844,7 @@ export type Database = {
           revision?: string
           ruc_cliente?: string
           telefono?: string
+          telefono_elaborado?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
           tipo_cambio_fecha?: string | null
