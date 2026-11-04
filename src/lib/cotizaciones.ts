@@ -29,6 +29,9 @@ export type Cotizacion = {
   ruc_cliente?: string | null;
   atencion?: string;
   telefono?: string;
+  elaborado_por?: string;
+  correo_elaborado?: string;
+  telefono_elaborado?: string;
   orientacion?: "vertical" | "horizontal";
   condiciones: string;
   estado: EstadoCotizacion;

@@ -799,6 +799,13 @@
       "when": 1793768465646,
       "tag": "0113_cotizacion_atencion_telefono",
       "breakpoints": true
+    },
+    {
+      "idx": 114,
+      "version": "7",
+      "when": 1793769064469,
+      "tag": "0114_cotizacion_elaborado_por",
+      "breakpoints": true
     }
   ]
 }

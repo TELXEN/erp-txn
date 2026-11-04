@@ -1,0 +1,1 @@
+ALTER TABLE public.cotizaciones ADD COLUMN IF NOT EXISTS elaborado_por text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS correo_elaborado text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS telefono_elaborado text NOT NULL DEFAULT '';
