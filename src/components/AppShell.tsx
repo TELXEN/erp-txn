@@ -17,6 +17,7 @@ import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizo
 import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
+import { AlmacenContDT, AlmacenDT, BandejaReqDT, FlotaDT, ImportacionesDT, InventarioDT, OrdenCompraDT, ProveedoresDT, ResumenDT, TareoVehicularDT, TransportistasDT, TrasladosDT, VehiculosDT } from "./icono-logistica";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
 import { AcercaDT, AyudaDT, AyudaGrupoDT, CodificacionDT, ConfigSistemaDT, CostosFinanzasDT, DisenoDT, EmpresaDT, IntegracionesDT, LicenciaDT, ManualDT, NormativaDT, ParametrosDT, ParamProyectosDT, RecursosHumanosDT, TemasDT, TipografiaDT, UsuariosDT } from "./icono-inicio";
 import { AprobacionesDT, AvanceDT, CalendarioDT, CurvaSDT, DashboardProyectosDT, GanttDT, PartidasDT, ProyectosDT, RequerimientoDT, ValorizacionesDT } from "./icono-operaciones";
