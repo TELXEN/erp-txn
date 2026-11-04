@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
@@ -398,6 +398,16 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
   const qc = useQueryClient();
   const [errorPct, setErrorPct] = useState("");
   const recursos = useRecursosApu();
+  // Con hoja de gastos generales, el % deja de escribirse a mano: es total GG ÷ costo directo.
+  const { data: filasGG = [] } = useQuery({
+    queryKey: ["cotizacion_gg_items", cot.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cotizacion_gastos_generales").select("id, nivel").eq("cotizacion_id", cot.id);
+      if (error) throw error;
+      return (data ?? []) as { id: string; nivel: string }[];
+    },
+  });
+  const ggPorHoja = filasGG.some((f) => f.nivel === "item");
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const sim = cot.moneda === "USD" ? "US$" : "S/";
 
@@ -471,10 +481,12 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
                     type="number"
                     step="0.01"
                     min="0"
-                    disabled={soloLectura}
+                    disabled={soloLectura || (campo === "pct_gastos_generales" && ggPorHoja)}
                     defaultValue={Number(cot[campo] ?? 0).toFixed(2)}
                     aria-label={`Porcentaje de ${n.toLowerCase()}`}
-                    title={`% de ${n.toLowerCase()} aplicado sobre el costo directo`}
+                    title={campo === "pct_gastos_generales" && ggPorHoja
+                      ? "Se calcula solo: total de gastos generales ÷ costo directo. Edítalo en la hoja de Gastos generales."
+                      : `% de ${n.toLowerCase()} aplicado sobre el costo directo`}
                     onBlur={(e) => void cambiarPct(campo, Number(e.target.value || 0), Number(cot[campo]))}
                     className="w-full min-w-0 rounded border border-line bg-background px-1 py-0 text-right tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-primary"
                   />

@@ -120,19 +120,12 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
   const res = resumenPresupuesto(costoDirecto, fijos, variables, util, aplicaIgv ? 18 : 0);
   const numeros = useMemo(() => numerarGG(filas), [filas]);
 
-  async function sincronizarPct(nuevas: FilaGG[]) {
+  /** La hoja ya se guardó: la base recalcula el % (total GG ÷ costo directo) y aquí solo se refresca la pantalla. */
+  async function sincronizarPct(_nuevas: FilaGG[]) {
     if (soloLectura) return;
-    const t = totalGG(nuevas);
-    if (t <= 0) return; // hoja vacía: se mantiene el % manual
-    // Costo directo fresco desde la base (el prop puede llegar en 0 si la hoja aún carga)
-    const { data: its, error: e0 } = await supabase.from("cotizacion_items").select("metrado, precio_unitario, tipo").eq("cotizacion_id", cotizacionId);
-    if (e0) return setError(e0.message);
-    const cd = (its ?? []).filter((i) => i.tipo !== "grupo").reduce((s, i) => s + Number(i.metrado || 0) * Number(i.precio_unitario || 0), 0);
-    const p = pctGG(t, cd);
-    const { error: e } = await supabase.from("cotizaciones").update({ pct_gastos_generales: p }).eq("id", cotizacionId);
-    if (e) return setError(e.message);
     await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     await qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
+    await qc.invalidateQueries({ queryKey: ["cotizacion_gg_items"] });
   }
 
   async function reordenar(nuevas: FilaGG[]) {
