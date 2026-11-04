@@ -88,7 +88,7 @@ const cantidad = (n: number | string) =>
   Number(n || 0).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function Cotizaciones() {
-  const { rol } = useAuth();
+  const { rol, nombre: nombreUsuario, email: correoUsuario } = useAuth();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: cotizaciones = [] } = useCotizaciones();
@@ -250,6 +250,8 @@ function Cotizaciones() {
           aplica_igv: form.aplica_igv === "si",
           estado: "Borrador",
           moneda: monedaNueva,
+          elaborado_por: nombreUsuario,
+          correo_elaborado: correoUsuario,
           ...(monedaNueva === "USD" ? { tipo_cambio: tcHoy || 3.75 } : {}),
           ...(pl
             ? {
