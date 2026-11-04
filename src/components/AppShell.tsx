@@ -14,9 +14,9 @@ import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package,
 import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
 import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
 import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
-import { Milestone, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
-import { GrupoPersonas, IconoCotizaciones, LibroAyuda, LlantaLlave } from "./icono-grupo";
+import { GrupoPersonas, IconoCotizaciones, IconoPreliquidaciones, LibroAyuda, LlantaLlave } from "./icono-grupo";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -195,7 +195,7 @@ const MENU: Categoria[] = [
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: GrupoPersonas },
       { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: IconoCotizaciones, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
-      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Milestone },
+      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: IconoPreliquidaciones },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ScanBarcode, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
     ],
