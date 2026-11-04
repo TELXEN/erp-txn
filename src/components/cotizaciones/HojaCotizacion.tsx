@@ -1,4 +1,4 @@
-import { EncabezadoCotizacion } from "@/components/cotizaciones/EncabezadoCotizacion";
+import { EncabezadoCotizacion, PieCotizacion } from "@/components/cotizaciones/EncabezadoCotizacion";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { VentanaFlotante } from "@/components/ui-kit";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -180,6 +180,10 @@ export function HojaCotizacion({
 
           </DialogContent>
         </Dialog>
+
+        {children && <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 10 }}>
+          <PieCotizacion cot={cot} editable />
+        </div>}
 
         {children && <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 10.5, color: C.muted }}>
           <b>PROPUESTA COMERCIAL</b>
