@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { BarraHerramientas, BotonBarra, ConmutadorModo, SeparadorBarra } from "@/components/cotizaciones/CintaCotizacion";
+import { BarraHerramientas, BotonBarra, ConmutadorModo, IndicadoresCotizacion, SeparadorBarra } from "@/components/cotizaciones/CintaCotizacion";
 import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useEffect, useLayoutEffect, useState } from "react";

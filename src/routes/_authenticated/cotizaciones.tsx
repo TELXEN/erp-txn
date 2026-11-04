@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { GrupoCinta } from "@/components/CintaOpciones";
-import { BarraHerramientas, BotonBarra, ConmutadorModo, SeparadorBarra, type ModoCotizacion } from "@/components/cotizaciones/CintaCotizacion";
+import { BarraHerramientas, BotonBarra, ConmutadorModo, IndicadoresCotizacion, SeparadorBarra, type ModoCotizacion } from "@/components/cotizaciones/CintaCotizacion";
 import { VistaPreviaCotizacion } from "@/routes/_authenticated/cotizacion-vista";
 import { Building2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
