@@ -227,5 +227,5 @@
 - [x] Iconos de la cinta monocromáticos en negro puro (#000000): sin dorado en Tesorería ni acento naranja; trazos 1.25/1.5 conservados; verificado en las siete pestañas.
 
 ## Iconos de la cinta
-- [ ] Preliquidaciones: icono FileChartColumn (documento con barras de avance).
-- [ ] Mantenimiento: llaves de mecánico cruzadas (Logística y Finanzas).
+- [x] Preliquidaciones: icono FileChartColumn (documento con barras de avance); verificado en pantalla.
+- [x] Mantenimiento: dos llaves de mecánico cruzadas (Logística y Finanzas); verificado en pantalla a 16 px.
