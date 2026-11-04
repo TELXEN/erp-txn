@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { totalGG, totalHojaGG, type FilaGG } from "@/lib/gastos-generales-cotizacion";
+import { totalHojaGG, type FilaGG } from "@/lib/gastos-generales-cotizacion";
 
 export { tieneHojaGG, totalHojaGG } from "@/lib/gastos-generales-cotizacion";
 
