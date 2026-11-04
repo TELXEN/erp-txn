@@ -17,6 +17,7 @@ import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizo
 import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
+import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -96,21 +97,21 @@ import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documento
 
 
 const SECCIONES_COTIZ = [
-  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText, grande: true },
-  { texto: "Análisis de Precios Unitarios (APU)", corto: "APU", a: "/datos-apu", icono: Calculator },
-  { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
+  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: CotizacionDT, grande: true },
+  { texto: "Análisis de Precios Unitarios (APU)", corto: "APU", a: "/datos-apu", icono: CalculadoraDT },
+  { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: PlantillasDT },
 ];
 
 const SECCIONES_FACTURACION = [
-  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: FileBadge, grande: true },
-  { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: Receipt },
-  { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: FileMinus },
-  { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: FilePlus },
+  { texto: "Facturas", corto: "Facturas", seccion: "01", campo: "tipo", icono: FacturasDT, grande: true },
+  { texto: "Boletas de venta", corto: "Boletas", seccion: "03", campo: "tipo", icono: BoletasDT },
+  { texto: "Notas de crédito", corto: "Nota de crédito", seccion: "07", campo: "tipo", icono: NotaCreditoDT },
+  { texto: "Notas de débito", corto: "Nota de débito", seccion: "08", campo: "tipo", icono: NotaDebitoDT },
 ];
 
 // Grupo propio en la cinta: un solo botón grande que abre las guías de remisión.
 const SECCIONES_GUIAS = [
-  { texto: "Guías de remisión", corto: "Guías de Remisión", seccion: "09", campo: "tipo", icono: PackageCheck, grande: true },
+  { texto: "Guías de remisión", corto: "Guías de Remisión", seccion: "09", campo: "tipo", icono: GuiasDT, grande: true },
 ];
 
 const SECCIONES_VEHICULOS = [
@@ -129,9 +130,9 @@ const SECCIONES_ALMACEN = [
 
 
 const SECCIONES_OP_ESP = [
-  { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: Vault, grande: true },
-  { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: CircleDollarSign },
-  { texto: "Comunicaciones de baja", corto: "Bajas", seccion: "RA", campo: "tipo", icono: FileX2 },
+  { texto: "Retenciones", corto: "Retenciones", seccion: "20", campo: "tipo", icono: RetencionesDT, grande: true },
+  { texto: "Percepciones", corto: "Percepciones", seccion: "40", campo: "tipo", icono: PercepcionesDT },
+  { texto: "Comunicaciones de baja", corto: "Bajas", seccion: "RA", campo: "tipo", icono: BajasDT },
 ];
 
 const SECCIONES_GG = [
@@ -193,11 +194,11 @@ const MENU: Categoria[] = [
   {
     titulo: "Comercial",
     items: [
-      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: GrupoPersonas },
-      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: Files, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
-      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: FileChartColumn },
-      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ScanBarcode, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
-      { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
+      { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: ClientesDT },
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: CotizacionesDT, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
+      { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: PreliquidacionesDT },
+      { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: FacturacionDT, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
+      { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: RegistroVentasDT },
     ],
   },
   {

@@ -578,6 +578,7 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 
 
 /* Iconos de la cinta en dos tonos: la primera pieza (estructura) en negro, los detalles internos en azul. */
-svg[class*="color-cinta-icono"] > :not(:first-child) {
+svg[class*="color-cinta-icono"]:not(.icono-dt) > :not(:first-child),
+svg.icono-dt .acento {
   stroke: var(--color-cinta-icono-acento);
 }
