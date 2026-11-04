@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTotalGGHoja } from "@/lib/gastos-generales-total";
 import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
@@ -434,7 +435,7 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
     const incidencia = incidenciaPartidaApu(c, Number(i.precio_unitario || 0), m, Number(i.pct_herramientas ?? PCT_HERRAMIENTAS_DEFECTO));
     for (const [tipo, importe] of Object.entries(incidencia)) porTipo[tipo] = (porTipo[tipo] ?? 0) + importe;
   }
-  const gg = (cd * Number(cot.pct_gastos_generales || 0)) / 100;
+  const gg = ggHoja ?? (cd * Number(cot.pct_gastos_generales || 0)) / 100;
   const ut = (cd * Number(cot.pct_utilidad || 0)) / 100;
   const parcialT = cd + gg + ut;
   const igv = cot.aplica_igv === false ? 0 : parcialT * 0.18;
