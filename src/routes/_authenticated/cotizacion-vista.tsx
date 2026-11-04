@@ -269,7 +269,12 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
           pagebreak: { mode: [] },
         } as never).from(hoja).toCanvas().get("canvas") as HTMLCanvasElement;
         if (indice > 0) doc.addPage();
-        doc.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+        // La hoja conserva su margen lateral de A4 y su proporción: nada toca el borde.
+        const anchoPag = doc.internal.pageSize.getWidth();
+        const margen = (anchoPag * (paginaW - interiorW)) / 2 / paginaW;
+        const ancho = (anchoPag * interiorW) / paginaW;
+        const alto = Math.min(doc.internal.pageSize.getHeight() - margen, (canvas.height * ancho) / canvas.width);
+        doc.addImage(canvas.toDataURL("image/jpeg", 0.98), "JPEG", margen, margen, ancho, alto);
       }
       if (conDossier) {
         const { iframe, hojas: hojasApu } = await hojasDossier();
@@ -288,6 +293,21 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
     } finally {
       setPdfCargando(false);
     }
+  }
+
+  // Imprime solo la hoja: se copia al body para que la ventana y su título no salgan.
+  function imprimirHoja() {
+    const el = document.getElementById("cotizacion-impresion");
+    if (!el) return;
+    const raiz = document.createElement("div");
+    raiz.className = "gg-print-root";
+    const copia = el.cloneNode(true) as HTMLElement;
+    copia.removeAttribute("id");
+    raiz.appendChild(copia);
+    document.body.appendChild(raiz);
+    const limpiar = () => { raiz.remove(); window.removeEventListener("afterprint", limpiar); };
+    window.addEventListener("afterprint", limpiar);
+    setTimeout(() => window.print(), 50);
   }
 
   async function exportarExcel() {
@@ -433,7 +453,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
           A4 horizontal
         </label>
         <SeparadorBarra />
-        <BotonBarra icono={<Printer />} texto="Imprimir" onClick={() => window.print()} />
+        <BotonBarra icono={<Printer />} texto="Imprimir" onClick={imprimirHoja} />
         <BotonBarra icono={<FileDown />} texto={pdfCargando ? "Generando..." : "Descargar PDF"} onClick={() => void descargarPdf()} disabled={pdfCargando} />
         <BotonBarra icono={<Files />} texto="PDF + dossier" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU" />
         <BotonBarra icono={<FileSpreadsheet />} texto="Excel" onClick={() => void exportarExcel()} disabled={items.length === 0} />
@@ -441,7 +461,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
         <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVerGG(true)} />
         <BotonBarra icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
       </BarraHerramientas>
-      <style>{horizontal ? "@page { size: A4 landscape; }" : "@page { size: A4 portrait; }"}</style>
+      <style>{`@page { size: A4 ${horizontal ? "landscape" : "portrait"}; margin: 0; } @media print { .gg-print-root > div { box-shadow: none !important; } }`}</style>
 
       <div className="min-h-0 flex-1 overflow-auto bg-muted/60 py-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="mx-auto" style={{ width: interiorW }}>
