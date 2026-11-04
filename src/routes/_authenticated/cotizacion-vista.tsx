@@ -10,7 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { useFuenteDocumento } from "@/lib/fuentes-documentos";
-import { useAuth } from "@/lib/auth";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { useTotalGGHoja } from "@/lib/gastos-generales-total";
