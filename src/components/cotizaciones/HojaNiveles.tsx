@@ -295,7 +295,7 @@ export function HojaNiveles({
       <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-card">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-line bg-muted/50 text-left text-[10px] uppercase text-muted-foreground">
+            <tr className="border-b border-line bg-muted/50 text-left text-xs uppercase text-muted-foreground">
               <th className="w-20 px-2 py-1.5">Ítem</th>
               <th className="px-2 py-1.5">Descripción</th>
               <th className="w-14 px-2 py-1.5">Und</th>

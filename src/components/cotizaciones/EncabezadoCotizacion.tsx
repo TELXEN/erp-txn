@@ -86,7 +86,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
     <div className="flex flex-wrap items-start gap-4 sm:flex-nowrap">
       <div style={{ width: 120, height: 76, flexShrink: 0, display: "flex", alignItems: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 120, maxHeight: 64, objectFit: "contain" }} /> : <b style={{ fontSize: 20 }}>Telxen</b>}</div>
       <div style={{ flex: 1, minWidth: 0, fontSize: "8.5pt" }}><b style={{ fontSize: 12 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b><div>{empresa?.eslogan}</div><div>{empresa?.direccion || "—"}</div><div>{empresa?.web || "—"}</div></div>
-      <div style={{ width: 200, flexShrink: 0, textAlign: "right" }}><div style={{ border: `3px solid ${DOC.dark}`, padding: "8px 6px", textAlign: "center" }}><div style={{ fontSize: 15 }}>COTIZACIÓN</div><div style={{ fontSize: 10, marginTop: 3 }}>{cot.codigo || "SIN CÓDIGO"}</div></div><div style={{ marginTop: 3 }}>Rev. {(cot.revision || "00").padStart(2, "0")}</div><div style={{ fontSize: 7.5 }}>Hoja {numero} de {totalHojas}</div></div>
+      <div style={{ width: 200, flexShrink: 0, textAlign: "right" }}><div className="rounded-md" style={{ border: `3px solid ${DOC.dark}`, padding: "8px 6px", textAlign: "center" }}><div style={{ fontSize: 15 }}>COTIZACIÓN</div><div style={{ fontSize: 10, marginTop: 3 }}>{cot.codigo || "SIN CÓDIGO"}</div></div><div style={{ marginTop: 3 }}>Rev. {(cot.revision || "00").padStart(2, "0")}</div><div style={{ fontSize: 7.5 }}>Hoja {numero} de {totalHojas}</div></div>
     </div>
     <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,270px)]">
       <div>

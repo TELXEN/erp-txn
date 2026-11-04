@@ -276,6 +276,7 @@ function Cotizaciones() {
       setPidiendoMoneda(false);
       setMonedaNueva("");
       setSeleccion(data.id);
+      setModoVentana("edicion");
       setEncabezado(true);
     } catch (e2) {
       setError(e2 instanceof Error ? e2.message : "No se pudo crear la cotización.");
@@ -597,7 +598,7 @@ function Cotizaciones() {
   };
 
   /* ---------------- MODO EDITOR ---------------- */
-  const cerrarEditor = () => { setSeleccion(null); setModoVentana("edicion"); setError(""); setAviso(""); };
+  const cerrarEditor = () => { setSeleccion(null); setEncabezado(false); setModoVentana("edicion"); setError(""); setAviso(""); };
   const ventanaEditor = cot && totales ? (
     <VentanaFlotante titulo={cot.nombre || cot.codigo || "Cotización"}
       subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""}`}
