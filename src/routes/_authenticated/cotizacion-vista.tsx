@@ -581,8 +581,8 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                         </div>
                       );
                       const bloqueTerminos = (
-                        <div style={{ fontSize: 8, color: C.slate500, lineHeight: 1.45, textAlign: "left" }}>
-                          <div style={{ fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
+                        <div style={{ fontSize: 10, color: C.slate500, lineHeight: 1.45, textAlign: "left" }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
                           {([
                             ["Recursos humanos", (cot as unknown as Record<string, string>)["recursos_humanos"]],
                             ["Tiempo de ejecución", (cot as unknown as Record<string, string>)["tiempo_ejecucion"]],
