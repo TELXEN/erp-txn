@@ -1,4 +1,4 @@
-import { EncabezadoCotizacion } from "@/components/cotizaciones/EncabezadoCotizacion";
+import { EncabezadoCotizacion, PieCotizacion } from "@/components/cotizaciones/EncabezadoCotizacion";
 import { cierreCotizacion } from "@/lib/cotizacion-comercial";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
@@ -623,6 +623,9 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                     })()}
                   </div>
                 )}
+                <div style={{ position: "absolute", left: 24, right: 290, bottom: 12 }}>
+                  <PieCotizacion cot={cot} />
+                </div>
                 <div style={{ position: "absolute", right: 24, width: 248, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
                   Hoja {paginaIndex + 1} de {paginas.length}
                 </div>

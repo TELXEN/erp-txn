@@ -130,14 +130,37 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       </div>
     </div>
     <div className="mt-2">{fila("PROYECTO", <div style={{ border: `1.5px solid ${DOC.dark}`, padding: "4px 8px" }}>{campo("nombre", cot.nombre)}</div>)}</div>
-    <div className="mt-1">{fila("ELABORADO POR", editable
-      ? <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo"))}</span>
-          <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email")}</span>
-          <span style={{ flex: "0 1 130px", minWidth: 100 }}>{campo("telefono_elaborado", cot.telefono_elaborado || "")}</span>
-        </div>
-      : <span>{cot.elaborado_por || nombreUsuario || "—"}{cot.correo_elaborado || correoUsuario ? ` · ${cot.correo_elaborado || correoUsuario}` : ""}{cot.telefono_elaborado ? ` · Tel. ${cot.telefono_elaborado}` : ""}</span>)}</div>
     {consultandoRuc && <p role="status" className="mt-2 text-xs text-muted-foreground">Consultando RUC…</p>}
     {error && <p role="alert" className="mt-2 text-xs text-bad">{error}</p>}
   </div>;
+}
+
+/** Pie de página de la hoja: quién elaboró la cotización, con correo y teléfono opcional. */
+export function PieCotizacion({ cot, editable = false }: { cot: Cotizacion; editable?: boolean }) {
+  const { nombre: nombreUsuario, email: correoUsuario } = useAuth();
+  const qc = useQueryClient();
+  async function guardar(campos: Record<string, unknown>) {
+    const { error } = await supabase.from("cotizaciones").update(campos as never).eq("id", cot.id);
+    if (error) return;
+    await Promise.all([qc.invalidateQueries({ queryKey: ["cotizaciones"] }), qc.invalidateQueries({ queryKey: ["cotizacion"] })]);
+  }
+  const campo = (nombre: string, valor: string, tipo = "text", formatear?: (v: string) => string) => editable
+    ? <input key={`${nombre}-${valor}`} aria-label={nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-dashed border-line bg-transparent py-0.5 font-semibold outline-none focus:border-primary" onBlur={(e) => {
+      const escrito = formatear ? formatear(e.target.value) : e.target.value;
+      if (String(valor) !== String(escrito)) { e.target.value = String(escrito); void guardar({ [nombre]: escrito }); }
+    }} />
+    : <span>{valor || "—"}</span>;
+  return (
+    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.35, display: "flex", alignItems: "center", gap: 8 }}>
+      <span style={{ flexShrink: 0 }}>ELABORADO POR</span>
+      <span style={{ width: 12, flexShrink: 0, textAlign: "center" }}>:</span>
+      {editable
+        ? <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", flex: 1, minWidth: 0, fontWeight: 600 }}>
+            <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo"))}</span>
+            <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email")}</span>
+            <span style={{ flex: "0 1 130px", minWidth: 100 }}>{campo("telefono_elaborado", cot.telefono_elaborado || "")}</span>
+          </div>
+        : <span style={{ fontWeight: 600 }}>{cot.elaborado_por || nombreUsuario || "—"}{cot.correo_elaborado || correoUsuario ? ` · ${cot.correo_elaborado || correoUsuario}` : ""}{cot.telefono_elaborado ? ` · Tel. ${cot.telefono_elaborado}` : ""}</span>}
+    </div>
+  );
 }
