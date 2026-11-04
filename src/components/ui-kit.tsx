@@ -68,6 +68,7 @@ export function VentanaFlotante({
   ocultarBarra = false,
   pantallaCompleta = false,
   sinMargen = false,
+  superpuesta = false,
   acciones,
 }: {
   titulo: string;
@@ -79,6 +80,7 @@ export function VentanaFlotante({
   ocultarBarra?: boolean;
   pantallaCompleta?: boolean;
   sinMargen?: boolean;
+  superpuesta?: boolean;
   acciones?: ReactNode;
 }) {
   useEffect(() => {
@@ -91,7 +93,7 @@ export function VentanaFlotante({
   if (!abierta || typeof document === "undefined") return null;
   // Al cuerpo del documento: así no hereda colores ni trazos de la cinta cuando se abre desde ella.
   return createPortal(
-    <div className={`fixed inset-0 z-50 flex items-start justify-center bg-ink/40 text-ink ${pantallaCompleta ? (sinMargen ? "overflow-hidden p-0" : "overflow-hidden p-2") : "overflow-y-auto p-4"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
+    <div className={`fixed inset-0 ${superpuesta ? "z-[60]" : "z-50"} flex items-start justify-center bg-ink/40 text-ink ${pantallaCompleta ? (sinMargen ? "overflow-hidden p-0" : "overflow-hidden p-2") : "overflow-y-auto p-4"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`} onMouseDown={onCerrar}>
       <section
         role="dialog"
         aria-modal="true"
