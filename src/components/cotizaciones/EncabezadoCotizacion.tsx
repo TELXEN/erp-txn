@@ -7,6 +7,7 @@ import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { convertirMonedaCotizacion, vigenciaHasta, type Cotizacion } from "@/lib/cotizaciones";
 import { supabase } from "@/integrations/supabase/client";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
+import { formatearTexto } from "@/lib/formato-texto";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 
@@ -66,14 +67,17 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       }
       await guardar({
         ruc_cliente: numero, cliente_id: registrado?.id ?? null, cliente: resultado.razonSocial, ubicacion: resultado.direccion,
-        ...(contacto ? { atencion: contacto.contacto || "", telefono: contacto.celular_contacto || contacto.telefono || "" } : {}),
+        ...(contacto ? { atencion: formatearTexto(contacto.contacto || "", "titulo"), telefono: contacto.celular_contacto || contacto.telefono || "" } : {}),
       });
     } catch {
       if (rucActual.current === numero) setError("No se pudo consultar Decolecta. Reintenta o completa los datos manualmente.");
     } finally { setConsultandoRuc(false); }
   }
-  const campo = (nombre: string, valor: string | number, tipo = "text") => editable
-    ? <input key={`${nombre}-${valor}`} aria-label={nombre === "nombre" ? "Proyecto" : nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-dashed border-line bg-transparent py-0.5 font-semibold outline-none focus:border-primary" onBlur={(e) => { if (String(valor) !== e.target.value) void guardar({ [nombre]: tipo === "number" ? Number(e.target.value) : e.target.value }); }} />
+  const campo = (nombre: string, valor: string | number, tipo = "text", formatear?: (v: string) => string) => editable
+    ? <input key={`${nombre}-${valor}`} aria-label={nombre === "nombre" ? "Proyecto" : nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-dashed border-line bg-transparent py-0.5 font-semibold outline-none focus:border-primary" onBlur={(e) => {
+      const escrito = tipo === "number" ? Number(e.target.value) : formatear ? formatear(e.target.value) : e.target.value;
+      if (String(valor) !== String(escrito)) { e.target.value = String(escrito); void guardar({ [nombre]: escrito }); }
+    }} />
     : <span>{valor || "—"}</span>;
   function menu(label: string, valor: string, opciones: [string, string][], cambiar: (v: string) => void) {
     return <Select value={valor} onValueChange={cambiar}><SelectTrigger aria-label={label} className="h-6 min-w-0 w-full rounded-sm px-1 py-0 text-xs shadow-none"><SelectValue placeholder="Elegir" /></SelectTrigger><SelectContent className="z-[200]"><SelectItem value={opciones[0]?.[0] ?? ""}>{opciones[0]?.[1]}</SelectItem><SelectItem value={opciones[1]?.[0] ?? ""}>{opciones[1]?.[1]}</SelectItem></SelectContent></Select>;
@@ -111,7 +115,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
         }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—")}
         {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""))}
         {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""))}
-        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || ""))}
+        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || "", "text", (v) => formatearTexto(v, "titulo")))}
         {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""))}
       </div>
       <div>
