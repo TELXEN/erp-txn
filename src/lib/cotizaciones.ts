@@ -136,9 +136,7 @@ export function totalesCotizacion(
     (s, i) => s + Number(i.metrado || 0) * Number(i.precio_unitario || 0),
     0,
   );
-  const gastosGenerales = ggHoja != null
-    ? Math.round(Number(ggHoja) * 100) / 100
-    : (costoDirecto * Number(pctGG || 0)) / 100;
+  const gastosGenerales = gastosGeneralesDe(ggHoja, costoDirecto, pctGG);
   const utilidad = (costoDirecto * Number(pctUtilidad || 0)) / 100;
   return { costoDirecto, gastosGenerales, utilidad, total: costoDirecto + gastosGenerales + utilidad };
 }

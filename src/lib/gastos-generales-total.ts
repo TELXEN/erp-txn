@@ -1,12 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { totalGG, type FilaGG } from "@/lib/gastos-generales-cotizacion";
+import { totalGG, totalHojaGG, type FilaGG } from "@/lib/gastos-generales-cotizacion";
 
-/** true si la cotización tiene al menos un ítem en su hoja de gastos generales. */
-export const tieneHojaGG = (filas: Pick<FilaGG, "nivel">[]) => filas.some((f) => f.nivel === "item");
-
-/** Importe de la hoja: null cuando no hay hoja (ahí el % de gastos generales se lleva a mano). */
-export const totalHojaGG = (filas: FilaGG[]) => (tieneHojaGG(filas) ? totalGG(filas) : null);
+export { tieneHojaGG, totalHojaGG } from "@/lib/gastos-generales-cotizacion";
 
 const SELECCION = "id, cotizacion_id, nivel, cantidad, tiempo, precio_unitario, tipo";
 
