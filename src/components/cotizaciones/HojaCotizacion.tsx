@@ -8,6 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { fecha as fmtFecha } from "@/lib/format";
 import { cambiarModoCotizacion, convertirMonedaCotizacion, simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
+import { useTotalGGHoja } from "@/lib/gastos-generales-total";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };

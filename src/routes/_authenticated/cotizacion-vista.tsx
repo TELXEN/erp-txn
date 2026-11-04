@@ -13,6 +13,7 @@ import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { useAuth } from "@/lib/auth";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
+import { useTotalGGHoja } from "@/lib/gastos-generales-total";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt } from "lucide-react";
 import type { ReactNode } from "react";
@@ -136,6 +137,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   const { fuente } = useFuenteDocumento();
   const { nombre, email } = useAuth();
   const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
+  const ggHoja = useTotalGGHoja(id);
   const original = cot?.retoma_de_id ? cotizaciones.find((fila) => fila.id === cot.retoma_de_id) ?? null : null;
   const retomaDe = original ? `Retoma de ${original.codigo ?? ""} Rev. ${(original.revision ?? "00").padStart(2, "0")}` : "";
   const { data: cliente } = useQuery({
@@ -344,8 +346,9 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
     const pctGg = Number(cot.pct_gastos_generales) || 0;
     const pctUt = Number(cot.pct_utilidad) || 0;
     let base = `G${sub.number}`;
-    if (pctGg > 0) {
-      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg.toFixed(2)}%)`, "", "", "", "", { formula: `ROUND(G${sub.number}*${pctGg / 100},2)` }]);
+    if (pctGg > 0 || ggHoja != null) {
+      const f = ws.addRow(["", `GASTOS GENERALES (${pctGg.toFixed(2)}%)`, "", "", "", "",
+        ggHoja != null ? Math.round(ggHoja * 100) / 100 : { formula: `ROUND(G${sub.number}*${pctGg / 100},2)` }]);
       base += `+G${f.number}`;
     }
     if (pctUt > 0) {

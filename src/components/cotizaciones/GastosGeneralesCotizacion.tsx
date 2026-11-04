@@ -125,7 +125,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
     if (soloLectura) return;
     await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     await qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
-    await qc.invalidateQueries({ queryKey: ["cotizacion_gg_items"] });
+    await qc.invalidateQueries({ queryKey: ["cotizacion_gg"] });
   }
 
   async function reordenar(nuevas: FilaGG[]) {

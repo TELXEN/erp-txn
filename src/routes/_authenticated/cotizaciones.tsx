@@ -55,6 +55,7 @@ import {
 } from "@/lib/cotizaciones";
 import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
+import { totalesGGDeLista, useTotalGGHoja } from "@/lib/gastos-generales-total";
 
 export const Route = createFileRoute("/_authenticated/cotizaciones")({
   validateSearch: (s: Record<string, unknown>): { abrir?: string; seccion?: string } => {
@@ -170,9 +171,10 @@ function Cotizaciones() {
     aplica_igv: "si",
   });
   const cot = cotizaciones.find((c) => c.id === seleccion) ?? null;
+  const ggHoja = useTotalGGHoja(cot?.id);
 
   const totales = cot
-    ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
+    ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), ggHoja)
     : null;
   /** Revisiones hermanas del mismo código (de la más antigua a la más reciente). */
   const hermanas = cot ? revisionesDeCodigo(cotizaciones, cot.codigo) : [];
@@ -196,12 +198,15 @@ function Cotizaciones() {
     queryKey: ["cotizacion_items", "totales", cotizaciones.map((c) => `${c.id}:${c.pct_gastos_generales}:${c.pct_utilidad}`).join(",")],
     enabled: cotizaciones.length > 0,
     queryFn: async () => {
-      const { data, error: err } = await supabase.from("cotizacion_items").select("cotizacion_id, metrado, precio_unitario").eq("tipo", "partida");
+      const [{ data, error: err }, gg] = await Promise.all([
+        supabase.from("cotizacion_items").select("cotizacion_id, metrado, precio_unitario").eq("tipo", "partida"),
+        totalesGGDeLista(cotizaciones.map((c) => c.id)),
+      ]);
       if (err) throw err;
       const res: Record<string, number> = {};
       for (const c of cotizaciones) {
         const its = (data ?? []).filter((i) => i.cotizacion_id === c.id);
-        res[c.id] = totalesCotizacion(its, Number(c.pct_gastos_generales), Number(c.pct_utilidad)).total;
+        res[c.id] = totalesCotizacion(its, Number(c.pct_gastos_generales), Number(c.pct_utilidad), gg[c.id]).total;
       }
       return res;
     },

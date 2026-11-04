@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Upload } from "lucide-react";
 import { Boton, Campo, Input, Select, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { Resaltar } from "@/components/Buscador";
@@ -399,15 +399,8 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
   const [errorPct, setErrorPct] = useState("");
   const recursos = useRecursosApu();
   // Con hoja de gastos generales, el % deja de escribirse a mano: es total GG ÷ costo directo.
-  const { data: filasGG = [] } = useQuery({
-    queryKey: ["cotizacion_gg_items", cot.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("cotizacion_gastos_generales").select("id, nivel").eq("cotizacion_id", cot.id);
-      if (error) throw error;
-      return (data ?? []) as { id: string; nivel: string }[];
-    },
-  });
-  const ggPorHoja = filasGG.some((f) => f.nivel === "item");
+  const ggHoja = useTotalGGHoja(cot.id);
+  const ggPorHoja = ggHoja != null;
   const { data: detalle = [] } = useBancoTabla("cotizacion_apu_detalle");
   const sim = cot.moneda === "USD" ? "US$" : "S/";
 
