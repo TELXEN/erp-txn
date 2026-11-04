@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Agrandar el texto de Términos y condiciones (recursos humanos, tiempo, pago y comerciales) en la hoja de cotización.
 - [x] Títulos de columnas ampliados y recuadro redondeado; creación real de borrador, cierre incompleto y reapertura del encabezado verificados, borrador de prueba retirado.
 - [x] Unificar Encabezado en edición/vista; menús moneda/venta/IGV y cierre en Subtotal sin IGV verificados en TXN26-C010.
 - [x] Guardar cambio Decolecta y fecha de envío: envío real verificado (Lima 03/11/2026, 3.466), datos restaurados y 19 pruebas pasan.
