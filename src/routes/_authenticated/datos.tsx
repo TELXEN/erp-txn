@@ -992,7 +992,7 @@ function ConfiguracionProyectos() {
         <TiposPresupuesto ctl={ctl("tipos")} />
       </div>
       <BarraIconosHoja objeto="registro" haySeleccion={haySel}
-        onAgregar={g && est?.gestionar ? () => enviar("agregar") : undefined}
+        onAgregar={() => { if (est?.gestionar) enviar("agregar"); }}
         onEditar={() => enviar("editar")}
         onEliminar={() => enviar("eliminar")}
         eliminarHabilitado={haySel && !!seleccion && !!est?.eliminable(seleccion.id)} />
