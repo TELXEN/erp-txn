@@ -146,11 +146,11 @@ export function HojaCotizacion({
         <div style={{ marginTop: mostrarEncabezado ? 16 : 0 }}>{children}</div>
 
 
-        <div style={{ marginTop: 18 }}>
+        {children && <div style={{ marginTop: 18 }}>
           <button type="button" onClick={() => setCondicionesAbiertas(true)} className="inline-flex h-8 items-center gap-2 rounded-md border border-line bg-background px-3 text-xs font-medium hover:bg-muted">
             Condiciones de la propuesta (recursos humanos, tiempo, pago y comerciales)
           </button>
-        </div>
+        </div>}
         <Dialog open={condicionesAbiertas} onOpenChange={setCondicionesAbiertas}>
           <DialogContent className="max-w-3xl">
             <DialogHeader><DialogTitle>Condiciones de la propuesta</DialogTitle></DialogHeader>
@@ -181,10 +181,10 @@ export function HojaCotizacion({
           </DialogContent>
         </Dialog>
 
-        <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 10.5, color: C.muted }}>
+        {children && <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 10.5, color: C.muted }}>
           <b>PROPUESTA COMERCIAL</b>
           <div style={{ marginTop: 5 }}>Lo que escribes en esta hoja es exactamente lo que saldrá impreso.</div>
-        </div>
+        </div>}
       </section>
     </div>
   );

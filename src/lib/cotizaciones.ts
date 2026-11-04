@@ -183,6 +183,12 @@ export async function convertirMonedaCotizacion(cotizacionId: string, moneda: "P
     if (d.precio_unitario === null || d.unidad === "%") continue;
     await sb.from("cotizacion_apu_detalle").update({ precio_unitario: Math.round(Number(d.precio_unitario) * factor * 10000) / 10000 }).eq("id", d.id);
   }
+  const { data: gastos, error: errorGastos } = await supabase.from("cotizacion_gastos_generales").select("id, precio_unitario").eq("cotizacion_id", cotizacionId).eq("nivel", "item");
+  if (errorGastos) throw errorGastos;
+  for (const gasto of gastos ?? []) {
+    const { error } = await supabase.from("cotizacion_gastos_generales").update({ precio_unitario: Math.round(Number(gasto.precio_unitario) * factor * 10000) / 10000 }).eq("id", gasto.id);
+    if (error) throw error;
+  }
   const { error: e3 } = await supabase
     .from("cotizaciones")
     .update({ moneda, tipo_cambio: tc } as never)
