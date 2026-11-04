@@ -715,20 +715,21 @@ const btnIcono =
 
 type ItemEditable = { id: string; nombre: string };
 
+type GrupoParam = "estados" | "prioridades" | "tipos";
+/** Orden que la barra única de la derecha envía al grupo de la fila seleccionada. */
+type OrdenParam = { tipo: "agregar" | "editar" | "eliminar"; grupo: GrupoParam; n: number };
+type CtlParam = {
+  grupo: GrupoParam;
+  seleccion: { grupo: GrupoParam; id: string } | null;
+  onSeleccionar: (grupo: GrupoParam, id: string | null) => void;
+  orden: OrdenParam | null;
+  onEstado: (grupo: GrupoParam, e: { gestionar: boolean; eliminable: (id: string) => boolean }) => void;
+};
+
 function ListaEditable<T extends ItemEditable>({
-  titulo,
-  formato,
-  descripcion,
-  items,
-  placeholder,
-  puedeGestionar,
-  insignia,
-  extra,
-  puedeEliminar,
-  onAgregar,
-  onRenombrar,
-  onEliminar,
+  ctl, titulo, formato, descripcion, items, placeholder, puedeGestionar, insignia, extra, puedeEliminar, onAgregar, onRenombrar, onEliminar,
 }: {
+  ctl: CtlParam;
   titulo: string;
   formato?: ModoFormato;
   descripcion: string;
@@ -746,6 +747,22 @@ function ListaEditable<T extends ItemEditable>({
   const [nuevo, setNuevo] = useState("");
   const [editando, setEditando] = useState<{ id: string; nombre: string } | null>(null);
   const [error, setError] = useState("");
+  const { grupo, seleccion, onSeleccionar, orden, onEstado } = ctl;
+  const selId = seleccion?.grupo === grupo ? seleccion.id : null;
+
+  useEffect(() => {
+    onEstado(grupo, { gestionar: puedeGestionar, eliminable: (id) => { const t = items.find((x) => x.id === id); return !!t && (puedeEliminar?.(t) ?? true); } });
+  }, [puedeGestionar, items]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!orden || orden.grupo !== grupo || !puedeGestionar) return;
+    setError("");
+    if (orden.tipo === "agregar") { setNuevo(""); setAgregando(true); return; }
+    const t = items.find((x) => x.id === selId);
+    if (!t) return;
+    if (orden.tipo === "editar") setEditando({ id: t.id, nombre: t.nombre });
+    else void eliminar(t);
+  }, [orden?.n]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function agregar(e: React.FormEvent) {
     e.preventDefault();
@@ -773,116 +790,37 @@ function ListaEditable<T extends ItemEditable>({
     setError("");
     const err = await onEliminar(t);
     if (err) setError(err);
+    else onSeleccionar(grupo, null);
   }
 
   return (
-    <Panel
-      titulo={titulo}
-      extra={
-        puedeGestionar && !agregando ? (
-          <button
-            type="button"
-            onClick={() => {
-              setAgregando(true);
-              setNuevo("");
-              setError("");
-            }}
-            title="Añadir"
-            className={`${btnIcono} hover:border-primary hover:text-primary`}
-          >
-            <Plus size={14} />
-          </button>
-        ) : null
-      }
-    >
+    <div onClick={() => { if (seleccion?.grupo !== grupo) onSeleccionar(grupo, null); }}>
+    <Panel titulo={titulo}>
       <div className="space-y-2 p-5">
         <p className="mb-3 text-xs text-muted-foreground">{descripcion}</p>
         {agregando && (
           <form onSubmit={agregar} className="flex items-center gap-2 rounded-md border border-dashed border-line px-3 py-2">
-            <Input
-              autoFocus
-              value={nuevo}
-              data-formato={formato}
-              onChange={(e) => setNuevo(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setAgregando(false)}
-              placeholder={placeholder}
-              maxLength={60}
-            />
-            <button type="submit" title="Guardar" className={`${btnIcono} hover:border-primary hover:text-primary`}>
-              <Check size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setAgregando(false)}
-              title="Cancelar"
-              className={`${btnIcono} hover:border-bad hover:text-bad`}
-            >
-              <X size={14} />
-            </button>
+            <Input autoFocus value={nuevo} data-formato={formato} onChange={(e) => setNuevo(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setAgregando(false)} placeholder={placeholder} maxLength={60} />
+            <button type="submit" title="Guardar" className={`${btnIcono} hover:border-primary hover:text-primary`}><Check size={14} /></button>
+            <button type="button" onClick={() => setAgregando(false)} title="Cancelar" className={`${btnIcono} hover:border-bad hover:text-bad`}><X size={14} /></button>
           </form>
         )}
         {items.map((t) => (
-          <div key={t.id} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
+          <div key={t.id} onClick={(e) => { e.stopPropagation(); onSeleccionar(grupo, t.id); }}
+            className={`flex cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 ${selId === t.id ? "border-primary bg-primary/10" : "border-line hover:bg-muted/40"}`}>
             {editando?.id === t.id ? (
               <>
-                <Input
-                  autoFocus
-                  value={editando.nombre} data-formato={formato ?? "oracion"}
+                <Input autoFocus value={editando.nombre} data-formato={formato ?? "oracion"}
                   onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") renombrar(t);
-                    if (e.key === "Escape") setEditando(null);
-                  }}
-                  maxLength={60}
-                />
-                <button
-                  type="button"
-                  onClick={() => renombrar(t)}
-                  title="Guardar"
-                  className={`${btnIcono} hover:border-primary hover:text-primary`}
-                >
-                  <Check size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditando(null)}
-                  title="Cancelar"
-                  className={`${btnIcono} hover:border-bad hover:text-bad`}
-                >
-                  <X size={14} />
-                </button>
+                  onKeyDown={(e) => { if (e.key === "Enter") renombrar(t); if (e.key === "Escape") setEditando(null); }} maxLength={60} />
+                <button type="button" onClick={() => renombrar(t)} title="Guardar" className={`${btnIcono} hover:border-primary hover:text-primary`}><Check size={14} /></button>
+                <button type="button" onClick={() => setEditando(null)} title="Cancelar" className={`${btnIcono} hover:border-bad hover:text-bad`}><X size={14} /></button>
               </>
             ) : (
               <>
                 {insignia(t)}
-                <div className="flex items-center gap-2">
-                  {extra?.(t)}
-                  {puedeGestionar && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditando({ id: t.id, nombre: t.nombre });
-                          setError("");
-                        }}
-                        title="Editar"
-                        className={`${btnIcono} hover:border-primary hover:text-primary`}
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      {(puedeEliminar?.(t) ?? true) && (
-                        <button
-                          type="button"
-                          onClick={() => eliminar(t)}
-                          title="Eliminar"
-                          className={`${btnIcono} hover:border-bad hover:text-bad`}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
+                {extra?.(t)}
               </>
             )}
           </div>
@@ -890,13 +828,14 @@ function ListaEditable<T extends ItemEditable>({
         {error && <p className="font-mono text-xs text-bad">{error}</p>}
       </div>
     </Panel>
+    </div>
   );
 }
 
 const msgDuplicado = (code: string | undefined, msg: string) =>
   code === "23505" ? "Ya existe un registro con ese nombre." : msg;
 
-function PrioridadesPanel() {
+function PrioridadesPanel({ ctl }: { ctl: CtlParam }) {
   const qc = useQueryClient();
   const { rol } = useAuth();
   const { data = [] } = usePrioridades();
@@ -911,6 +850,7 @@ function PrioridadesPanel() {
 
   return (
     <ListaEditable
+      ctl={ctl}
       titulo="Prioridad"
       descripcion="Nivel de urgencia asignado a cada proyecto y partida."
       items={items}
@@ -919,9 +859,7 @@ function PrioridadesPanel() {
       insignia={(p) => <InsigniaPrioridad valor={p.nombre} />}
       extra={(p) => <span className="font-mono text-[10px] text-muted-foreground">{tonoPrioridad(p.nombre).fondo}</span>}
       onAgregar={async (nombre) => {
-        const { error } = await supabase
-          .from("prioridades" as never)
-          .insert({ nombre, orden: items.length + 1, activo: true } as never);
+        const { error } = await supabase.from("prioridades" as never).insert({ nombre, orden: items.length + 1, activo: true } as never);
         if (error) return msgDuplicado(error.code, error.message);
         refrescar();
         return null;
@@ -934,12 +872,9 @@ function PrioridadesPanel() {
         return e2 ? `Prioridad renombrada, pero no se actualizaron las partidas: ${e2.message}` : null;
       }}
       onEliminar={async (p) => {
-        const { count } = await supabase
-          .from("partidas")
-          .select("id", { count: "exact", head: true })
-          .eq("prioridad", p.nombre);
+        const { count } = await supabase.from("partidas").select("id", { count: "exact", head: true }).eq("prioridad", p.nombre);
         const aviso = count ? ` ${count} partida(s) la usan y conservarán el texto hasta que se les asigne otra.` : "";
-        if (!window.confirm(`¿Eliminar la prioridad «${p.nombre}»?${aviso}`)) return null;
+        if (!window.confirm(`¿Eliminar la prioridad «${p.nombre}»?${aviso}`)) return "";
         const { error } = await supabase.from("prioridades" as never).delete().eq("id", p.id);
         if (error) return error.message;
         refrescar();
@@ -949,8 +884,7 @@ function PrioridadesPanel() {
   );
 }
 
-
-function TiposPresupuesto() {
+function TiposPresupuesto({ ctl }: { ctl: CtlParam }) {
   const qc = useQueryClient();
   const { rol } = useAuth();
   const { data: tipos = [] } = useTiposPresupuesto();
@@ -961,22 +895,17 @@ function TiposPresupuesto() {
 
   return (
     <ListaEditable
+      ctl={ctl}
       titulo="Tipos de presupuesto (adicionales)"
       descripcion="Clasificación de cada partida: contrato original, adicionales, mayores metrados y deductivos."
       items={tipos}
       placeholder="Ej. Adicional 04 / Adenda Muro de Contención"
       puedeGestionar={rol === "administrador" || rol === "gerente"}
       insignia={(t) => <InsigniaTipoPresupuesto valor={t.nombre} />}
-      extra={(t) => (
-        <span className="font-mono text-[10px] text-muted-foreground">
-          {t.es_contractual ? "Contrato original" : "Adicional"}
-        </span>
-      )}
+      extra={(t) => <span className="font-mono text-[10px] text-muted-foreground">{t.es_contractual ? "Contrato original" : "Adicional"}</span>}
       puedeEliminar={(t) => !t.es_contractual}
       onAgregar={async (nombre) => {
-        const { error } = await supabase
-          .from("tipos_presupuesto")
-          .insert({ nombre, es_contractual: false, orden: tipos.length + 1 });
+        const { error } = await supabase.from("tipos_presupuesto").insert({ nombre, es_contractual: false, orden: tipos.length + 1 });
         if (error) return msgDuplicado(error.code, error.message);
         refrescar();
         return null;
@@ -984,15 +913,12 @@ function TiposPresupuesto() {
       onRenombrar={async (t, nombre) => {
         const { error } = await supabase.from("tipos_presupuesto").update({ nombre }).eq("id", t.id);
         if (error) return msgDuplicado(error.code, error.message);
-        const { error: e2 } = await supabase
-          .from("partidas")
-          .update({ tipo_presupuesto: nombre })
-          .eq("tipo_presupuesto", t.nombre);
+        const { error: e2 } = await supabase.from("partidas").update({ tipo_presupuesto: nombre }).eq("tipo_presupuesto", t.nombre);
         refrescar();
         return e2 ? `Tipo renombrado, pero no se actualizaron las partidas: ${e2.message}` : null;
       }}
       onEliminar={async (t) => {
-        if (!window.confirm(`¿Eliminar el tipo de presupuesto «${t.nombre}»?`)) return null;
+        if (!window.confirm(`¿Eliminar el tipo de presupuesto «${t.nombre}»?`)) return "";
         const { error } = await supabase.from("tipos_presupuesto").delete().eq("id", t.id);
         if (error) return error.message;
         refrescar();
@@ -1002,182 +928,74 @@ function TiposPresupuesto() {
   );
 }
 
-function EstadosProyecto() {
+function EstadosProyecto({ ctl }: { ctl: CtlParam }) {
   const qc = useQueryClient();
-  const [agregando, setAgregando] = useState(false);
-  const [nuevo, setNuevo] = useState("");
-  const [editando, setEditando] = useState<{ id: string; nombre: string } | null>(null);
-  const [error, setError] = useState("");
+  const { rol } = useAuth();
   const { data: estados = [] } = useEstadosProyecto();
-  const lista = estados.length
-    ? estados
-    : SITUACIONES.map((s, i) => ({ id: s, nombre: s, orden: i + 1, activo: true }));
-
-  async function agregar(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    const limpio = nuevo.trim();
-    if (!limpio) return;
-    const { error: err } = await supabase
-      .from("estados_proyecto" as never)
-      .insert({ nombre: limpio, orden: lista.length + 1, activo: true } as never);
-    if (err) return setError(err.code === "23505" ? "Ya existe un estado con ese nombre." : err.message);
-    setNuevo("");
-    setAgregando(false);
-    qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
-  }
-
-  async function renombrar() {
-    if (!editando) return;
-    setError("");
-    const limpio = editando.nombre.trim();
-    if (!limpio) return;
-    const { error: err } = await supabase
-      .from("estados_proyecto" as never)
-      .update({ nombre: limpio } as never)
-      .eq("id", editando.id);
-    if (err) return setError(err.code === "23505" ? "Ya existe un estado con ese nombre." : err.message);
-    setEditando(null);
-    qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
-  }
-
-  async function eliminar(id: string, nombre: string) {
-    if (
-      !window.confirm(
-        `¿Eliminar el estado «${nombre}»? Los proyectos y partidas que lo usen se mostrarán sin color asignado.`,
-      )
-    )
-      return;
-    setError("");
-    const { error: err } = await supabase.from("estados_proyecto" as never).delete().eq("id", id);
-    if (err) return setError(err.message);
-    qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
-  }
+  const lista = estados.length ? estados : SITUACIONES.map((s, i) => ({ id: s, nombre: s, orden: i + 1, activo: true }));
+  const refrescar = () => qc.invalidateQueries({ queryKey: ["estados_proyecto"] });
+  const dup = (code: string | undefined, msg: string) => (code === "23505" ? "Ya existe un estado con ese nombre." : msg);
 
   return (
-    <Panel
+    <ListaEditable
+      ctl={ctl}
       titulo="Estado del proyecto"
-      extra={
-        agregando ? null : (
-          <button
-            type="button"
-            onClick={() => {
-              setAgregando(true);
-              setNuevo("");
-              setError("");
-            }}
-            title="Añadir estado"
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-          >
-            <Plus size={14} />
-          </button>
-        )
-      }
-    >
-      <div className="space-y-2 p-5">
-        <p className="mb-3 text-xs text-muted-foreground">
-          Escala de estados usada en los tableros Kanban de proyectos y partidas.
-        </p>
-        {agregando && (
-          <form onSubmit={agregar} className="flex items-center gap-2 rounded-md border border-dashed border-line px-3 py-2">
-            <Input
-              autoFocus
-              value={nuevo}
-              onChange={(e) => setNuevo(e.target.value)}
-              placeholder="Nombre del nuevo estado"
-              maxLength={40}
-            />
-            <button
-              type="submit"
-              title="Guardar"
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-            >
-              <Check size={14} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setAgregando(false)}
-              title="Cancelar"
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-            >
-              <X size={14} />
-            </button>
-          </form>
-        )}
-        {lista.map((s) => (
-          <div key={s.id} className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2">
-            {editando?.id === s.id ? (
-              <>
-                <Input
-                  autoFocus
-                  value={editando.nombre} data-formato="oracion"
-                  onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") renombrar();
-                    if (e.key === "Escape") setEditando(null);
-                  }}
-                  maxLength={40}
-                />
-                <button
-                  type="button"
-                  onClick={renombrar}
-                  title="Guardar"
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                >
-                  <Check size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditando(null)}
-                  title="Cancelar"
-                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-                >
-                  <X size={14} />
-                </button>
-              </>
-            ) : (
-              <>
-                <InsigniaSituacion valor={s.nombre} />
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] text-muted-foreground">{tonoSituacion(s.nombre).fondo}</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditando({ id: s.id, nombre: s.nombre });
-                      setError("");
-                    }}
-                    title="Editar"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => eliminar(s.id, s.nombre)}
-                    title="Eliminar"
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-        {error && <p className="font-mono text-xs text-bad">{error}</p>}
-      </div>
-    </Panel>
+      descripcion="Escala de estados usada en los tableros Kanban de proyectos y partidas."
+      items={lista}
+      placeholder="Nombre del nuevo estado"
+      puedeGestionar={rol === "administrador" || rol === "gerente"}
+      insignia={(s) => <InsigniaSituacion valor={s.nombre} />}
+      extra={(s) => <span className="font-mono text-[10px] text-muted-foreground">{tonoSituacion(s.nombre).fondo}</span>}
+      onAgregar={async (nombre) => {
+        const { error } = await supabase.from("estados_proyecto" as never).insert({ nombre, orden: lista.length + 1, activo: true } as never);
+        if (error) return dup(error.code, error.message);
+        refrescar();
+        return null;
+      }}
+      onRenombrar={async (s, nombre) => {
+        const { error } = await supabase.from("estados_proyecto" as never).update({ nombre } as never).eq("id", s.id);
+        if (error) return dup(error.code, error.message);
+        refrescar();
+        return null;
+      }}
+      onEliminar={async (s) => {
+        if (!window.confirm(`¿Eliminar el estado «${s.nombre}»? Los proyectos y partidas que lo usen se mostrarán sin color asignado.`)) return "";
+        const { error } = await supabase.from("estados_proyecto" as never).delete().eq("id", s.id);
+        if (error) return error.message;
+        refrescar();
+        return null;
+      }}
+    />
   );
 }
 
 function ConfiguracionProyectos() {
+  const [seleccion, setSeleccion] = useState<{ grupo: GrupoParam; id: string } | null>(null);
+  const [grupoActivo, setGrupoActivo] = useState<GrupoParam | null>(null);
+  const [orden, setOrden] = useState<OrdenParam | null>(null);
+  const [estados, setEstados] = useState<Partial<Record<GrupoParam, { gestionar: boolean; eliminable: (id: string) => boolean }>>>({});
+  const ctl = (grupo: GrupoParam): CtlParam => ({
+    grupo, seleccion, orden,
+    onSeleccionar: (g, id) => { setGrupoActivo(g); setSeleccion(id ? { grupo: g, id } : null); },
+    onEstado: (g, e) => setEstados((p) => ({ ...p, [g]: e })),
+  });
+  const g = seleccion?.grupo ?? grupoActivo;
+  const est = g ? estados[g] : undefined;
+  const enviar = (tipo: OrdenParam["tipo"]) => g && setOrden((o) => ({ tipo, grupo: g, n: (o?.n ?? 0) + 1 }));
+  const haySel = !!seleccion && !!est?.gestionar;
+
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <EstadosProyecto />
-
-      <PrioridadesPanel />
-
-      <TiposPresupuesto />
+    <div className="flex items-start gap-3">
+      <div className="grid min-w-0 flex-1 gap-4 lg:grid-cols-3">
+        <EstadosProyecto ctl={ctl("estados")} />
+        <PrioridadesPanel ctl={ctl("prioridades")} />
+        <TiposPresupuesto ctl={ctl("tipos")} />
+      </div>
+      <BarraIconosHoja objeto="registro" haySeleccion={haySel}
+        onAgregar={() => { if (est?.gestionar) enviar("agregar"); }}
+        onEditar={() => enviar("editar")}
+        onEliminar={() => enviar("eliminar")}
+        eliminarHabilitado={haySel && !!seleccion && !!est?.eliminable(seleccion.id)} />
     </div>
   );
 }
