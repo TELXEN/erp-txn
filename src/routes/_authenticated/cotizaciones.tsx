@@ -550,7 +550,19 @@ function Cotizaciones() {
   const filtradas = vigentes
     .filter((c) => coincide(busqueda, c.codigo, c.cliente, c.nombre, c.estado))
     .filter((c) => pestana === "Todas" || (pestana === "En Obra" ? Boolean(c.proyecto_id) : c.estado === pestana));
-  const kpiMes = vigentes.filter((c) => c.fecha_emision.startsWith(mesActual)).reduce((s, c) => s + total(c.id), 0);
+  const kpiMes = vigentes.filter((c) => c.fecha_emision.startsWith(mesActual));
+  /** Suma separada por moneda: nunca mezcla soles con dólares. */
+  const porMoneda = (lista: typeof vigentes) => {
+    const fmt = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const pen = lista.filter((c) => c.moneda !== "USD").reduce((s, c) => s + total(c.id), 0);
+    const usd = lista.filter((c) => c.moneda === "USD").reduce((s, c) => s + total(c.id), 0);
+    return (
+      <span className="flex flex-col leading-tight">
+        <span>S/ {fmt(pen)}</span>
+        <span>US$ {fmt(usd)}</span>
+      </span>
+    );
+  };
   const kpiAprob = vigentes.filter((c) => c.estado === "Aprobada");
   const kpiPend = vigentes.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
   const PESTANAS = ["Todas", ...ESTADOS_COTIZACION, "En Obra"] as const;
@@ -717,9 +729,9 @@ function Cotizaciones() {
       </p>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <TarjetaResumen etiqueta="Cotizado este mes" valor={soles(kpiMes)} guia="Emitidas en el mes actual" />
-        <TarjetaResumen etiqueta="Aprobadas" cantidad={kpiAprob.length} valor={soles(kpiAprob.reduce((s, c) => s + total(c.id), 0))} guia="Aceptadas por el cliente" />
-        <TarjetaResumen etiqueta="Pendientes de respuesta" cantidad={kpiPend.length} valor={soles(kpiPend.reduce((s, c) => s + total(c.id), 0))} alerta={kpiPend.length > 0 ? "warn" : undefined} guia="Enviadas, sin respuesta" />
+        <TarjetaResumen etiqueta="Cotizado este mes" valor={porMoneda(kpiMes)} guia="Emitidas en el mes actual" />
+        <TarjetaResumen etiqueta="Aprobadas" cantidad={kpiAprob.length} valor={porMoneda(kpiAprob)} guia="Aceptadas por el cliente" />
+        <TarjetaResumen etiqueta="Pendientes de respuesta" cantidad={kpiPend.length} valor={porMoneda(kpiPend)} alerta={kpiPend.length > 0 ? "warn" : undefined} guia="Enviadas, sin respuesta" />
       </div>
 
       <div role="tablist" aria-label="Estado de cotizaciones" className="mb-4 flex flex-wrap gap-1 border-b border-line">
