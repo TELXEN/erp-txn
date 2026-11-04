@@ -1744,12 +1744,14 @@ export type Database = {
           cliente: string
           cliente_id: string | null
           codigo: string | null
+          condicion_venta: string | null
           condiciones: string
           condiciones_pago: string
           created_at: string
           duracion_meses: number
           estado: string
           fecha_emision: string
+          fecha_envio: string | null
           id: string
           moneda: Database["public"]["Enums"]["moneda"]
           multidisciplinaria: boolean
@@ -1764,6 +1766,7 @@ export type Database = {
           ruc_cliente: string
           tiempo_ejecucion: string
           tipo_cambio: number
+          tipo_cambio_fecha: string | null
           ubicacion: string
           updated_at: string
           validez_dias: number
@@ -1774,12 +1777,14 @@ export type Database = {
           cliente?: string
           cliente_id?: string | null
           codigo?: string | null
+          condicion_venta?: string | null
           condiciones?: string
           condiciones_pago?: string
           created_at?: string
           duracion_meses?: number
           estado?: string
           fecha_emision?: string
+          fecha_envio?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           multidisciplinaria?: boolean
@@ -1794,6 +1799,7 @@ export type Database = {
           ruc_cliente?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
+          tipo_cambio_fecha?: string | null
           ubicacion?: string
           updated_at?: string
           validez_dias?: number
@@ -1804,12 +1810,14 @@ export type Database = {
           cliente?: string
           cliente_id?: string | null
           codigo?: string | null
+          condicion_venta?: string | null
           condiciones?: string
           condiciones_pago?: string
           created_at?: string
           duracion_meses?: number
           estado?: string
           fecha_emision?: string
+          fecha_envio?: string | null
           id?: string
           moneda?: Database["public"]["Enums"]["moneda"]
           multidisciplinaria?: boolean
@@ -1824,6 +1832,7 @@ export type Database = {
           ruc_cliente?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
+          tipo_cambio_fecha?: string | null
           ubicacion?: string
           updated_at?: string
           validez_dias?: number
