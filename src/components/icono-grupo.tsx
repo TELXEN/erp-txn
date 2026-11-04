@@ -1,3 +1,4 @@
+import iconoPreliquidaciones from "@/assets/icono-preliquidaciones.png";
 import iconoCotizaciones from "@/assets/icono-cotizaciones.png";
 import { Icon, type LucideProps } from "lucide-react";
 import type { IconNode } from "lucide-react";
@@ -5,6 +6,11 @@ import type { IconNode } from "lucide-react";
 /** Portapapeles con dólar y pluma (icono de Cotizaciones). Ignora size/strokeWidth de la cinta y se dimensiona con esos valores. */
 export const IconoCotizaciones = ({ size = 24, className }: { size?: number; className?: string; strokeWidth?: number }) => (
   <img src={iconoCotizaciones} alt="" aria-hidden="true" draggable={false} width={size} height={size} className={className} />
+);
+
+/** Billete con dólar (icono de Preliquidaciones). */
+export const IconoPreliquidaciones = ({ size = 24, className }: { size?: number; className?: string; strokeWidth?: number }) => (
+  <img src={iconoPreliquidaciones} alt="" aria-hidden="true" draggable={false} width={size} height={size} className={className} />
 );
 
 /** Tres personas (centro al frente) dibujadas con el trazo de lucide. */
