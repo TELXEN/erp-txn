@@ -48,24 +48,24 @@ const SECCIONES_DATOS = [
   { texto: "Costos y Finanzas", corto: "Costos y Finanzas", seccion: "categoriasgg", campo: "pestana", icono: CostosFinanzasDT },
 ];
 const SECCIONES_CATALOGO = [
-  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: Ruler, grande: true },
-  { texto: "Especialidades", corto: "Especialidades", seccion: "especialidades", campo: "pestana", icono: Shapes },
-  { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: FolderTree },
-  { texto: "Subcategorías", corto: "Subcategorías", seccion: "subfamilias", campo: "pestana", icono: Network },
-  { texto: "Marcas", corto: "Marcas", seccion: "marcas", campo: "pestana", icono: Tag },
-  { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: ListTree },
+  { texto: "Unidades de medida", corto: "Unidades", seccion: "unidades", campo: "pestana", icono: UnidadesDT, grande: true },
+  { texto: "Especialidades", corto: "Especialidades", seccion: "especialidades", campo: "pestana", icono: EspecialidadesDT },
+  { texto: "Categorías", corto: "Categorías", seccion: "categorias", campo: "pestana", icono: CategoriasDT },
+  { texto: "Subcategorías", corto: "Subcategorías", seccion: "subfamilias", campo: "pestana", icono: SubcategoriasDT },
+  { texto: "Marcas", corto: "Marcas", seccion: "marcas", campo: "pestana", icono: MarcasDT },
+  { texto: "Títulos WBS", corto: "Títulos WBS", seccion: "grupos", campo: "pestana", icono: TitulosWbsDT },
 ];
 const SECCIONES_MAESTRO = [
-  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: Package, grande: true },
-  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: FileSignature },
-  { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: Drill },
-  { texto: "Herramientas", corto: "Herramientas", seccion: "HE", campo: "seccion", icono: Hammer },
-  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: Pickaxe },
+  { texto: "Materiales", corto: "Materiales", seccion: "MAT", campo: "seccion", icono: MaterialesDT, grande: true },
+  { texto: "Subcontratos", corto: "Subcontratos", seccion: "SC", campo: "seccion", icono: SubcontratosDT },
+  { texto: "Equipos", corto: "Equipos", seccion: "EQ", campo: "seccion", icono: EquiposDT },
+  { texto: "Herramientas", corto: "Herramientas", seccion: "HE", campo: "seccion", icono: HerramientasDT },
+  { texto: "Mano de obra", corto: "Mano de obra", seccion: "MO", campo: "seccion", icono: ManoObraDT },
 ];
 const SECCIONES_MAESTRO_CFG = [
-  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: Percent, grande: true },
-  { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: BadgeDollarSign },
-  { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: Barcode },
+  { texto: "Márgenes APU", corto: "Márgenes", seccion: "margenes", campo: "seccion", icono: MargenesDT, grande: true },
+  { texto: "Parámetros laborales", corto: "Laboral", seccion: "laboral", campo: "seccion", icono: LaboralDT },
+  { texto: "Codificación de insumos", corto: "Codificación", seccion: "codificacion", campo: "seccion", icono: CodInsumosDT },
 ];
 import { FormatoGlobal } from "@/components/FormatoGlobal";
 import { CintaOpciones, SelectorModoLateral, type ModoNavegacion, type ContextoCinta } from "@/components/CintaOpciones";
@@ -266,8 +266,8 @@ const MENU: Categoria[] = [
   {
     titulo: "Datos",
     items: [
-      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: BookOpen, sub: SECCIONES_CATALOGO, subFilas: 3, subColumnas: true },
-      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: Database, sub: SECCIONES_MAESTRO, subFilas: 3, subGrupos: [{ titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG, subFilas: 3 }] },
+      { a: "/catalogo-tecnico", texto: "Catálogo Técnico", roles: ["administrador", "gerente"], icono: CatalogoDT, sub: SECCIONES_CATALOGO, subFilas: 3, subColumnas: true },
+      { a: "/maestro-insumos", texto: "Maestro de Insumos", roles: ["administrador", "gerente"], icono: MaestroDT, sub: SECCIONES_MAESTRO, subFilas: 3, subGrupos: [{ titulo: "Configuración del maestro", opciones: SECCIONES_MAESTRO_CFG, subFilas: 3 }] },
     ],
   },
 ];
