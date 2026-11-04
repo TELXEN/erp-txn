@@ -16,7 +16,7 @@ import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollTex
 import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
 import { Milestone, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
 import { Users, Vault, Wallet, Warehouse } from "lucide-react";
-import { GrupoPersonas, LibroAyuda, LlantaLlave } from "./icono-grupo";
+import { GrupoPersonas, IconoCotizaciones, LibroAyuda, LlantaLlave } from "./icono-grupo";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -96,7 +96,7 @@ import { aplicarFuenteGlobal, useFuenteDocumento } from "@/lib/fuentes-documento
 
 
 const SECCIONES_COTIZ = [
-  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: FileText, grande: true },
+  { texto: "Cotizaciones", corto: "Cotizaciones", seccion: "cotizaciones", icono: IconoCotizaciones, grande: true },
   { texto: "Análisis de Precios Unitarios (APU)", corto: "APU", a: "/datos-apu", icono: Calculator },
   { texto: "Plantillas", corto: "Plantillas", seccion: "plantillas", icono: LayoutTemplate },
 ];
@@ -194,7 +194,7 @@ const MENU: Categoria[] = [
     titulo: "Comercial",
     items: [
       { a: "/clientes", texto: "Clientes", roles: ["administrador", "gerente"], icono: GrupoPersonas },
-      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: Files, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
+      { a: "/cotizaciones", texto: "Cotizaciones", roles: ["administrador", "gerente"], icono: IconoCotizaciones, sub: SECCIONES_COTIZ, subFilas: 3, rutas: ["/cotizacion-vista"] },
       { a: "/valorizaciones", texto: "Preliquidaciones", roles: ["administrador", "gerente"], icono: Milestone },
       { a: "/facturacion-electronica", texto: "Facturación Electrónica", roles: ["administrador", "gerente"], icono: ScanBarcode, sub: SECCIONES_FACTURACION, subFilas: 3, subGrupos: [{ titulo: "Guías de Remisión", opciones: SECCIONES_GUIAS }, { titulo: "Operaciones especiales", opciones: SECCIONES_OP_ESP }] },
       { a: "/registro-ventas", texto: "Registro de Ventas", roles: ["administrador", "gerente"], icono: FolderClosed },
