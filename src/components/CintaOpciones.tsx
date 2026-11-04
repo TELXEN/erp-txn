@@ -117,7 +117,7 @@ const PRINCIPAL: Record<string, { a: string; search?: Record<string, string> }> 
   "Operaciones": { a: "/dashboard-proyectos" },
   "Logística": { a: "/requerimientos" },
   "Finanzas y Contabilidad": { a: "/dashboard" },
-  "Recursos Humanos": { a: "/personal" },
+  "Recursos Humanos": { a: "/nomina" },
   "Datos": { a: "/maestro-insumos", search: { seccion: "MAT" } },
 };
 const LS_REC = "erp-telxen-recientes";
