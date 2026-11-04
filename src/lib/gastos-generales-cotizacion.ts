@@ -52,10 +52,12 @@ export const totalHojaGG = (filas: FilaGG[]) => (tieneHojaGG(filas) ? totalGG(fi
 
 /**
  * Importe de gastos generales de una cotización: el de la hoja cuando existe (es la fuente de
- * verdad); si no hay hoja, el porcentaje aplicado sobre el costo directo.
+ * verdad); si no hay hoja, el porcentaje aplicado sobre el costo directo. Dos decimales.
  */
 export const gastosGeneralesDe = (ggHoja: number | null | undefined, costoDirecto: number, pct: number) =>
-  ggHoja != null ? Math.round(Number(ggHoja) * 100) / 100 : (costoDirecto * Number(pct || 0)) / 100;
+  ggHoja != null
+    ? Math.round(Number(ggHoja) * 100) / 100
+    : Math.round((costoDirecto * Number(pct || 0) / 100) * 100) / 100;
 
 const RANGO: Record<NivelGG, number> = { bloque: 0, grupo: 1, item: 2 };
 

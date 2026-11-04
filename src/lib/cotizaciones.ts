@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
 import { costoReceta } from "@/lib/banco-apu";
+import { gastosGeneralesDe } from "@/lib/gastos-generales-cotizacion";
 import { ordenarPorNombre } from "@/lib/formato-texto";
 
 export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada" | "Retomada";
