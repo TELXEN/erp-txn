@@ -1,6 +1,6 @@
 # Roadmap
-- [ ] Unificar Encabezado de cotización en edición/vista, moneda y venta desplegables, IGV en título sin A4 y cierre documental según IGV.
-- [ ] Guardar tipo de cambio Decolecta y fecha de envío; probar selectores, persistencia y cálculos.
+- [x] Unificar Encabezado en edición/vista; menús moneda/venta/IGV y cierre en Subtotal sin IGV verificados en TXN26-C010.
+- [x] Guardar cambio Decolecta y fecha de envío: envío real verificado (Lima 03/11/2026, 3.466), datos restaurados y 19 pruebas pasan.
 - [x] Revisar y diferenciar iconos de pantallas y secciones en menú, cinta y buscador; seis categorías y Empresa/Tipografía verificadas sin errores, conservando símbolos de acciones comunes.
 - [x] Aclarar ambas cintas conservando colores destacados por tema; siete temas y trazos finos verificados en pantalla.
 - [x] Icono Eliminar al final (abajo) de la barra derecha en todas las pantallas; orden comprobado en Generar Requerimiento y Proyectos, compilación OK.
