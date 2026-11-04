@@ -19,6 +19,7 @@ import { Users, Vault, Wallet, Warehouse } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
 import { AcercaDT, AyudaDT, AyudaGrupoDT, CodificacionDT, ConfigSistemaDT, CostosFinanzasDT, DisenoDT, EmpresaDT, IntegracionesDT, LicenciaDT, ManualDT, NormativaDT, ParametrosDT, ParamProyectosDT, RecursosHumanosDT, TemasDT, TipografiaDT, UsuariosDT } from "./icono-inicio";
+import { AprobacionesDT, AvanceDT, CalendarioDT, CurvaSDT, DashboardProyectosDT, GanttDT, PartidasDT, ProyectosDT, RequerimientoDT, ValorizacionesDT } from "./icono-operaciones";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
@@ -158,8 +159,8 @@ const SECCIONES_TESORERIA = [
 
 // Vistas del cronograma: cada opción abre el Gantt o la Curva S en pantalla.
 const SECCIONES_VISTAS = [
-  { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: ChartGantt },
-  { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: ChartSpline },
+  { texto: "Diagrama de Gantt", corto: "Gantt", a: "/gantt", search: { vista: "gantt" }, icono: GanttDT },
+  { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: CurvaSDT },
 ];
 const SECCIONES_NOMINA = [
   { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: ReceiptText, grande: true },
@@ -205,14 +206,14 @@ const MENU: Categoria[] = [
   {
     titulo: "Operaciones",
     items: [
-      { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: Gauge },
-      { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: Factory },
-      { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: ListChecks },
-      { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: Activity },
-      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: CalendarRange, sub: SECCIONES_VISTAS, subFilas: 3 },
-      { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardPen },
-      { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ClipboardCheck },
-      { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: ShieldCheck },
+      { a: "/dashboard-proyectos", texto: "Dashboard Proyectos", roles: ["ingeniero", "administrador", "gerente"], icono: DashboardProyectosDT },
+      { a: "/proyectos", texto: "Proyectos", roles: ["administrador", "gerente"], icono: ProyectosDT },
+      { a: "/partidas", texto: "Partidas", roles: ["administrador", "gerente"], icono: PartidasDT },
+      { a: "/avance", texto: "Avance Físico", roles: ["ingeniero", "gerente"], icono: AvanceDT },
+      { a: "/gantt", texto: "Gantt\nCurva S", roles: ["ingeniero", "administrador", "gerente"], icono: CalendarioDT, sub: SECCIONES_VISTAS, subFilas: 3 },
+      { a: "/generar-requerimiento", texto: "Generar Requerimiento", roles: ["ingeniero", "administrador", "gerente"], icono: RequerimientoDT },
+      { a: "/valorizaciones-obra", texto: "Valorizaciones", roles: ["ingeniero", "administrador", "gerente"], icono: ValorizacionesDT },
+      { a: "/aprobaciones", texto: "Aprobaciones", roles: ["administrador", "gerente"], icono: AprobacionesDT },
     ],
   },
   {
