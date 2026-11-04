@@ -4,24 +4,25 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { createPortal } from "react-dom";
 
 import { Activity, BadgeDollarSign, BadgeInfo, Barcode } from "lucide-react";
-import { FileKey2, BookOpen, BookUser, Building2, Calculator, CalendarDays, CalendarRange } from "lucide-react";
+import { FileKey2, BookOpen, Building2, Calculator, CalendarRange } from "lucide-react";
 import { ChartGantt, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
 import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Database, Drill, Factory } from "lucide-react";
-import { FileBadge, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
-import { FolderTree, Gauge, Gift, Hammer, HandCoins } from "lucide-react";
-import { HardHat, History, LayoutTemplate, ListChecks } from "lucide-react";
+import { FileBadge, FileMinus, FilePlus, FileSignature, FileText, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
+import { FolderTree, Gauge, Hammer } from "lucide-react";
+import { LayoutTemplate, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
-import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank } from "lucide-react";
-import { Plug, Receipt, ReceiptText, Ruler, Scale, ScanBarcode } from "lucide-react";
-import { Settings, Shapes, ShieldCheck, SlidersHorizontal, Sprout } from "lucide-react";
-import { FileChartColumn, Stamp, SwatchBook, Tag, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
-import { Users, Vault } from "lucide-react";
+import { Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe } from "lucide-react";
+import { Plug, Receipt, Ruler, Scale, ScanBarcode } from "lucide-react";
+import { Settings, Shapes, ShieldCheck, SlidersHorizontal } from "lucide-react";
+import { FileChartColumn, Stamp, SwatchBook, Tag, Type, UserCog, UserRoundCheck } from "lucide-react";
+import { Vault } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
 import { AlmacenContDT, AlmacenDT, BandejaReqDT, FlotaDT, ImportacionesDT, InventarioDT, OrdenCompraDT, ProveedoresDT, ResumenDT, TareoVehicularDT, TransportistasDT, TrasladosDT, VehiculosDT } from "./icono-logistica";
 import { CajaChicaDT, CombustibleDT, CostosDirectosDT, CxcDT, CxpDT, DashboardFinDT, DetalleGastosDT, FlujoCajaDT, FlujoResumenDT, GastosGeneralesDT, GGResumenDT, MatrizDT, PrestamosDT, SireDT, TesoreriaDT, TesoreriaResumenDT } from "./icono-finanzas";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
 import { AcercaDT, AyudaDT, AyudaGrupoDT, CodificacionDT, ConfigSistemaDT, CostosFinanzasDT, DisenoDT, EmpresaDT, IntegracionesDT, LicenciaDT, ManualDT, NormativaDT, ParametrosDT, ParamProyectosDT, RecursosHumanosDT, TemasDT, TipografiaDT, UsuariosDT } from "./icono-inicio";
 import { AprobacionesDT, AvanceDT, CalendarioDT, CurvaSDT, DashboardProyectosDT, GanttDT, PartidasDT, ProyectosDT, RequerimientoDT, ValorizacionesDT } from "./icono-operaciones";
+import { AfpDT, AsistenciaDT, BeneficiosDT, BoletaPagoDT, BoletasPagoDT, CtsDT, EppBancoDT, EppDT, EppEntregasDT, EppHistorialDT, GratificacionesDT, HonorariosDT, LiquidacionesDT, PersonalDT } from "./icono-personal";
 
 type Ranura = { el: HTMLElement | null; cinta: boolean; setCtx: (c: ContextoCinta | null) => void };
 const RanuraEncabezado = createContext<Ranura | null>(null);
