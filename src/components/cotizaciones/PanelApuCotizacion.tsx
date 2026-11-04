@@ -497,6 +497,7 @@ export function ResumenCotizacion({ cot, items, soloLectura = false }: { cot: Co
           {cot.moneda === "USD" && Number(cot.tipo_cambio) > 0 && (
             <tr className="text-muted-foreground"><td className="px-2 py-0.5">Equivalente en soles</td><td /><td className="px-2 py-0.5 text-right whitespace-nowrap">S/ {num((parcialT + igv) * Number(cot.tipo_cambio))}</td></tr>
           )}
+          <tr className="italic text-muted-foreground"><td colSpan={3} className="px-2 pt-1">Valores en {cot.moneda === "USD" ? "Dólares" : "Soles"} · {conIgv ? "Incluye IGV" : "Sin IGV"}</td></tr>
           {errorPct && <tr><td colSpan={3} className="px-2 text-bad">{errorPct}</td></tr>}
         </tbody>
       </table>

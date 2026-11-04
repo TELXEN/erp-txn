@@ -575,6 +575,9 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                               <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
                             </div>
                           )}
+                          <div style={{ marginTop: 6, color: C.slate500, fontSize: "7.5pt", fontStyle: "italic" }}>
+                            Valores en {esUsd ? "Dólares" : "Soles"} · {conIgv ? "Incluye IGV" : "Sin IGV"}
+                          </div>
                         </div>
                       );
                       const bloqueTerminos = (

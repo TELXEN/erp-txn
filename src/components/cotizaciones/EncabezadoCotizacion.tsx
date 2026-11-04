@@ -123,7 +123,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
         {editable && fila("ORIENTACIÓN", menu("Orientación", cot.orientacion || "vertical", [["vertical", "Vertical"], ["horizontal", "Horizontal"]], (v) => void guardar({ orientacion: v })), 118)}
       </div>
     </div>
-    <div className="mt-2">{fila("PROYECTO", <div style={{ border: `2.5px solid ${DOC.dark}`, padding: "4px 8px" }}>{campo("nombre", cot.nombre)}</div>)}</div>
+    <div className="mt-2">{fila("PROYECTO", <div style={{ border: `1.5px solid ${DOC.dark}`, padding: "4px 8px" }}>{campo("nombre", cot.nombre)}</div>)}</div>
     {consultandoRuc && <p role="status" className="mt-2 text-xs text-muted-foreground">Consultando RUC…</p>}
     {error && <p role="alert" className="mt-2 text-xs text-bad">{error}</p>}
   </div>;
