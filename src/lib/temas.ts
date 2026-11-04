@@ -6,8 +6,7 @@ export type TemaId =
   | "word"
   | "excel"
   | "powerpoint"
-  | "office-gris"
-  | "office-negro";
+  | "office-gris";
 
 function temaOffice(
   id: TemaId,
@@ -141,14 +140,6 @@ export const TEMAS: Tema[] = [
     hover: "#555555",
     borde: "#666666",
     muted: "#D0D0D0",
-    tinte: "oklch(0.975 0 0)",
-  }),
-  temaOffice("office-negro", "Microsoft 365 Negro", "Negro del tema Negro de Office", {
-    base: "#262626",
-    panel: "#1A1A1A",
-    hover: "#3A3A3A",
-    borde: "#4A4A4A",
-    muted: "#C8C8C8",
     tinte: "oklch(0.975 0 0)",
   }),
 ];
