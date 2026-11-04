@@ -5,7 +5,7 @@ import type { IconNode } from "lucide-react";
  * Iconos de la cinta Comercial en dos tonos: las piezas de `estructura` usan el color del texto (negro)
  * y las de `acento` llevan la clase `acento` (azul de la cinta, ver styles.css).
  */
-function dosTonos(estructura: IconNode, acento: IconNode) {
+export function dosTonos(estructura: IconNode, acento: IconNode) {
   const nodo: IconNode = [
     ...estructura,
     ...acento.map(([t, a]) => [t, { ...a, className: "acento" }] as IconNode[number]),
