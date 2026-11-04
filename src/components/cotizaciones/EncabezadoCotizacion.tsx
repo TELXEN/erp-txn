@@ -150,17 +150,18 @@ export function PieCotizacion({ cot, editable = false }: { cot: Cotizacion; edit
       if (String(valor) !== String(escrito)) { e.target.value = String(escrito); void guardar({ [nombre]: escrito }); }
     }} />
     : <span>{valor || "—"}</span>;
-  return (
-    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.35, display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ flexShrink: 0 }}>ELABORADO POR</span>
+  const fila = (label: string, valor: ReactNode) => (
+    <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 24 : undefined }}>
+      <span style={{ width: 56, flexShrink: 0 }}>{label}</span>
       <span style={{ width: 12, flexShrink: 0, textAlign: "center" }}>:</span>
-      {editable
-        ? <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", flex: 1, minWidth: 0, fontWeight: 600 }}>
-            <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo"))}</span>
-            <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email")}</span>
-            <span style={{ flex: "0 1 130px", minWidth: 100 }}>{campo("telefono_elaborado", cot.telefono_elaborado || "")}</span>
-          </div>
-        : <span style={{ fontWeight: 600 }}>{cot.elaborado_por || nombreUsuario || "—"}{cot.correo_elaborado || correoUsuario ? ` · ${cot.correo_elaborado || correoUsuario}` : ""}{cot.telefono_elaborado ? ` · Tel. ${cot.telefono_elaborado}` : ""}</span>}
+      <div style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{valor}</div>
+    </div>
+  );
+  return (
+    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.35 }}>
+      {fila("NOMBRE", campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo")))}
+      {fila("CORREO", campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email"))}
+      {fila("CELULAR", campo("telefono_elaborado", cot.telefono_elaborado || ""))}
     </div>
   );
 }

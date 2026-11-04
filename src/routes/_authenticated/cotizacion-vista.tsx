@@ -623,7 +623,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                     })()}
                   </div>
                 )}
-                <div style={{ position: "absolute", left: 24, right: 290, bottom: 12 }}>
+                <div style={{ position: "absolute", left: 24, width: 300, bottom: 8 }}>
                   <PieCotizacion cot={cot} />
                 </div>
                 <div style={{ position: "absolute", right: 24, width: 248, bottom: 15, textAlign: "center", fontSize: 9, color: C.slate400 }}>
