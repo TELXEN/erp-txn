@@ -26,7 +26,7 @@ PROYECTO   : [ recuadro con borde negro grueso, a todo el ancho ]
 - Condición de venta y validez (en días, con fecha de vencimiento) salen de los datos ya guardados en la cotización; teléfono del contacto del cliente. Si un dato falta se muestra «—».
 
 ## 3. Barra de título de la ventana
-En la barra de título de la ventana flotante (junto al código y la revisión) se muestran dos indicadores:
+En la barra de título de la ventana flotante, a la derecha y alineados encima del recuadro COTIZACIÓN, se muestran dos indicadores:
 - Orientación: «A4 vertical» o «A4 horizontal».
 - IGV: «Con IGV (18%)» o «Sin IGV».
 Se actualizan al cambiar la orientación o el IGV, en Edición y en Vista previa.
