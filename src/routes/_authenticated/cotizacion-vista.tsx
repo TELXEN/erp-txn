@@ -203,7 +203,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
       alto: (fila) => altos.get(fila.llave) ?? 0,
       encabezado: (fila) => fila.clase !== "item",
       primera: limite - (cabecera.getBoundingClientRect().bottom - origen),
-      siguientes: limite - (encabezado.getBoundingClientRect().bottom - origen + 16 + cabecera.getBoundingClientRect().height),
+      siguientes: limite - (cabecera.getBoundingClientRect().bottom - origen),
       cierre: cierre.getBoundingClientRect().height,
     }).map((pagina) => pagina.map((fila) => fila.llave));
     if (JSON.stringify(nuevo) !== JSON.stringify(reparto)) setReparto(nuevo);
@@ -494,7 +494,6 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
           style={{ width: paginaW, background: C.white, color: C.slate900, fontFamily: DOC_FUENTE_CSS, fontSize: 12, boxShadow: "0 10px 30px -12px rgba(15,23,42,.25)" }}
         >
           {paginas.map((itemsPagina, paginaIndex) => {
-            const esPrimera = paginaIndex === 0;
             const esUltima = paginaIndex === paginas.length - 1;
             return (
               <section
@@ -503,34 +502,6 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                 style={{ position: "relative", width: interiorW, height: paginaH, margin: "0 auto", padding: "34px 24px 38px", overflow: "hidden", background: C.white, pageBreakAfter: esUltima ? "auto" : "always", boxSizing: "border-box" }}
               >
                 {encabezadoHoja(paginaIndex + 1, paginas.length)}
-
-                {esPrimera && (
-                  <div style={{ marginTop: 14 }}>
-                    <div className="grid grid-cols-2" style={{ gap: "4px 28px", background: C.slate50, borderRadius: 10, padding: "10px 14px", fontFamily: DOC_FUENTE_CSS }}>
-                      <div>
-                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Datos del cliente</div>
-                        {filaDato("Cliente", cliente?.razon_social || cot.cliente || "—")}
-                        {filaDato("RUC / DNI", cliente?.numero_documento || "—")}
-                        {filaDato("Atención", cliente?.contacto || "—")}
-                        {filaDato("Ubicación", cot.ubicacion || cliente?.direccion || "—")}
-                      </div>
-                      <div style={{ justifySelf: "end", width: 234 }}>
-                        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 1.2, color: C.emerald800, textTransform: "uppercase", borderBottom: `1px solid ${C.slate100}`, paddingBottom: 3, marginBottom: 5 }}>Emisión y contacto</div>
-                        {filaDato("Emisión", F(cot.fecha_emision))}
-                        {filaDato("Vence", F(vigenciaHasta(cot.fecha_emision, Number(cot.validez_dias))))}
-                        {filaDato("Moneda", esUsd ? "Dólares (USD)" : "Soles (PEN)")}
-                        {esUsd && tc > 0 && filaDato("T. cambio", tc.toFixed(3))}
-                        {filaDato("Por", nombre || email || "—")}
-                        {filaDato("Celular", empresa?.telefono || "—")}
-                        {filaDato("E-mail", empresa?.email || "—")}
-                      </div>
-                    </div>
-                    <div className="flex" style={{ marginTop: 8, alignItems: "center", background: C.white, color: C.slate900, border: `1px solid ${C.slate100}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 4, padding: "4px 10px", fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.2 }}>
-                      <span style={{ fontWeight: 800, letterSpacing: 0.5, fontSize: 8, textTransform: "uppercase", marginRight: 10, flexShrink: 0 }}>Proyecto</span>
-                      <span style={{ fontWeight: 400, textAlign: "justify" }}>{cot.nombre || "—"}</span>
-                    </div>
-                  </div>
-                )}
 
                 <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, tableLayout: "fixed" }}>
                   <colgroup>
