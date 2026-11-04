@@ -14,11 +14,11 @@ const nodo: IconNode = [
 export const GrupoPersonas = (props: LucideProps) => <Icon iconNode={nodo} {...props} />;
 
 /** Dos llaves de mecánico cruzadas, mismo trazo de lucide. */
+const llave = "M-2.6 -3.8 L-2.6 1 A2.6 2.6 0 0 0 2.6 1 L2.6 -3.8 M0 3.6 L0 11.8";
+
 const llaves: IconNode = [
-  ["path", { d: "M5.51 3.24A2.8 2.8 0 1 1 3.24 5.51", key: "ja" }],
-  ["path", { d: "M7.98 7.98 19 19", key: "ha" }],
-  ["path", { d: "M18.49 3.24A2.8 2.8 0 1 0 20.76 5.51", key: "jb" }],
-  ["path", { d: "M16.02 7.98 5 19", key: "hb" }],
+  ["path", { d: llave, transform: "translate(7.6 7.6) rotate(45)", key: "a" }],
+  ["path", { d: llave, transform: "translate(16.4 7.6) rotate(-45)", key: "b" }],
 ];
 
 export const LlavesMecanico = (props: LucideProps) => <Icon iconNode={llaves} {...props} />;
