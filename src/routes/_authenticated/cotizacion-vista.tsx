@@ -135,7 +135,6 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   const { data: items = [], isLoading: cargandoItems } = useCotizacionItems(id || null, true);
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
-  const { nombre, email } = useAuth();
   const cot = cotizaciones.find((fila) => fila.id === id) ?? null;
   const ggHoja = useTotalGGHoja(id);
   const original = cot?.retoma_de_id ? cotizaciones.find((fila) => fila.id === cot.retoma_de_id) ?? null : null;
