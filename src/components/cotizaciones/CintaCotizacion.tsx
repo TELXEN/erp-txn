@@ -1,3 +1,7 @@
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { ReactNode } from "react";
 import { Eye, PencilRuler } from "lucide-react";
 
@@ -28,15 +32,23 @@ export function BarraHerramientas({ children }: { children: ReactNode }) {
 
 export type ModoCotizacion = "edicion" | "vista";
 
-/** Indicadores de la barra de título: orientación de la hoja e IGV, a la derecha sobre el recuadro COTIZACIÓN. */
-export function IndicadoresCotizacion({ horizontal, conIgv }: { horizontal: boolean; conIgv: boolean }) {
-  const chip = "inline-flex h-6 items-center rounded border border-line bg-card px-2 text-xs text-ink";
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className={chip}>{horizontal ? "A4 horizontal" : "A4 vertical"}</span>
-      <span className={chip}>{conIgv ? "Con IGV (18%)" : "Sin IGV"}</span>
-    </div>
-  );
+/** IGV editable en la barra de título, compartido por ambos modos. */
+export function IndicadoresCotizacion({ id, conIgv, disabled = false }: { id: string; conIgv: boolean; disabled?: boolean }) {
+  const qc = useQueryClient();
+  const [error, setError] = useState("");
+  async function cambiar(v: string) {
+    const { error } = await supabase.from("cotizaciones").update({ aplica_igv: v === "si" }).eq("id", id);
+    if (error) { setError("No se pudo guardar el IGV."); return; }
+    setError("");
+    await Promise.all([qc.invalidateQueries({ queryKey: ["cotizaciones"] }), qc.invalidateQueries({ queryKey: ["cotizacion"] })]);
+  }
+  return <div className="no-print flex items-center gap-1.5">
+    <Select value={conIgv ? "si" : "no"} onValueChange={(v) => void cambiar(v)} disabled={disabled}>
+      <SelectTrigger aria-label="IGV de la cotización" className="h-7 w-40 bg-card text-xs text-ink"><SelectValue /></SelectTrigger>
+      <SelectContent className="z-[200]"><SelectItem value="si">Con IGV (18.00%)</SelectItem><SelectItem value="no">Sin IGV</SelectItem></SelectContent>
+    </Select>
+    {error && <span role="alert" className="text-xs text-bad">{error}</span>}
+  </div>;
 }
 
 export function ConmutadorModo({ modo, onCambiar, sinEdicion }: { modo: ModoCotizacion; onCambiar: (m: ModoCotizacion) => void; sinEdicion?: boolean }) {

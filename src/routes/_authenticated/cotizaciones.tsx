@@ -1,3 +1,7 @@
+import { useServerFn } from "@tanstack/react-start";
+import { consultarTipoCambio } from "@/lib/decolecta.functions";
+import { enviarCotizacion } from "@/lib/cotizacion-envio.functions";
+import { fechaLima } from "@/lib/tipo-cambio";
 import { useRecordado } from "@/lib/recordado";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Buscador, Resaltar, coincide } from "@/components/Buscador";
@@ -191,6 +195,8 @@ function Cotizaciones() {
   const [pidiendoMoneda, setPidiendoMoneda] = useState(false);
   const [monedaNueva, setMonedaNueva] = useState<"" | "PEN" | "USD">("");
   const { data: tcHoy = 0 } = useTipoCambioActual();
+  const consultarCambio = useServerFn(consultarTipoCambio);
+  const enviar = useServerFn(enviarCotizacion);
   const [apu, setApu] = useState<(typeof items)[number] | null>(null);
 
   const [pestana, setPestana] = useState<"Todas" | EstadoCotizacion | "En Obra">("Todas");
@@ -329,8 +335,18 @@ function Cotizaciones() {
   }
 
   async function cambiarEstado(id: string, estado: EstadoCotizacion) {
-    await supabase.from("cotizaciones").update({ estado }).eq("id", id);
-    qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    try {
+      if (estado === "Enviada") {
+        const resultado = await consultarCambio({ data: { fecha: fechaLima() } });
+        if (!resultado.encontrado) throw new Error("No se obtuvo el tipo de cambio de hoy. Reintenta antes de enviar.");
+        await enviar({ data: { id } });
+      } else {
+        const { error } = await supabase.from("cotizaciones").update({ estado }).eq("id", id);
+        if (error) throw error;
+      }
+      setError("");
+      await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
+    } catch (e) { setError(e instanceof Error ? e.message : "No se pudo cambiar el estado."); }
   }
 
   async function duplicar(c: Cotizacion) {
@@ -586,7 +602,7 @@ function Cotizaciones() {
     <VentanaFlotante titulo={cot.nombre || cot.codigo || "Cotización"}
       subtitulo={`Cotización ${cot.codigo ?? ""} · ${etiquetaRevision(cot.revision)}${cot.retoma_de_id ? ` · Retoma de ${codigoDe(cot.retoma_de_id)}` : ""}`}
       abierta onCerrar={cerrarEditor} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={<div className="flex items-center gap-3"><IndicadoresCotizacion horizontal={cot.orientacion === "horizontal"} conIgv={cot.aplica_igv !== false} /><ConmutadorModo modo={modoVentana} sinEdicion={!esUltimaRevision} onCambiar={setModoVentana} /></div>}>
+      acciones={<div className="flex items-center gap-3"><IndicadoresCotizacion id={cot.id} conIgv={cot.aplica_igv !== false} disabled={!esUltimaRevision} /><ConmutadorModo modo={modoVentana} sinEdicion={!esUltimaRevision} onCambiar={setModoVentana} /></div>}>
       {modoVentana === "vista" ? <VistaPreviaCotizacion id={cot.id} /> : (
       <div className="flex min-h-0 flex-1 flex-col bg-background lg:overflow-hidden">
         <BarraHerramientas>

@@ -1,3 +1,6 @@
+import { EncabezadoCotizacion } from "@/components/cotizaciones/EncabezadoCotizacion";
+import { cierreCotizacion } from "@/lib/cotizacion-comercial";
+import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BarraHerramientas, BotonBarra, ConmutadorModo, IndicadoresCotizacion, SeparadorBarra } from "@/components/cotizaciones/CintaCotizacion";
 import { paginarCotizacion } from "@/lib/paginacion-cotizacion";
@@ -122,7 +125,7 @@ function RutaVistaCotizacion() {
   return (
     <VentanaFlotante titulo={cot?.nombre || cot?.codigo || "Cotización"} subtitulo={cot ? `Cotización ${cot.codigo ?? ""} · vista previa` : "Vista previa"}
       abierta onCerrar={cerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={<div className="flex items-center gap-3">{cot && <IndicadoresCotizacion horizontal={cot.orientacion === "horizontal"} conIgv={cot.aplica_igv !== false} />}<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} /></div>}>
+      acciones={<div className="flex items-center gap-3">{cot && <IndicadoresCotizacion id={cot.id} conIgv={cot.aplica_igv !== false} disabled={!editable} />}<ConmutadorModo modo="vista" sinEdicion={!editable} onCambiar={(m) => m === "edicion" && void navigate({ to: "/cotizaciones", search: { abrir: id } })} /></div>}>
       <VistaPreviaCotizacion id={id} />
     </VentanaFlotante>
   );
@@ -172,13 +175,12 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   const calculo = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), ggHoja)
     : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
-  const subtotal = calculo.total;
   const conIgv = cot?.aplica_igv !== false;
-  const igv = conIgv ? Math.round(subtotal * 0.18 * 100) / 100 : 0;
-  const total = subtotal + igv;
+  const { subtotal, igv, total } = cierreCotizacion(calculo.costoDirecto, calculo.gastosGenerales, calculo.utilidad, conIgv);
+  const { data: cambioHoy } = useTipoCambioHoy();
   const esUsd = cot?.moneda === "USD";
   const sim = simboloMoneda(cot?.moneda);
-  const tc = Number(cot?.tipo_cambio) || 0;
+  const tc = cot?.fecha_envio ? Number(cot.tipo_cambio) : Number(cambioHoy?.venta) || Number(cot?.tipo_cambio) || 0;
   const [horizontalPreferida, setHorizontalPreferida] = useState<boolean | null>(null);
   useEffect(() => { setHorizontalPreferida(null); }, [id]);
   const qc = useQueryClient();
@@ -369,8 +371,8 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
       base += `+G${f.number}`;
     }
     const filaSub = ws.addRow(["", "SUBTOTAL", "", "", "", "", { formula: base }]);
-    const filaIgv = ws.addRow(["", conIgv ? "IGV (18.00%)" : "IGV (0.00%)", "", "", "", "", { formula: conIgv ? `ROUND(G${filaSub.number}*0.18,2)` : "0" }]);
-    const tot = ws.addRow(["", "TOTAL", "", "", "", "", { formula: `G${filaSub.number}+G${filaIgv.number}` }]);
+    const filaIgv = conIgv ? ws.addRow(["", "IGV (18.00%)", "", "", "", "", { formula: `ROUND(G${filaSub.number}*0.18,2)` }]) : null;
+    const tot = filaIgv ? ws.addRow(["", "TOTAL", "", "", "", "", { formula: `G${filaSub.number}+G${filaIgv.number}` }]) : filaSub;
     tot.font = { name: fuenteExcel, bold: true };
     ws.eachRow((fila) => fila.eachCell({ includeEmpty: true }, (celda) => {
       celda.font = { ...celda.font, name: fuenteExcel };
@@ -396,74 +398,10 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
 
   const revision = `Rev. ${((cot as unknown as { revision?: string } | null)?.revision?.trim() || "00").padStart(2, "0")}`;
 
-  /** Encabezado completo (empresa, recuadro COTIZACIÓN, datos del cliente y proyecto); se repite en todas las hojas. */
   function encabezadoHoja(numero: number, totalHojas: number) {
-    if (!cot) return null;
-    const txt = { fontFamily: DOC_FUENTE_CSS, fontSize: "8pt", lineHeight: 1.35, color: C.slate900 } as const;
-    const condicion = (cot as unknown as Record<string, string>)["condiciones_pago"] || "—";
-    const dias = Number(cot.validez_dias) || 0;
-    const validez = dias ? `${dias} días (hasta ${F(vigenciaHasta(cot.fecha_emision, dias))})` : "—";
-    const izquierda: [string, string][] = [
-      ["RUC", cliente?.numero_documento || "—"],
-      ["CLIENTE", cliente?.razon_social || cot.cliente || "—"],
-      ["DIRECCIÓN", cot.ubicacion || cliente?.direccion || "—"],
-      ["ATENCIÓN", cliente?.contacto || "—"],
-    ];
-    const derecha: [string, string][] = [
-      ["FECHA DE EMISIÓN", F(cot.fecha_emision)],
-      ["MONEDA", esUsd ? "Dólares (USD)" : "Soles (PEN)"],
-      ["CONDICIÓN DE VENTA", condicion],
-      ["VALIDEZ DE OFERTA", validez],
-      ...(esUsd && tc > 0 ? [["TIPO CAMBIO", tc.toFixed(3)] as [string, string]] : []),
-    ];
-    const fila = ([e, v]: [string, string], ancho: number, alinear: "left" | "right" = "left") => (
-      <div key={e} style={{ display: "flex", ...txt }}>
-        <span style={{ width: ancho, flexShrink: 0, textAlign: alinear }}>{e}</span>
-        <span style={{ width: 12, textAlign: "center", flexShrink: 0 }}>:</span>
-        <span style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{v}</span>
-      </div>
-    );
-    return (
-      <div>
-        <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
-          <div style={{ width: 120, height: 76, display: "flex", alignItems: "center", flexShrink: 0 }}>
-            {empresa?.logo_url ? (
-              <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 120, maxHeight: 64, objectFit: "contain" }} />
-            ) : (
-              <b style={{ fontSize: 20, color: C.slate900 }}>Telxen</b>
-            )}
-          </div>
-          <div style={{ flex: 1, fontFamily: DOC_FUENTE_CSS, fontSize: "8.5pt", lineHeight: 1.3, color: C.slate900 }}>
-            <b style={{ fontSize: 12, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b>
-            <div>{esloganDosLineas(empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL")}</div>
-            <div>{empresa?.direccion || "—"}</div>
-            <div>{empresa?.web || "—"}</div>
-          </div>
-          <div style={{ width: 200, flexShrink: 0, textAlign: "right", fontFamily: DOC_FUENTE_CSS }}>
-            <div style={{ border: `3px solid ${C.slate900}`, padding: "8px 6px", textAlign: "center", color: C.slate900 }}>
-              <div style={{ fontSize: 15 }}>COTIZACIÓN</div>
-              <div style={{ fontSize: 10, marginTop: 3 }}>{cot.codigo ?? "SIN CÓDIGO"}</div>
-            </div>
-            <div style={{ fontSize: 8.5, marginTop: 3, color: C.slate900 }}>{revision}</div>
-            {retomaDe && <div style={{ fontSize: 7.5, color: C.slate500 }}>{retomaDe}</div>}
-            <div style={{ fontSize: 7.5, color: C.slate500 }}>Hoja {numero} de {totalHojas}</div>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", gap: 16, marginTop: 10, alignItems: "flex-start" }}>
-          <div style={{ flex: 1.3, minWidth: 0 }}>{izquierda.map((d) => fila(d, 70))}</div>
-          <div style={{ flex: 0.8, minWidth: 0, paddingTop: 15 }}>{fila(["TELÉFONO", cliente?.celular_contacto || cliente?.telefono || "—"], 60)}</div>
-          <div style={{ width: 270, flexShrink: 0 }}>{derecha.map((d) => fila(d, 118, "right"))}</div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", marginTop: 8, ...txt }}>
-          <span style={{ width: 70, flexShrink: 0 }}>PROYECTO</span>
-          <span style={{ width: 12, textAlign: "center", flexShrink: 0 }}>:</span>
-          <div style={{ flex: 1, border: `2.5px solid ${C.slate900}`, padding: "4px 8px", fontWeight: 600, textAlign: "justify" }}>{cot.nombre || "—"}</div>
-        </div>
-      </div>
-    );
+    return cot ? <EncabezadoCotizacion cot={cot} numero={numero} totalHojas={totalHojas} /> : null;
   }
+
 
 
   if (cargando) {
@@ -627,11 +565,11 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                           <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
                           {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
                           {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad ?? 0).toFixed(2)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
-                          {(calculo.gastosGenerales > 0 || calculo.utilidad > 0) && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
-                          <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18.00%)" : "(0.00%)"}</span></span><span>{S(sim, igv)}</span></div>
-                          <div className="flex justify-between" style={{ marginTop: 4, padding: "5px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9.5pt", lineHeight: 1.15, fontWeight: 400 }}>
+                          {<div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
+                          {conIgv && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18.00%)" : "(0.00%)"}</span></span><span>{S(sim, igv)}</span></div>}
+                          {conIgv && <div className="flex justify-between" style={{ marginTop: 4, padding: "5px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9.5pt", lineHeight: 1.15, fontWeight: 400 }}>
                             <span>TOTAL</span><span>{S(sim, total)}</span>
-                          </div>
+                          </div>}
                           {esUsd && tc > 0 && (
                             <div className="flex justify-between" style={{ marginTop: 4, padding: "2px 0", alignItems: "center", color: C.slate500, fontSize: "7.5pt" }}>
                               <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>

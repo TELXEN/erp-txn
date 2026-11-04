@@ -785,6 +785,13 @@
       "when": 1793763004072,
       "tag": "0111_recalcular_pct_gastos_generales_desde_hoja",
       "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1793767267515,
+      "tag": "0112_cotizacion_condicion_venta_fecha_envio",
+      "breakpoints": true
     }
   ]
 }
