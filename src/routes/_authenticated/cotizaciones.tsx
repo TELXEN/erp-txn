@@ -569,7 +569,7 @@ function Cotizaciones() {
     );
   };
   const kpiAprob = vigentes.filter((c) => c.estado === "Aprobada");
-  const kpiPend = vigentes.filter((c) => c.estado === "Enviada" || c.estado === "Borrador");
+  const kpiPend = vigentes.filter((c) => c.estado === "Enviada");
   const PESTANAS = ["Todas", ...ESTADOS_COTIZACION, "En Obra"] as const;
 
   const Vigencia = ({ c }: { c: (typeof cotizaciones)[number] }) => {
