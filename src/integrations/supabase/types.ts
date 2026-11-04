@@ -7275,6 +7275,10 @@ export type Database = {
         Returns: string
       }
       rango_regimen: { Args: { _r: string }; Returns: number }
+      recalcular_pct_gastos_generales: {
+        Args: { p_cotizacion_id: string }
+        Returns: undefined
+      }
       recepcionar_orden_obra: {
         Args: { _fecha: string; _items: Json; _obs: string; _orden: string }
         Returns: undefined
