@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, Input, MenuFiltros, Panel, Select, SinAcceso, Vacio } from "@/components/ui-kit";
-import { Check, Coins, FolderKanban, Hash, UserCog, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Coins, FolderKanban, Hash, UserCog, Upload, X } from "lucide-react";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { exportarExcel } from "@/lib/exportar";
 import {
@@ -242,6 +242,8 @@ function CatalogoMaestro({
   const qc = useQueryClient();
   const [form, setForm] = useState({ codigo: "", nombre: "", descripcion: "" });
   const [editando, setEditando] = useState<Catalogo | null>(null);
+  const [sel, setSel] = useState("");
+  const actual = registros.find((r) => r.id === sel);
   const [error, setError] = useState("");
   const esCentro = clase === "centro";
   const singular = esCentro ? "centro de costos" : clase.toLowerCase();
@@ -301,6 +303,7 @@ function CatalogoMaestro({
         <form onSubmit={guardar} className="grid gap-2 p-3 sm:grid-cols-[1fr_2fr_3fr_auto]">
           <Campo etiqueta="Código">
             <Input
+              id="catalogo-codigo"
               className="py-1.5 uppercase"
               value={form.codigo}
               onChange={(e) => setForm({ ...form, codigo: e.target.value })}
@@ -333,7 +336,9 @@ function CatalogoMaestro({
 
       {error && <p className="mb-3 font-mono text-xs text-bad">{error}</p>}
 
+      <div className="flex items-start gap-3">
       <Panel
+        className="min-w-0 flex-1"
         titulo={`${titulo} registrados`}
         extra={<span className="font-mono text-[11px] text-muted-foreground">{registros.length} registros</span>}
       >
@@ -370,16 +375,12 @@ function CatalogoMaestro({
                     </td>
                   </tr>
                 ) : (
-                  <tr key={registro.id} className="border-b border-line/60 last:border-0">
+                  <tr key={registro.id} onClick={() => setSel(registro.id)}
+                    className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === registro.id ? "bg-primary/10" : ""}`}>
                     <td className="px-5 py-2.5 font-semibold text-ink">{registro.codigo}</td>
                     <td className="px-3 py-2.5">{registro.nombre}</td>
                     <td className="px-3 py-2.5 text-muted-foreground">{registro.descripcion || "—"}</td>
-                    <td className="px-5 py-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <button type="button" onClick={() => setEditando(registro)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary" title="Editar"><Pencil size={14} /></button>
-                        <button type="button" onClick={() => eliminar(registro.id)} className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad" title="Eliminar"><Trash2 size={14} /></button>
-                      </div>
-                    </td>
+                    <td className="px-5 py-2"></td>
                   </tr>
                 ),
               )}
@@ -387,6 +388,11 @@ function CatalogoMaestro({
           </table>
         )}
       </Panel>
+      <BarraIconosHoja objeto={singular} haySeleccion={!!actual}
+        onAgregar={() => document.querySelector<HTMLInputElement>("#catalogo-codigo")?.focus()}
+        onEditar={() => { if (actual) setEditando(actual); }}
+        onEliminar={() => { if (actual) void eliminar(actual.id).then(() => setSel("")); }} />
+      </div>
     </>
   );
 }
@@ -400,6 +406,8 @@ function CargosPersonal() {
     clasificacion: "Directo",
   });
   const [editando, setEditando] = useState<{ id: string; nombre: string; clasificacion: ClasificacionCargo; original: string } | null>(null);
+  const [sel, setSel] = useState("");
+  const actualCargo = cargos.find((c) => c.id === sel);
   const [error, setError] = useState("");
 
   const refrescar = async () => {
@@ -452,7 +460,8 @@ function CargosPersonal() {
   }
 
   return (
-    <Panel titulo="Cargos del personal">
+    <div className="flex items-start gap-3">
+    <Panel titulo="Cargos del personal" className="min-w-0 flex-1">
       <div className="p-5">
         <p className="mb-3 text-xs text-muted-foreground">
           Cada cargo define si el pago de esa persona se costea como <strong>mano de obra directa</strong> (va al costo de
@@ -462,6 +471,7 @@ function CargosPersonal() {
 
         <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[1fr_220px_auto]">
           <Input
+            id="cargo-nombre"
             value={nuevo.nombre} data-formato="oracion"
             onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
             placeholder="Ej. INGENIERO DE CALIDAD"
@@ -483,13 +493,16 @@ function CargosPersonal() {
             const esEdicion = editando?.id === c.id;
             const personas = trabajadores.filter((t) => t.cargo === c.nombre).length;
             return (
-              <div key={c.id} className="flex flex-wrap items-center gap-2 rounded-md border border-line px-3 py-2">
+              <div key={c.id} onClick={() => setSel(c.id)}
+                className={`flex cursor-pointer flex-wrap items-center gap-2 rounded-md border px-3 py-2 ${sel === c.id ? "border-primary bg-primary/10" : "border-line hover:bg-muted/40"}`}>
                 {esEdicion && editando ? (
                   <>
                     <Input
+                      autoFocus
                       className="min-w-40 flex-1 py-1 text-xs"
                       value={editando.nombre} data-formato="oracion"
                       onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
+                      onKeyDown={(e) => { if (e.key === "Enter") void guardar(); if (e.key === "Escape") setEditando(null); }}
                       maxLength={60}
                     />
                     <Select
@@ -510,8 +523,6 @@ function CargosPersonal() {
                       {c.clasificacion === "Indirecto" ? "Staff · Gasto general" : "Mano de obra directa"}
                     </Etiqueta>
                     <span className="font-mono text-[10px] text-muted-foreground">{personas} persona(s)</span>
-                    <button type="button" onClick={() => setEditando({ id: c.id, nombre: c.nombre, clasificacion: c.clasificacion, original: c.nombre })} title="Editar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"><Pencil size={14} /></button>
-                    <button type="button" onClick={() => eliminar(c.id, c.nombre)} title="Eliminar" className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"><Trash2 size={14} /></button>
                   </>
                 )}
               </div>
@@ -520,6 +531,11 @@ function CargosPersonal() {
         </div>
       </div>
     </Panel>
+    <BarraIconosHoja objeto="cargo" haySeleccion={!!actualCargo}
+      onAgregar={() => document.querySelector<HTMLInputElement>("#cargo-nombre")?.focus()}
+      onEditar={() => { const c = actualCargo; if (c) setEditando({ id: c.id, nombre: c.nombre, clasificacion: c.clasificacion, original: c.nombre }); }}
+      onEliminar={() => { const c = actualCargo; if (c) void eliminar(c.id, c.nombre).then(() => setSel("")); }} />
+    </div>
   );
 }
 
@@ -536,6 +552,8 @@ function CategoriasGastoGeneral() {
     descripcion: string;
     original: string;
   } | null>(null);
+  const [sel, setSel] = useState("");
+  const actualCat = categorias.find((c) => c.id === sel);
   const [error, setError] = useState("");
 
   const refrescar = async () => {
@@ -596,7 +614,8 @@ function CategoriasGastoGeneral() {
   }
 
   return (
-    <Panel titulo="Categorías de gastos generales">
+    <div className="flex items-start gap-3">
+    <Panel titulo="Categorías de gastos generales" className="min-w-0 flex-1">
       <div className="p-5">
         <p className="mb-3 text-xs text-muted-foreground">
           Clasifica los costos indirectos de obra y oficina: alquileres, servicios, seguridad, viáticos, seguros y
@@ -605,6 +624,7 @@ function CategoriasGastoGeneral() {
 
         <form onSubmit={agregar} className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
           <Input
+            id="categoria-gg-nombre"
             value={nombre} data-formato="oracion"
             onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej. Mantenimiento de vehículos"
@@ -625,10 +645,12 @@ function CategoriasGastoGeneral() {
             const esEdicion = editando?.id === c.id;
             const usos = gastos.filter((g) => (g.categoria ?? "") === c.nombre).length;
             return (
-              <div key={c.id} className="flex flex-wrap items-center gap-2 rounded-md border border-line px-3 py-2">
+              <div key={c.id} onClick={() => setSel(c.id)}
+                className={`flex cursor-pointer flex-wrap items-center gap-2 rounded-md border px-3 py-2 ${sel === c.id ? "border-primary bg-primary/10" : "border-line hover:bg-muted/40"}`}>
                 {esEdicion && editando ? (
                   <>
                     <Input
+                      autoFocus
                       className="min-w-40 flex-1 py-1 text-xs"
                       value={editando.nombre} data-formato="oracion"
                       onChange={(e) => setEditando({ ...editando, nombre: e.target.value })}
@@ -676,29 +698,6 @@ function CategoriasGastoGeneral() {
                     >
                       {c.activo ? "Activa" : "Inactiva"}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditando({
-                          id: c.id,
-                          nombre: c.nombre,
-                          descripcion: c.descripcion ?? "",
-                          original: c.nombre,
-                        })
-                      }
-                      title="Editar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-line text-muted-foreground hover:border-primary hover:text-primary"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => eliminar(c.id, c.nombre)}
-                      title="Eliminar"
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-bad/40 text-bad hover:border-bad"
-                    >
-                      <Trash2 size={14} />
-                    </button>
                   </>
                 )}
               </div>
@@ -707,6 +706,11 @@ function CategoriasGastoGeneral() {
         </div>
       </div>
     </Panel>
+    <BarraIconosHoja objeto="categoría" haySeleccion={!!actualCat}
+      onAgregar={() => document.querySelector<HTMLInputElement>("#categoria-gg-nombre")?.focus()}
+      onEditar={() => { const c = actualCat; if (c) setEditando({ id: c.id, nombre: c.nombre, descripcion: c.descripcion ?? "", original: c.nombre }); }}
+      onEliminar={() => { const c = actualCat; if (c) void eliminar(c.id, c.nombre).then(() => setSel("")); }} />
+    </div>
   );
 }
 

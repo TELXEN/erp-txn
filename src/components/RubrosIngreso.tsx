@@ -24,6 +24,7 @@ export function RubrosIngreso() {
   const [descripcion, setDescripcion] = useState("");
   const [error, setError] = useState("");
   const [sel, setSel] = useState("");
+  const [editando, setEditando] = useState<{ id: string; nombre: string; descripcion: string } | null>(null);
   const actual = rubros.find((r) => r.id === sel);
   const tabla = () => supabase.from("rubros_ingreso" as never);
   const refrescar = () => qc.invalidateQueries({ queryKey: ["rubros_ingreso"] });
@@ -42,6 +43,15 @@ export function RubrosIngreso() {
   async function alternar(r: RubroIngreso) {
     const { error: err } = await tabla().update({ activo: !r.activo } as never).eq("id", r.id);
     if (err) return setError(err.message);
+    refrescar();
+  }
+  async function guardar() {
+    if (!editando) return;
+    if (!editando.nombre.trim()) return setError("Escribe el nombre del rubro.");
+    const { error: err } = await tabla().update({ nombre: editando.nombre.trim(), descripcion: editando.descripcion.trim() } as never).eq("id", editando.id);
+    if (err) return setError(err.code === "23505" ? "Ese rubro ya existe." : err.message);
+    setError("");
+    setEditando(null);
     refrescar();
   }
   async function eliminar(r: RubroIngreso) {
@@ -83,8 +93,17 @@ export function RubrosIngreso() {
             <tbody>
               {rubros.map((r) => (
                 <tr key={r.id} onClick={() => setSel(r.id)} className={`cursor-pointer border-b border-line/40 last:border-0 hover:bg-muted/40 ${sel === r.id ? "bg-primary/10" : ""}`}>
-                  <td className="px-5 py-2.5 text-ink">{r.nombre}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{r.descripcion || "—"}</td>
+                  {editando?.id === r.id ? (
+                    <>
+                      <td className="px-5 py-1.5"><Input autoFocus className="py-1" value={editando.nombre} onChange={(e) => setEditando({ ...editando, nombre: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardar(); if (e.key === "Escape") setEditando(null); }} maxLength={80} /></td>
+                      <td className="px-3 py-1.5"><Input className="py-1" value={editando.descripcion} onChange={(e) => setEditando({ ...editando, descripcion: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") void guardar(); if (e.key === "Escape") setEditando(null); }} maxLength={200} /></td>
+                    </>
+                  ) : (
+                    <>
+                      <td className="px-5 py-2.5 text-ink">{r.nombre}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{r.descripcion || "—"}</td>
+                    </>
+                  )}
                   <td className="px-3 py-2.5">
                     <button type="button" onClick={() => alternar(r)} className={r.activo ? "text-good" : "text-muted-foreground"}>
                       {r.activo ? "Activo" : "Inactivo"}
@@ -98,6 +117,7 @@ export function RubrosIngreso() {
       </Panel>
       <BarraIconosHoja objeto="rubro" haySeleccion={!!actual}
         onAgregar={() => document.querySelector<HTMLInputElement>("#rubro-nombre")?.focus()}
+        onEditar={() => { if (actual) setEditando({ id: actual.id, nombre: actual.nombre, descripcion: actual.descripcion ?? "" }); }}
         onEliminar={() => { if (actual) void eliminar(actual).then(() => setSel("")); }} />
       </div>
     </>
