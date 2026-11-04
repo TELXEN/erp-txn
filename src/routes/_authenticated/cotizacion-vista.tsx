@@ -495,6 +495,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
         <BotonBarra icono={<Files />} texto="PDF + dossier" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU" />
         <BotonBarra icono={<FileSpreadsheet />} texto="Excel" onClick={() => void exportarExcel()} disabled={items.length === 0} />
         <SeparadorBarra />
+        <BotonBarra icono={<FileText />} texto="Encabezado" onClick={() => setVerEncabezado(true)} />
         <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVerGG(true)} />
         <BotonBarra icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
       </BarraHerramientas>
