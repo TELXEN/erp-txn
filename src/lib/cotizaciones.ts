@@ -23,6 +23,10 @@ export type Cotizacion = {
   pct_utilidad: number;
   moneda: "PEN" | "USD";
   tipo_cambio: number;
+  tipo_cambio_fecha?: string | null;
+  fecha_envio?: string | null;
+  condicion_venta?: "Crédito" | "Contado" | null;
+  ruc_cliente?: string | null;
   orientacion?: "vertical" | "horizontal";
   condiciones: string;
   estado: EstadoCotizacion;
