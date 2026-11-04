@@ -4,18 +4,18 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { createPortal } from "react-dom";
 
 import { Activity, ArrowDownLeft, ArrowUpRight, BadgeDollarSign, BadgeInfo, BadgePercent, Barcode } from "lucide-react";
-import { FileKey2, BookOpen, BookUser, Boxes, Briefcase, Building2, Calculator, CalendarClock, CalendarDays, CalendarRange } from "lucide-react";
-import { Car, CarFront, ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
-import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Container, Database, DollarSign, Drill, Factory } from "lucide-react";
+import { FileKey2, BookOpen, BookUser, Briefcase, Building2, Calculator, CalendarDays, CalendarRange } from "lucide-react";
+import { ChartArea, ChartGantt, ChartLine, ChartPie, ChartSpline, ChevronDown, CircleDollarSign, CircleHelp } from "lucide-react";
+import { ClipboardCheck, ClipboardList, ClipboardPen, Coins, Database, DollarSign, Drill, Factory } from "lucide-react";
 import { FileBadge, FileCheck2, FileMinus, FilePlus, FileSignature, FileText, FileUser, FileX2, Files, FolderClosed, FolderKanban } from "lucide-react";
-import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins, Handshake } from "lucide-react";
-import { HardHat, History, Inbox, Landmark, LayoutDashboard, LayoutTemplate, ListChecks } from "lucide-react";
+import { FolderTree, Fuel, Gauge, Gift, Grid3x3, Hammer, HandCoins } from "lucide-react";
+import { HardHat, History, Landmark, LayoutTemplate, ListChecks } from "lucide-react";
 import { ListTree, LogOut, Maximize2, Minimize2, Network, NotebookText, Package, PackageCheck } from "lucide-react";
-import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank, Plane } from "lucide-react";
-import { Plug, Receipt, ReceiptText, Route, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
-import { Settings, Shapes, ShieldCheck, ShoppingBag, ShoppingCart, SlidersHorizontal, Sprout } from "lucide-react";
-import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Truck, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
-import { Users, Vault, Wallet, Warehouse } from "lucide-react";
+import { PackagePlus, Palette, PanelLeftClose, PanelLeftOpen, Percent, Pickaxe, PiggyBank } from "lucide-react";
+import { Plug, Receipt, ReceiptText, Ruler, Scale, ScanBarcode, ScrollText } from "lucide-react";
+import { Settings, Shapes, ShieldCheck, ShoppingBag, SlidersHorizontal, Sprout } from "lucide-react";
+import { FileChartColumn, Stamp, SwatchBook, Tag, TrendingUp, Type, UserCog, UserMinus, UserRoundCheck } from "lucide-react";
+import { Users, Vault, Wallet } from "lucide-react";
 import { GrupoPersonas, LibroAyuda, LlavesMecanico } from "./icono-grupo";
 import { AlmacenContDT, AlmacenDT, BandejaReqDT, FlotaDT, ImportacionesDT, InventarioDT, OrdenCompraDT, ProveedoresDT, ResumenDT, TareoVehicularDT, TransportistasDT, TrasladosDT, VehiculosDT } from "./icono-logistica";
 import { BajasDT, BoletasDT, CalculadoraDT, ClientesDT, CotizacionDT, CotizacionesDT, FacturacionDT, FacturasDT, GuiasDT, NotaCreditoDT, NotaDebitoDT, PercepcionesDT, PlantillasDT, PreliquidacionesDT, RegistroVentasDT, RetencionesDT } from "./icono-comercial";
