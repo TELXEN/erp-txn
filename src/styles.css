@@ -116,7 +116,7 @@
   --color-cinta-rojo: #c1121f;
   --color-cinta-azul: #0077b6;
   --color-cinta-icono: #000000;
-  --color-cinta-icono-acento: #e85d04;
+  --color-cinta-icono-acento: #0072bb;
   /* Marrón fijo para iconos de la cinta (traslados). */
   --color-cinta-marron: #8b5e34;
 
@@ -576,3 +576,8 @@ aside .md\:overflow-y-auto:hover::-webkit-scrollbar-thumb { background: color-mi
 
 
 
+
+/* Iconos de la cinta en dos tonos: la primera pieza (estructura) en negro, los detalles internos en azul. */
+svg[class*="color-cinta-icono"] > :not(:first-child) {
+  stroke: var(--color-cinta-icono-acento);
+}
