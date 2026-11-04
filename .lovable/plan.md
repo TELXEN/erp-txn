@@ -13,7 +13,7 @@
 - Recuadro a la derecha con borde negro grueso, fondo blanco: «COTIZACIÓN» grande y el código debajo. Se quitan el fondo verde, la franja superior y el RUC de la empresa de ese recuadro.
 - «Rev. 00» debajo del recuadro, a la derecha; «Hoja X de Y» debajo, pequeño.
 
-## 2. Datos del cliente (solo primera hoja)
+## 2. Datos del cliente (en todas las hojas, junto al encabezado)
 Se quitan los títulos actuales «Cliente», «Trabajo a cotizar» y «Configuración». Quedan tres columnas sin título, como en la imagen:
 ```text
 RUC        : ...                                   FECHA DE EMISIÓN  : ...
