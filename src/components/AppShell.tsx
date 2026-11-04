@@ -165,15 +165,15 @@ const SECCIONES_VISTAS = [
   { texto: "Curva S", a: "/gantt", search: { vista: "curva" }, icono: CurvaSDT },
 ];
 const SECCIONES_NOMINA = [
-  { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: ReceiptText, grande: true },
-  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: FileUser, grande: true },
+  { texto: "Boletas de Pago", corto: "Boletas de Pago", seccion: "planilla", campo: "pestana", icono: BoletaPagoDT, grande: true },
+  { texto: "Recibos por Honorarios", corto: "Recibos por Honorarios", a: "/honorarios", icono: HonorariosDT, grande: true },
 ];
 // Opciones del grupo Beneficios Sociales: Datos de AFP grande a la izquierda y las demás en una columna vertical.
 const SECCIONES_BENEFICIOS = [
-  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: PiggyBank, grande: true },
-  { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: Sprout },
-  { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: Gift },
-  { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: UserMinus },
+  { texto: "Datos de AFP", corto: "Datos de AFP", a: "/nomina", search: { pestana: "datos" }, icono: AfpDT, grande: true },
+  { texto: "CTS", corto: "CTS", seccion: "CTS", campo: "tipo", icono: CtsDT },
+  { texto: "Gratificaciones", corto: "Gratificaciones", seccion: "Gratificación", campo: "tipo", icono: GratificacionesDT },
+  { texto: "Liquidaciones", corto: "Liquidaciones", seccion: "Liquidación", campo: "tipo", icono: LiquidacionesDT },
 ];
 
 
@@ -248,16 +248,16 @@ const MENU: Categoria[] = [
   {
     titulo: "Recursos Humanos",
     items: [
-      { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: Users },
-      { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: CalendarDays },
-      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: BookUser, sub: SECCIONES_NOMINA },
-      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: HandCoins, sub: SECCIONES_BENEFICIOS, subFilas: 3 },
+      { a: "/personal", texto: "Personal", roles: ["administrador", "gerente"], icono: PersonalDT },
+      { a: "/tareo", texto: "Control de Asistencia", roles: ["administrador", "gerente"], icono: AsistenciaDT },
+      { a: "/nomina", texto: "Boletas de Pago", roles: ["administrador", "gerente"], icono: BoletasPagoDT, sub: SECCIONES_NOMINA },
+      { a: "/beneficios", texto: "Beneficios Sociales", roles: ["administrador", "gerente"], icono: BeneficiosDT, sub: SECCIONES_BENEFICIOS, subFilas: 3 },
       {
-        a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: HardHat,
+        a: "#epp", texto: "Gestión de EPP", roles: ["administrador", "gerente"], icono: EppDT,
         hijos: [
-          { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: ClipboardList },
-          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: PackagePlus },
-          { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: History },
+          { a: "/epp-banco", texto: "Banco de Datos de EPP", roles: ["administrador", "gerente"], icono: EppBancoDT },
+          { a: "/epp-entregas", texto: "Asignación y Entrega", roles: ["administrador", "gerente"], icono: EppEntregasDT },
+          { a: "/epp-historial", texto: "Historial por Empleado", roles: ["administrador", "gerente"], icono: EppHistorialDT },
         ],
       },
     ],
