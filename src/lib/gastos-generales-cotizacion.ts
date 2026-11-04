@@ -44,6 +44,21 @@ export const totalGG = (filas: FilaGG[]) =>
 export const pctGG = (total: number, costoDirecto: number) =>
   costoDirecto > 0 ? Math.round((total / costoDirecto) * 100 * 100) / 100 : 0;
 
+/** true si la cotización tiene al menos un ítem en su hoja de gastos generales. */
+export const tieneHojaGG = (filas: Pick<FilaGG, "nivel">[]) => filas.some((f) => f.nivel === "item");
+
+/** Importe de la hoja: null cuando no hay hoja (ahí el % de gastos generales se lleva a mano). */
+export const totalHojaGG = (filas: FilaGG[]) => (tieneHojaGG(filas) ? totalGG(filas) : null);
+
+/**
+ * Importe de gastos generales de una cotización: el de la hoja cuando existe (es la fuente de
+ * verdad); si no hay hoja, el porcentaje aplicado sobre el costo directo. Dos decimales.
+ */
+export const gastosGeneralesDe = (ggHoja: number | null | undefined, costoDirecto: number, pct: number) =>
+  ggHoja != null
+    ? Math.round(Number(ggHoja) * 100) / 100
+    : Math.round((costoDirecto * Number(pct || 0) / 100) * 100) / 100;
+
 const RANGO: Record<NivelGG, number> = { bloque: 0, grupo: 1, item: 2 };
 
 /** Numeración por posición: bloque 1, grupo 1.1, ítem 1.1.1 (salta niveles ausentes). */

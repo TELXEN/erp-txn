@@ -8,6 +8,7 @@ import { useEmpresa } from "@/lib/empresa";
 import { useEspecialidadesPartida } from "@/lib/especialidades";
 import { fecha as fmtFecha } from "@/lib/format";
 import { cambiarModoCotizacion, convertirMonedaCotizacion, simboloMoneda, totalesCotizacion, useTipoCambioActual, vigenciaHasta, type Cotizacion, type CotizacionItem } from "@/lib/cotizaciones";
+import { useTotalGGHoja } from "@/lib/gastos-generales-total";
 
 /** Paleta corporativa compartida con la hoja de facturación electrónica. */
 const C = { ink: DOC.ink, muted: DOC.ink, line: DOC.line, soft: DOC.soft, green: DOC.green, greenSoft: DOC.white, white: DOC.white };
@@ -102,7 +103,7 @@ export function HojaCotizacion({
     await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     await qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
   }
-  const totales = totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad));
+  const totales = totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), useTotalGGHoja(cot.id));
   const conIgv = cot.aplica_igv !== false;
   const igv = conIgv ? Math.round(totales.total * 0.18 * 100) / 100 : 0;
   const esUsd = cot.moneda === "USD";

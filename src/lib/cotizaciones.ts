@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { previsualizarCodigoDocumento, useCodificacionDocumento } from "@/lib/codificacion-documentos";
 import { costoReceta } from "@/lib/banco-apu";
+import { gastosGeneralesDe } from "@/lib/gastos-generales-cotizacion";
 import { ordenarPorNombre } from "@/lib/formato-texto";
 
 export type EstadoCotizacion = "Borrador" | "Enviada" | "Aprobada" | "Rechazada" | "Retomada";
@@ -129,12 +130,14 @@ export function totalesCotizacion(
   items: Pick<CotizacionItem, "metrado" | "precio_unitario">[],
   pctGG: number,
   pctUtilidad: number,
+  /** Importe de la hoja de gastos generales: manda sobre el % cuando la cotización tiene hoja. */
+  ggHoja?: number | null,
 ) {
   const costoDirecto = items.reduce(
     (s, i) => s + Number(i.metrado || 0) * Number(i.precio_unitario || 0),
     0,
   );
-  const gastosGenerales = (costoDirecto * Number(pctGG || 0)) / 100;
+  const gastosGenerales = gastosGeneralesDe(ggHoja, costoDirecto, pctGG);
   const utilidad = (costoDirecto * Number(pctUtilidad || 0)) / 100;
   return { costoDirecto, gastosGenerales, utilidad, total: costoDirecto + gastosGenerales + utilidad };
 }
