@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Títulos de columnas ampliados y recuadro redondeado; creación real de borrador, cierre incompleto y reapertura del encabezado verificados, borrador de prueba retirado.
 - [x] Unificar Encabezado en edición/vista; menús moneda/venta/IGV y cierre en Subtotal sin IGV verificados en TXN26-C010.
 - [x] Guardar cambio Decolecta y fecha de envío: envío real verificado (Lima 03/11/2026, 3.466), datos restaurados y 19 pruebas pasan.
 - [x] Revisar y diferenciar iconos de pantallas y secciones en menú, cinta y buscador; seis categorías y Empresa/Tipografía verificadas sin errores, conservando símbolos de acciones comunes.

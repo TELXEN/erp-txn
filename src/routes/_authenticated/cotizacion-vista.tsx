@@ -483,7 +483,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
-                        <th key={h} style={{ height: 24, padding: "4px 4px", fontSize: 7, lineHeight: 1.05, verticalAlign: "middle", textTransform: "uppercase", letterSpacing: 0, textAlign: a as "left" | "right" | "center" }}>
+                        <th key={h} style={{ height: 26, padding: "4px 4px", fontSize: "8pt", lineHeight: 1.15, verticalAlign: "middle", textTransform: "uppercase", letterSpacing: 0, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
