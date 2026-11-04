@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Boton, Panel, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { HojaGastosGenerales } from "@/components/cotizaciones/HojaGastosGenerales";
+import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
@@ -14,7 +15,7 @@ import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacio
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { useTotalGGHoja } from "@/lib/gastos-generales-total";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
-import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt } from "lucide-react";
+import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt, FileText } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Eslogan en dos líneas: se corta en la primera coma. */
@@ -153,7 +154,21 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   });
   const [pdfCargando, setPdfCargando] = useState(false);
   const [verGG, setVerGG] = useState(false);
+  const [verEncabezado, setVerEncabezado] = useState(false);
   const [enlaceCopiado, setEnlaceCopiado] = useState(false);
+  const { data: clientes = [] } = useQuery({
+    queryKey: ["terceros", "clientes-activos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("terceros")
+        .select("id, razon_social, numero_documento")
+        .eq("es_cliente", true)
+        .eq("activo", true)
+        .order("razon_social");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
   const calculo = cot
     ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), ggHoja)
     : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
@@ -469,6 +484,12 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
       <VentanaFlotante titulo="Gastos generales" subtitulo="Vista previa del desagregado" abierta={verGG} onCerrar={() => setVerGG(false)} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen>
         {verGG && <HojaGastosGenerales id={id} />}
       </VentanaFlotante>
+      {verEncabezado && cot && (
+        <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={false}
+          ventanaEncabezado={{ abierta: verEncabezado, onCerrar: () => setVerEncabezado(false) }}>
+          {null}
+        </HojaCotizacion>
+      )}
       <BarraHerramientas>
         <label className="flex h-7 cursor-pointer items-center gap-1.5 px-2 text-xs text-ink select-none" title="Imprimir y exportar la hoja en A4 horizontal">
           <Checkbox checked={horizontal} onCheckedChange={(v) => alternarHorizontal(v === true)} />
@@ -480,6 +501,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
         <BotonBarra icono={<Files />} texto="PDF + dossier" onClick={() => void descargarPdf(true)} disabled={pdfCargando} title="Un solo PDF con la cotización y su dossier APU" />
         <BotonBarra icono={<FileSpreadsheet />} texto="Excel" onClick={() => void exportarExcel()} disabled={items.length === 0} />
         <SeparadorBarra />
+        <BotonBarra icono={<FileText />} texto="Encabezado" onClick={() => setVerEncabezado(true)} />
         <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVerGG(true)} />
         <BotonBarra icono={<Calculator />} texto="Dossier APU" onClick={() => void navigate({ to: "/apu-vista", search: { id, item: "" } })} />
       </BarraHerramientas>
