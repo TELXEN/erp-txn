@@ -102,7 +102,7 @@ export function HojaCotizacion({
     await qc.invalidateQueries({ queryKey: ["cotizaciones"] });
     await qc.invalidateQueries({ queryKey: ["cotizacion_items"] });
   }
-  const totales = totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad));
+  const totales = totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), useTotalGGHoja(cot.id));
   const conIgv = cot.aplica_igv !== false;
   const igv = conIgv ? Math.round(totales.total * 0.18 * 100) / 100 : 0;
   const esUsd = cot.moneda === "USD";

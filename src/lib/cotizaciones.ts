@@ -129,12 +129,16 @@ export function totalesCotizacion(
   items: Pick<CotizacionItem, "metrado" | "precio_unitario">[],
   pctGG: number,
   pctUtilidad: number,
+  /** Importe de la hoja de gastos generales: manda sobre el % cuando la cotización tiene hoja. */
+  ggHoja?: number | null,
 ) {
   const costoDirecto = items.reduce(
     (s, i) => s + Number(i.metrado || 0) * Number(i.precio_unitario || 0),
     0,
   );
-  const gastosGenerales = (costoDirecto * Number(pctGG || 0)) / 100;
+  const gastosGenerales = ggHoja != null
+    ? Math.round(Number(ggHoja) * 100) / 100
+    : (costoDirecto * Number(pctGG || 0)) / 100;
   const utilidad = (costoDirecto * Number(pctUtilidad || 0)) / 100;
   return { costoDirecto, gastosGenerales, utilidad, total: costoDirecto + gastosGenerales + utilidad };
 }

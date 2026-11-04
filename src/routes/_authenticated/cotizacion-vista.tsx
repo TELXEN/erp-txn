@@ -155,7 +155,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   const [verGG, setVerGG] = useState(false);
   const [enlaceCopiado, setEnlaceCopiado] = useState(false);
   const calculo = cot
-    ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad))
+    ? totalesCotizacion(items, Number(cot.pct_gastos_generales), Number(cot.pct_utilidad), ggHoja)
     : { costoDirecto: 0, gastosGenerales: 0, utilidad: 0, total: 0 };
   const subtotal = calculo.total;
   const conIgv = cot?.aplica_igv !== false;
