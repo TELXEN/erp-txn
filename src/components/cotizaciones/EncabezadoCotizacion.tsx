@@ -8,6 +8,7 @@ import { convertirMonedaCotizacion, vigenciaHasta, type Cotizacion } from "@/lib
 import { supabase } from "@/integrations/supabase/client";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { formatearTexto } from "@/lib/formato-texto";
+import { useAuth } from "@/lib/auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 
@@ -18,6 +19,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
   cot: Cotizacion; editable?: boolean; clientes?: Cliente[]; numero?: number; totalHojas?: number;
 }) {
   const { data: empresa } = useEmpresa();
+  const { nombre: nombreUsuario, email: correoUsuario } = useAuth();
   const { data: cambio } = useTipoCambioHoy();
   const qc = useQueryClient();
   const [error, setError] = useState("");
@@ -128,6 +130,13 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       </div>
     </div>
     <div className="mt-2">{fila("PROYECTO", <div style={{ border: `1.5px solid ${DOC.dark}`, padding: "4px 8px" }}>{campo("nombre", cot.nombre)}</div>)}</div>
+    <div className="mt-1">{fila("ELABORADO POR", editable
+      ? <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo"))}</span>
+          <span style={{ flex: "1 1 180px", minWidth: 140 }}>{campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email")}</span>
+          <span style={{ flex: "0 1 130px", minWidth: 100 }}>{campo("telefono_elaborado", cot.telefono_elaborado || "")}</span>
+        </div>
+      : <span>{cot.elaborado_por || nombreUsuario || "—"}{cot.correo_elaborado || correoUsuario ? ` · ${cot.correo_elaborado || correoUsuario}` : ""}{cot.telefono_elaborado ? ` · Tel. ${cot.telefono_elaborado}` : ""}</span>)}</div>
     {consultandoRuc && <p role="status" className="mt-2 text-xs text-muted-foreground">Consultando RUC…</p>}
     {error && <p role="alert" className="mt-2 text-xs text-bad">{error}</p>}
   </div>;
