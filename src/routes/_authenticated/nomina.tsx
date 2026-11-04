@@ -538,17 +538,17 @@ function Nomina() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1400px] font-mono text-xs">
+          <div className="min-w-0">
+            <table className="w-full font-mono text-xs">
               <thead>
                 <tr className="border-b border-line text-left text-[10px] uppercase text-muted-foreground">
-                  <th className="px-4 py-2">Trabajador</th><th className="w-16 px-2 py-2">Días</th>
-                  <th className="px-2 py-2 text-right">Básico</th><th className="px-2 py-2 text-right">Asig. fam.</th>
-                  <th className="w-24 px-2 py-2 text-right">H. extra</th><th className="w-24 px-2 py-2 text-right">Otros ing.</th>
-                  <th className="px-2 py-2 text-right">Ingresos</th><th className="px-2 py-2 text-right">ONP/AFP</th>
-                  <th className="w-24 px-2 py-2 text-right">Renta 5ta</th><th className="w-24 px-2 py-2 text-right">Otros desc.</th>
-                  <th className="px-2 py-2 text-right">Neto</th><th className="px-2 py-2 text-right">EsSalud</th>
-                  <th className="px-2 py-2">Estado / Pago</th>
+                  <th className="px-2 py-1.5">Trabajador</th><th className="w-16 px-1 py-1.5">Días</th>
+                  <th className="px-1 py-1.5 text-right">Básico</th><th className="px-1 py-1.5 text-right">Asig. fam.</th>
+                  <th className="w-24 px-1 py-1.5 text-right">H. extra</th><th className="w-24 px-1 py-1.5 text-right">Otros ing.</th>
+                  <th className="px-1 py-1.5 text-right">Ingresos</th><th className="px-1 py-1.5 text-right">ONP/AFP</th>
+                  <th className="w-24 px-1 py-1.5 text-right">Renta 5ta</th><th className="w-24 px-1 py-1.5 text-right">Otros desc.</th>
+                  <th className="px-1 py-1.5 text-right">Neto</th><th className="px-1 py-1.5 text-right">EsSalud</th>
+                  <th className="px-1 py-1.5">Estado / Pago</th>
                 </tr>
               </thead>
               <tbody>
@@ -556,21 +556,21 @@ function Nomina() {
                   const t = tDe(b.trabajador_id);
                   return (
                     <tr key={b.id} onClick={() => setSel(b.id)} onDoubleClick={() => { setError(""); setDetalle(b); }} className={`cursor-pointer border-b border-line/60 last:border-0 hover:bg-muted/40 ${sel === b.id ? "bg-primary/10" : ""}`}>
-                      <td className="px-4 py-2 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral}{t?.cuspp ? ` · ${t.cuspp}` : ""}</span></td>
-                      <td className="px-2 py-2">{b.dias_laborados}</td>
-                      <td className="px-2 py-2 text-right">{soles(Number(b.sueldo_basico))}</td>
-                      <td className="px-2 py-2 text-right">{soles(Number(b.asignacion_familiar))}</td>
-                      <td className="px-2 py-2 text-right">{celda(b, "horas_extra")}</td>
-                      <td className="px-2 py-2 text-right">{celda(b, "otros_ingresos")}</td>
-                      <td className="px-2 py-2 text-right">{soles(Number(b.total_ingresos))}</td>
-                      <td className="px-2 py-2 text-right">{soles(Number(b.aporte_pension))}</td>
-                      <td className="px-2 py-2 text-right" title={(() => { const t = tDe(b.trabajador_id); if (!t) return ""; const d = quinta(t, Number(b.total_ingresos)); return `Proyectada ${soles(d.proyectada)} − 7 UIT ${soles(d.deduccion)} = ${soles(d.rentaNeta)}\nImpuesto anual ${soles(d.impuesto)} − retenido ${soles(d.retenidoAnterior)} ÷ ${d.divisor}${b.renta_quinta_manual ? "\nMonto manual" : ""}`; })()}>{celda(b, "renta_quinta")}{b.renta_quinta_manual && <span className="ml-1 text-[9px] text-warn">manual</span>}</td>
-                      <td className="px-2 py-2 text-right">{celda(b, "otros_descuentos")}</td>
-                      <td className="px-2 py-2 text-right font-semibold text-ink">{soles(Number(b.neto_pagar))}</td>
-                      <td className="px-2 py-2 text-right">{soles(Number(b.essalud))}</td>
-                      <td className="px-2 py-2">
+                      <td className="px-2 py-1.5 font-semibold text-ink">{t?.nombre}<span className="block text-[10px] font-normal text-muted-foreground">{b.regimen_laboral}{t?.cuspp ? ` · ${t.cuspp}` : ""}</span></td>
+                      <td className="px-1 py-1.5">{b.dias_laborados}</td>
+                      <td className="px-1 py-1.5 text-right">{soles(Number(b.sueldo_basico))}</td>
+                      <td className="px-1 py-1.5 text-right">{soles(Number(b.asignacion_familiar))}</td>
+                      <td className="px-1 py-1.5 text-right">{celda(b, "horas_extra")}</td>
+                      <td className="px-1 py-1.5 text-right">{celda(b, "otros_ingresos")}</td>
+                      <td className="px-1 py-1.5 text-right">{soles(Number(b.total_ingresos))}</td>
+                      <td className="px-1 py-1.5 text-right">{soles(Number(b.aporte_pension))}</td>
+                      <td className="px-1 py-1.5 text-right" title={(() => { const t = tDe(b.trabajador_id); if (!t) return ""; const d = quinta(t, Number(b.total_ingresos)); return `Proyectada ${soles(d.proyectada)} − 7 UIT ${soles(d.deduccion)} = ${soles(d.rentaNeta)}\nImpuesto anual ${soles(d.impuesto)} − retenido ${soles(d.retenidoAnterior)} ÷ ${d.divisor}${b.renta_quinta_manual ? "\nMonto manual" : ""}`; })()}>{celda(b, "renta_quinta")}{b.renta_quinta_manual && <span className="ml-1 text-[9px] text-warn">manual</span>}</td>
+                      <td className="px-1 py-1.5 text-right">{celda(b, "otros_descuentos")}</td>
+                      <td className="px-1 py-1.5 text-right font-semibold text-ink">{soles(Number(b.neto_pagar))}</td>
+                      <td className="px-1 py-1.5 text-right">{soles(Number(b.essalud))}</td>
+                      <td className="px-1 py-1.5">
                         {pago?.boleta_id === b.id ? (
-                          <div id="nomina-pago-individual" className="grid min-w-48 gap-1">
+                          <div id="nomina-pago-individual" className="grid w-40 gap-1">
                             <Select aria-label="Banco de pago" value={pago.banco_id} onChange={(e) => { const v = e.target.value; setPago((p) => p ? { ...p, banco_id: v } : p); }} className="py-1 text-xs">
                               <option value="">Banco…</option>
                               {bancos.map((banco) => <option key={banco.id} value={banco.id}>{banco.nombre} · {banco.numero_cuenta}</option>)}
