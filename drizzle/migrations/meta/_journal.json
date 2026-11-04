@@ -792,6 +792,13 @@
       "when": 1793767267515,
       "tag": "0112_cotizacion_condicion_venta_fecha_envio",
       "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1793768465646,
+      "tag": "0113_cotizacion_atencion_telefono",
+      "breakpoints": true
     }
   ]
 }

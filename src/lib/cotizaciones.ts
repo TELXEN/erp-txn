@@ -27,6 +27,8 @@ export type Cotizacion = {
   fecha_envio?: string | null;
   condicion_venta?: "Crédito" | "Contado" | null;
   ruc_cliente?: string | null;
+  atencion?: string;
+  telefono?: string;
   orientacion?: "vertical" | "horizontal";
   condiciones: string;
   estado: EstadoCotizacion;

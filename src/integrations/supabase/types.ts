@@ -1741,6 +1741,7 @@ export type Database = {
         Row: {
           alcance: string
           aplica_igv: boolean
+          atencion: string
           cliente: string
           cliente_id: string | null
           codigo: string | null
@@ -1764,6 +1765,7 @@ export type Database = {
           retoma_de_id: string | null
           revision: string
           ruc_cliente: string
+          telefono: string
           tiempo_ejecucion: string
           tipo_cambio: number
           tipo_cambio_fecha: string | null
@@ -1774,6 +1776,7 @@ export type Database = {
         Insert: {
           alcance?: string
           aplica_igv?: boolean
+          atencion?: string
           cliente?: string
           cliente_id?: string | null
           codigo?: string | null
@@ -1797,6 +1800,7 @@ export type Database = {
           retoma_de_id?: string | null
           revision?: string
           ruc_cliente?: string
+          telefono?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
           tipo_cambio_fecha?: string | null
@@ -1807,6 +1811,7 @@ export type Database = {
         Update: {
           alcance?: string
           aplica_igv?: boolean
+          atencion?: string
           cliente?: string
           cliente_id?: string | null
           codigo?: string | null
@@ -1830,6 +1835,7 @@ export type Database = {
           retoma_de_id?: string | null
           revision?: string
           ruc_cliente?: string
+          telefono?: string
           tiempo_ejecucion?: string
           tipo_cambio?: number
           tipo_cambio_fecha?: string | null

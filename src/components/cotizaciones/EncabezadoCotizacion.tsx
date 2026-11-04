@@ -55,11 +55,19 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       });
       if (rucActual.current !== numero) return;
       const registrado = clientes.find((c) => c.numero_documento === numero);
+      let contacto: { contacto?: string | null; telefono?: string | null; celular_contacto?: string | null } | null = null;
+      if (registrado) {
+        const { data } = await supabase.from("terceros").select("contacto, telefono, celular_contacto").eq("id", registrado.id).maybeSingle();
+        contacto = data;
+      }
       if (!resultado.encontrado) {
         setError(resultado.mensaje || "No se encontró el RUC. Puedes completar los datos manualmente.");
         return;
       }
-      await guardar({ ruc_cliente: numero, cliente_id: registrado?.id ?? null, cliente: resultado.razonSocial, ubicacion: resultado.direccion });
+      await guardar({
+        ruc_cliente: numero, cliente_id: registrado?.id ?? null, cliente: resultado.razonSocial, ubicacion: resultado.direccion,
+        ...(contacto ? { atencion: contacto.contacto || "", telefono: contacto.celular_contacto || contacto.telefono || "" } : {}),
+      });
     } catch {
       if (rucActual.current === numero) setError("No se pudo consultar Decolecta. Reintenta o completa los datos manualmente.");
     } finally { setConsultandoRuc(false); }
@@ -103,8 +111,8 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
         }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—")}
         {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""))}
         {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""))}
-        {fila("ATENCIÓN", cliente?.contacto || "—")}
-        {fila("TELÉFONO", cliente?.celular_contacto || cliente?.telefono || "—")}
+        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || ""))}
+        {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""))}
       </div>
       <div>
         {fila("FECHA DE EMISIÓN", editable ? campo("fecha_emision", cot.fecha_emision, "date") : fecha(cot.fecha_emision), 118)}
