@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { TextoAjustado } from "@/components/TextoAjustado";
+import { direccionSinUbicacion } from "@/lib/direccion-documento";
 
 type Cliente = { id: string; razon_social: string; numero_documento: string };
 
@@ -118,7 +119,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
           if (!timerRuc.current) void completarRuc(numero);
         }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—", 88)}
         {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""), 88)}
-        {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""), 88)}
+        {fila("DIRECCIÓN", campo("ubicacion", direccionSinUbicacion(cot.ubicacion || cliente?.direccion || "", cot.cliente_departamento || "", cot.cliente_provincia || "", cot.cliente_distrito || "")), 88)}
         {editable ? <>
           {fila("DEPARTAMENTO", campo("cliente_departamento", cot.cliente_departamento || ""), 88)}
           {fila("PROVINCIA", campo("cliente_provincia", cot.cliente_provincia || ""), 88)}
