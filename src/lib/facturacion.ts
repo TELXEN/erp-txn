@@ -76,10 +76,23 @@ export const UNIDADES_SUNAT = [
   ["MTQ", "Metro cúbico"], ["KGM", "Kilogramo"], ["HUR", "Hora"], ["DAY", "Día"],
 ] as const;
 
+/** Bienes y servicios sujetos a detracción (SUNAT, Anexo 3). */
 export const CODIGOS_SPOT = [
-  ["", "No aplica"], ["037", "037 · Contratos de construcción"],
-  ["022", "022 · Otros servicios empresariales"], ["019", "019 · Arrendamiento de bienes"],
+  ["", "No aplica"],
+  ["012", "012 - Intermediación laboral y tercerización"],
+  ["019", "019 - Arrendamiento de bienes"],
+  ["020", "020 - Mantenimiento y reparación de bienes muebles"],
+  ["021", "021 - Movimiento de carga"],
+  ["022", "022 - Otros servicios empresariales"],
+  ["024", "024 - Comisión mercantil"],
+  ["025", "025 - Fabricación de bienes por encargo"],
+  ["026", "026 - Servicio de transporte de personas"],
+  ["027", "027 - Servicio de transporte de carga"],
+  ["030", "030 - Contratos de construcción"],
+  ["037", "037 - Demás servicios gravados con el IGV"],
 ] as const;
+/** Texto impreso del bien o servicio; un código fuera de la lista se muestra tal cual. */
+export const nombreSpot = (codigo: string) => CODIGOS_SPOT.find(([v]) => v === codigo)?.[1] ?? codigo;
 
 
 export type ItemEditor = { codigo: string; descripcion: string; unidad_sunat: string; cantidad: string; valor_unitario: string; descuento: string };
