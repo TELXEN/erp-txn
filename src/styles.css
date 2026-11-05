@@ -390,6 +390,38 @@
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  /* Vista previa del comprobante: se imprime solo la hoja clonada al body */
+  html:has(.comprobante-print-root),
+  body:has(> .comprobante-print-root) {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body:has(> .comprobante-print-root) > *:not(.comprobante-print-root) {
+    display: none !important;
+  }
+
+  .comprobante-print-root {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* La hoja usa el ancho imprimible de A4 sin transformarse: una hoja más
+     ancha que el papel hace que el navegador la reduzca y el texto salga
+     encogido dos veces. */
+  .comprobante-print-root section {
+    width: 210mm !important;
+    min-height: 296mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .comprobante-print-root section,
+  .comprobante-print-root section * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 /* Dashboard de proyectos: fondo claro, tarjetas KPI y cartera */

@@ -257,3 +257,4 @@
 
 - [x] Cuentas bancarias del comprobante: texto un punto más chico (9 en vista previa y editor, 8.2 en PDF); medido en pantalla y en el PDF descargado.
 - [x] Recuadro del encabezado: RUC, tipo y número separados con 5 px de aire (editor, vista previa y PDF); verificado que el recuadro no toca la banda CLIENTE.
+- [x] Vista previa del comprobante: botón con icono de impresora a la derecha de «Descargar PDF» que imprime directo; se imprime solo la hoja A4, sin cinta ni menú; verificado en el navegador.
