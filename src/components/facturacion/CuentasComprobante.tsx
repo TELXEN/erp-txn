@@ -17,6 +17,9 @@ export function agruparPorBanco(cuentas: CuentaCpe[]) {
 }
 
 const grupoMoneda = (moneda: string) => /USD|D[ÓO]LAR/i.test(moneda) ? "DÓLARES" : "SOLES";
+export const esDolar = (c: CuentaCpe) => /USD|D[ÓO]LAR/i.test(c.monedas);
+/** Cuentas que se imprimen en el comprobante: las de soles y la de detracciones; las de dólares no se listan. */
+export const cuentasDelComprobante = (cuentas: CuentaCpe[]) => cuentas.filter((c) => esDetraccion(c) || !esDolar(c));
 
 /** Título de la cuenta: «AHORRO EN SOLES», «CUENTA CORRIENTE EN DÓLARES» o «CUENTA DE DETRACCIONES». */
 export const tituloCuenta = (c: CuentaCpe) => {
@@ -25,23 +28,25 @@ export const tituloCuenta = (c: CuentaCpe) => {
   return `${tipo} EN ${grupoMoneda(c.monedas)}`;
 };
 
-/** Detalle de una cuenta: título, número y CCI, cada uno en su línea. */
+/** Detalle de una cuenta: título arriba y, en la misma fila, CTA: y CCI:. */
 export function LineasCuenta({ c, compacto }: { c: CuentaCpe; compacto: boolean }) {
   return (
     <div style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}>
       <div style={{ fontWeight: 700 }}>{tituloCuenta(c)}</div>
-      <div>N° {c.numero_cuenta}</div>
-      {c.cci ? <div>CCI {c.cci}</div> : null}
+      <div style={{ display: "flex", gap: compacto ? 8 : 14, flexWrap: "wrap", minWidth: 0 }}>
+        <span style={{ minWidth: 0 }}>CTA: {c.numero_cuenta}</span>
+        {c.cci ? <span style={{ minWidth: 0 }}>CCI: {c.cci}</span> : null}
+      </div>
     </div>
   );
 }
 
 /** Bloque bancario reutilizable para pago general o detracciones. */
 export function CuentasComprobante({ cuentas, tipo = "todas", compacto = false }: { cuentas: CuentaCpe[]; tipo?: "todas" | "normales" | "detraccion"; compacto?: boolean }) {
-  const visibles = cuentas.filter((cuenta) => tipo === "todas" || (tipo === "detraccion" ? esDetraccion(cuenta) : !esDetraccion(cuenta)));
+  const visibles = cuentasDelComprobante(cuentas).filter((cuenta) => tipo === "todas" || (tipo === "detraccion" ? esDetraccion(cuenta) : !esDetraccion(cuenta)));
   if (!visibles.length) return null;
   const titulo = tipo === "detraccion" ? "CUENTA DE DETRACCIONES" : "CUENTAS BANCARIAS";
-  const gruposMoneda = tipo === "detraccion" ? [] : (["SOLES", "DÓLARES", "DETRACCIONES"] as const)
+  const gruposMoneda = tipo === "detraccion" ? [] : (["SOLES", "DETRACCIONES"] as const)
     .map((moneda) => ({ moneda, cuentas: visibles.filter((cuenta) => moneda === "DETRACCIONES" ? esDetraccion(cuenta) : !esDetraccion(cuenta) && grupoMoneda(cuenta.monedas) === moneda) }))
     .filter((grupo) => grupo.cuentas.length > 0);
   return (
