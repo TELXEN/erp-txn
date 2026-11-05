@@ -48,8 +48,9 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   // La pestaña activa vive en la URL (?tipo=) para que la cinta la resalte y F5 la conserve.
   useEffect(() => {
     if (tipoQ) return;
-    void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: pestanaInicial }, replace: true });
-  }, [tipoQ, preliquidacion, pestanaInicial, navigate]);
+    // Se conserva ?editar= para que un F5 o una entrada directa reabra el mismo borrador.
+    void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: pestanaInicial, ...(editarQ ? { editar: editarQ } : {}) }, replace: true });
+  }, [tipoQ, preliquidacion, pestanaInicial, navigate, editarQ]);
   useEffect(() => {
     const t = (tipoQ || pestanaInicial) as TipoComprobante;
     if (t === pestana) return;
