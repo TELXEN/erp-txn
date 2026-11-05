@@ -5,7 +5,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, FilePlus2, Pencil, ReceiptText, Trash2 } from "lucide-react";
+import { Eye, FilePlus2, Pencil, ReceiptText, Trash2, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Campo, Etiqueta, MenuFiltros, Panel, Select, SinAcceso, Vacio, VentanaFlotante } from "@/components/ui-kit";
@@ -231,8 +231,8 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
           {error && <p className="text-xs text-bad">{error}</p>}
           <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
           <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>
-          <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>
-          <BotonIcono etiqueta="Vista previa" disabled={!editando} onClick={() => { if (editando) void navigate({ to: "/comprobante-vista", search: { id: editando.id } }); }}><Eye size={15} /></BotonIcono>
+          <Boton className="h-9 bg-accent px-4 font-semibold text-cinta-seleccion-foreground hover:bg-accent/90 hover:ring-0" disabled={!editando} onClick={() => { if (editando) void navigate({ to: "/comprobante-vista", search: { id: editando.id } }); }}><Eye size={18} />Vista previa</Boton>
+          <BotonIcono etiqueta="Cerrar editor" className="size-9 border-primary/40 text-primary" onClick={cerrar}><X size={18} strokeWidth={1.5} /></BotonIcono>
         </div>}
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
