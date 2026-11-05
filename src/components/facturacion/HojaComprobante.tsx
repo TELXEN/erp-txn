@@ -60,6 +60,12 @@ export function HojaComprobante(props: {
   const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado, tipos = PESTANAS_CPE } = props;
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
+  useEffect(() => {
+    if (form.condicion_pago !== "Crédito" || cuotas.length > 1) return;
+    const monto = baseCuotas.toFixed(2);
+    if (cuotas.length === 1 && cuotas[0]?.monto === monto) return;
+    setCuotas([{ fecha: cuotas[0]?.fecha || form.fecha_vencimiento, monto }]);
+  }, [baseCuotas, form.condicion_pago, form.fecha_vencimiento, cuotas, setCuotas]);
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio); const { data: tcHoy } = useTipoCambioHoy();
   const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
@@ -326,13 +332,13 @@ export function HojaComprobante(props: {
                       <td style={{ width: 96 }}>
                         <span style={{ display: "flex", alignItems: "center", border: `1px solid ${C.line}`, borderRadius: 3, background: C.white, overflow: "hidden" }}>
                           <span style={{ padding: "0 4px", color: C.muted, fontSize: 8.5, borderRight: `1px solid ${C.line}`, background: C.greenSoft, whiteSpace: "nowrap" }}>{simbolo}</span>
-                          <input type="number" step="0.01" value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, border: "none", textAlign: "right", flex: 1 }} />
+                          <input type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, border: "none", textAlign: "right", flex: 1 }} />
                         </span>
                       </td>
-                      <td style={{ width: 18 }}><button type="button" title="Quitar cuota" onClick={() => setCuotas(cuotas.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={11} /></button></td>
+                      <td style={{ width: 18 }}><button type="button" title="Quitar cuota" disabled={cuotas.length === 1} onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.filter((_, n) => n !== i).map((c) => c.fecha)))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={11} /></button></td>
                     </tr>)}</tbody>
                   </table>
-                  <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
+                  <button type="button" onClick={() => setCuotas(repartirCuotas(baseCuotas, [...cuotas.map((c) => c.fecha), form.fecha_vencimiento]))} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
                   <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas (neto a pagar: {money(baseCuotas)})</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
                 </>}
               </div>
@@ -346,10 +352,10 @@ export function HojaComprobante(props: {
                 {form.tipo_tributario === "detraccion" && <Linea etiqueta="Código SPOT"><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} style={edSel}>{CODIGOS_SPOT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>}
                 {form.tipo_tributario === "detraccion" ? <>
                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(cuotas.length ? cuotas.reduce((s, c) => s + Number(c.monto || 0), 0) : (montos.netoPagar ?? montos.total))}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(baseCuotas)}</b></div>
                  </> : form.tipo_tributario === "retencion" ? <>
                    <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Retención ({form.pct_detraccion}%)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(cuotas.length ? cuotas.reduce((s, c) => s + Number(c.monto || 0), 0) : (montos.netoPagar ?? montos.total))}</b></div>
+                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(baseCuotas)}</b></div>
                  </> : null}
               </div>
             </div>
