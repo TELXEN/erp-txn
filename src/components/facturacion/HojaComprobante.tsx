@@ -8,7 +8,7 @@ import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
 import { fechaLima, useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { filasDesglose } from "@/lib/desglose-comprobante";
-import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, datosAnticipo, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type AnticipoTipo, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
+import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, datosAnticipo, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type AnticipoTipo, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 import { nombreConductor, useTransportistas, vencido } from "@/lib/transportistas";
 import { VentanaTransportista } from "@/components/TransportistasPanel";
@@ -284,15 +284,7 @@ export function HojaComprobante(props: {
           </div>
           <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10 }}>
             {(() => {
-              const cargo = (etq: string, k: "isc" | "icbper" | "otros_cargos" | "otros_tributos") => (
-                <label style={{ display: "flex", alignItems: "center", gap: 3 }}>{etq}<input type="number" step="0.01" min="0" value={form[k]} onChange={(e) => set(k, e.target.value)} style={{ ...ed, width: 58, textAlign: "right" }} /></label>
-              );
               return <>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 8px", fontSize: 8.5, color: C.muted, marginBottom: 5 }}>
-                  <select value={form.operacion_tipo} onChange={(e) => set("operacion_tipo", e.target.value)} title="Tipo de operación" style={{ ...edSel, width: 92 }}><option value="gravada">Gravada</option><option value="exonerada">Exonerada</option><option value="inafecta">Inafecta</option></select>
-                  {form.operacion_tipo === "gravada" && <label style={{ display: "flex", alignItems: "center", gap: 3 }}>IGV<select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} title="Tasa de IGV aplicada" style={{ ...edSel, width: 52 }}>{TASAS_IGV.map(([v]) => <option key={v} value={v}>{v}%</option>)}</select></label>}
-                  {cargo("ISC", "isc")}{cargo("ICBPER", "icbper")}{cargo("Otros cargos", "otros_cargos")}{cargo("Otros tributos", "otros_tributos")}
-                </div>
                 <div style={{ display: "grid", gap: 3 }}>{filasDesglose({ operacionTipo: form.operacion_tipo, valorVenta: montos.valorVenta, descuentos: montos.descuentos, anticipo: montos.anticipo, isc: montos.isc, icbper: montos.icbper, igv: montos.igv, otrosCargos: montos.otrosCargos, total: montos.total }).map((f) => { const col = f.total ? C.totalDesglose : C.gris; return <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}><div style={{ background: col, color: C.white, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div><div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: f.total ? col : C.ink }}>{money(f.valor)}</div></div>; })}</div>
               </>;
             })()}
