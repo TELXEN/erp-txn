@@ -140,6 +140,13 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
       const { error: cuotasError } = await supabaseAdmin.from("comprobante_cuotas").insert(cuotas.map((cuota) => ({ ...cuota, comprobante_id: id })) as never);
       if (cuotasError) throw new Error(cuotasError.message);
     }
+
+    if (emitir && ["01", "03"].includes(actual.tipo_comprobante)) {
+      const concepto = items.map((i) => i.descripcion).join(" · ").slice(0, 160);
+      const { error: ventaError } = await supabaseAdmin.from("ventas").insert({ comprobante_electronico_id: id, preliquidacion_id: data.preliquidacion_id, proyecto_id: data.proyecto_id, cliente_id: data.cliente_id, concepto, monto: data.valor_venta, moneda: data.moneda, tipo_cambio: data.tipo_cambio, monto_soles: data.valor_venta * data.tipo_cambio, numero_factura: actual.numero, fecha_pago: null, estado: "Pendiente de Pago", fecha_emision: data.fecha_emision, condicion_pago: data.condicion_pago, dias_credito: data.dias_credito, fecha_vencimiento: data.fecha_vencimiento, igv: data.igv, total: data.total, pct_detraccion: data.pct_detraccion, monto_detraccion: data.monto_detraccion / data.tipo_cambio, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica", detraccion_constancia: "", tipo_tributario: data.tipo_tributario, monto_retencion: data.monto_retencion, rubro: data.proyecto_id ? "Proyectos / Obras" : "Servicios" } as never);
+      if (ventaError) throw new Error(ventaError.message);
+    }
+    if (data.preliquidacion_id && emitir) await supabaseAdmin.from("preliquidaciones").update({ estado: "Facturada" } as never).eq("id", data.preliquidacion_id);
     return { id, numero: actual.numero };
   });
 
