@@ -339,7 +339,7 @@ export function HojaComprobante(props: {
               </div>
             </div>
             <div style={{ ...CARD, padding: 11, fontSize: 8.5 }}>
-              <b style={{ fontSize: 8, color: C.green }}>RÉGIMEN TRIBUTARIO</b>
+              <b style={{ fontSize: 8, color: C.green }}>RÉGIMEN DE RETENCIONES DEL IGV</b>
               <div style={{ marginTop: 6, display: "grid", gap: 3 }}>
                 <Linea etiqueta="Régimen"><select value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributarioCpe, pct_detraccion: p ?? "0", codigo_spot: t === "detraccion" ? "037" : "" }); }} style={edSel}>
                   <option value="ninguno|0">No aplica</option><option value="detraccion|4">Detracción 4% · construcción</option><option value="detraccion|12">Detracción 12% · otros servicios</option><option value="retencion|3">Retención 3%</option>
