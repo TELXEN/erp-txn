@@ -236,3 +236,4 @@
 - [x] Mejorar el borde del recuadro del comprobante (vista previa, editor y PDF).
 - [x] Alinear el dos puntos de DEPARTAMENTO con los demás del comprobante.
 - [x] Departamento, Provincia y Distrito en una misma fila (editor, vista previa y PDF).
+- [x] Bloque de la empresa más a la izquierda y sin línea horizontal bajo el encabezado (vista previa, editor y PDF).
