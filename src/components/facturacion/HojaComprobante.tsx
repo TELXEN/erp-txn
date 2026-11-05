@@ -170,6 +170,7 @@ export function HojaComprobante(props: {
                 <button type="button" onClick={() => void traerTipoCambio()} disabled={buscando} title="Tipo de cambio oficial del día" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Search size={12} /></button>
               </span>
             </Linea>}
+            <Linea etiqueta="IGV"><select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} style={edSel}><option value="18">18%</option><option value="10.5">10.5%</option><option value="10">10%</option></select></Linea>
           </Bloque>
         </div>
         {(() => {
