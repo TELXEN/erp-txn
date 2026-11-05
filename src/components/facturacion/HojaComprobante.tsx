@@ -141,7 +141,7 @@ export function HojaComprobante(props: {
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, ...CARD, background: C.soft, borderLeft: `3px solid ${C.accent}`, marginTop: 8, fontSize: 10, textAlign: "left", textTransform: "uppercase", lineHeight: 1.15 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, ...CARD, background: "transparent", border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 8, fontSize: 10, textAlign: "left", textTransform: "uppercase", lineHeight: 1.15 }}>
           <Bloque titulo="">
             <Linea etiqueta="RUC / DNI">
               <span style={{ display: "flex", gap: 4 }}>
