@@ -88,6 +88,15 @@ export const itemComprobanteVacio = (): ItemEditor => ({ codigo: "", descripcion
 /** Cuota editable de una venta al crédito. */
 export type CuotaEditor = { fecha: string; monto: string };
 export const cuotaVacia = (fecha = ""): CuotaEditor => ({ fecha, monto: "" });
+/** Neto independiente del cronograma; las deducciones están guardadas en PEN. */
+export function netoComprobante(total: number, tc: number, tipo: string, detraccion: number, retencion: number) {
+  const descuento = tipo === "detraccion" ? detraccion : tipo === "retencion" ? retencion : 0;
+  return Number((total - descuento / (tc > 0 ? tc : 1)).toFixed(2));
+}
+export function cuotasCoincidenConNeto(neto: number, montos: number[]) {
+  return montos.length > 0 && montos.every((m) => Number.isFinite(m) && m > 0 && Math.abs(m * 100 - Math.round(m * 100)) < 1e-6)
+    && montos.reduce((s, m) => s + Math.round(m * 100), 0) === Math.round(neto * 100);
+}
 /** Reparte el total en n cuotas iguales, ajustando la última por redondeo. */
 export function repartirCuotas(total: number, fechas: string[]): CuotaEditor[] {
   const n = Math.max(1, fechas.length);
@@ -156,7 +165,7 @@ export function desgloseDetraccion(total: number, tc: number, pct: number) {
   const base = Number(((total * pct) / 100).toFixed(2)); // en moneda del comprobante
   const detraccionPen = pct > 0 ? redondearEntero(Number((base * t).toFixed(4))) : 0;
   const detraccionUsd = Number((detraccionPen / t).toFixed(2));
-  const neto = Number((total - detraccionPen / t).toFixed(2));
+  const neto = netoComprobante(total, t, "detraccion", detraccionPen, 0);
   return { base, detraccionPen, detraccionUsd, neto };
 }
 
