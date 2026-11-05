@@ -112,8 +112,21 @@ export function HojaComprobante(props: {
   const actualizarDoc = (i: number, k: keyof DocRelacionado, v: string) => setDocs(docs.map((x, n) => (n === i ? { ...x, [k]: v } : x)));
 
   return (
-    <div className="cpe-editor-canvas" style={{ overflowX: "auto", paddingBottom: 18 }}>
-      <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
+    <div ref={lienzo} className="cpe-editor-canvas" style={{ paddingBottom: 18 }}>
+      <div style={{ width: 794 * zoom, maxWidth: "100%", margin: "0 auto 10px", display: "flex", flexWrap: "wrap", gap: "8px 18px", alignItems: "center", fontSize: 12, padding: "8px 12px", border: `1px solid ${C.line}`, borderRadius: 8, background: C.white, boxSizing: "border-box" }}>
+        {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Régimen</b><select value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributarioCpe, pct_detraccion: p ?? "0", codigo_spot: t === "detraccion" ? (p === "4" ? "030" : "037") : "" }); }} style={{ ...edSel, width: "auto", borderBottom: `1px solid ${C.line}` }}><option value="ninguno|0">No aplica</option><option value="detraccion|4">Detracción 4% · construcción</option><option value="detraccion|12">Detracción 12% · otros servicios</option><option value="retencion|3">Retención 3%</option></select></label>}
+        {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}><input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} /><b>Anticipo</b></label>}
+        {usaImportes(tipo) && form.anticipo_tipo !== "ninguno" && <>
+          <select aria-label="Modalidad" value={form.anticipo_tipo} onChange={(e) => { const v = e.target.value as AnticipoTipo; setForm({ ...form, anticipo_tipo: v, ...datosAnticipo(v, form.anticipo_documento, form.anticipo_monto) }); }} style={{ ...edSel, width: "auto", borderBottom: `1px solid ${C.line}` }}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select>
+          {form.anticipo_tipo === "deduccion" && <>
+            <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Comprobante</b><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={{ ...ed, width: 130, borderBottom: `1px solid ${C.line}` }} /></label>
+            <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Importe</b><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} style={{ ...ed, width: 110, borderBottom: `1px solid ${C.line}` }} /></label>
+          </>}
+        </>}
+        {(form.cliente_estado_sunat || form.cliente_condicion_sunat) && <span style={{ fontWeight: 700, color: form.cliente_condicion_sunat === "HABIDO" ? C.green : C.muted }}>SUNAT: {form.cliente_estado_sunat} · {form.cliente_condicion_sunat}</span>}
+        {aviso && <span style={{ color: C.greenDark }}>{aviso}</span>}
+      </div>
+      <section className="cpe-editor-sheet" style={{ width: 794, zoom, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
         <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6, color: "#000" }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 62, textAlign: "left", paddingLeft: 4, display: "flex", flexDirection: "column", justifyContent: "center" }}>
@@ -140,38 +153,29 @@ export function HojaComprobante(props: {
             <div style={{ alignSelf: "center", marginTop: 6, fontSize: 8, fontWeight: 700, letterSpacing: ".05em", padding: "2px 10px", borderRadius: 999, background: "#FEF9E7", color: "#7D6608", border: `1px solid ${C.accent}` }}>{etiquetaTipo}</div>
           </div>
         </header>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, ...CARD, background: "transparent", border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 8, fontSize: 10, textAlign: "left", textTransform: "uppercase", lineHeight: 1.15 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, ...CARD, padding: 13, background: "transparent", border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 8, fontSize: 9, textAlign: "left", textTransform: "uppercase", lineHeight: 1.15 }}>
           <Bloque titulo="">
-            <Linea etiqueta="RUC / DNI">
-              <span style={{ display: "flex", gap: 4 }}>
+            <Linea etiqueta="RUC">
+              <span style={{ display: "flex", gap: 4, alignItems: "center" }}>
                 <input value={form.cliente_numero_documento} onChange={(e) => set("cliente_numero_documento", e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void buscarCliente(); } }} placeholder="20601234567" style={ed} />
-                <button type="button" onClick={() => void buscarCliente()} disabled={buscando} title="Consultar en SUNAT / RENIEC" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Search size={12} /></button>
+                <button type="button" onClick={() => void buscarCliente()} disabled={buscando} title="Consultar en SUNAT / RENIEC" style={{ border: "none", color: C.muted, background: "transparent", padding: 0, cursor: "pointer", display: "flex" }}><Search size={10} /></button>
               </span>
             </Linea>
             <Linea etiqueta="Nombre"><input value={form.cliente_razon_social} onChange={(e) => set("cliente_razon_social", e.target.value)} placeholder="Razón social del cliente" style={{ ...ed, fontWeight: 700 }} /></Linea>
             <Linea etiqueta="Dirección"><input value={form.cliente_direccion} onChange={(e) => set("cliente_direccion", e.target.value)} placeholder="Dirección fiscal" style={ed} /></Linea>
-            <Linea etiqueta="Departamento"><div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 4, alignItems: "center" }}><input value={form.cliente_departamento} onChange={(e) => set("cliente_departamento", e.target.value)} placeholder="Lima" style={ed} /><b>Provincia</b><input value={form.cliente_provincia} onChange={(e) => set("cliente_provincia", e.target.value)} placeholder="Lima" style={ed} /><b>Distrito</b><input value={form.cliente_distrito} onChange={(e) => set("cliente_distrito", e.target.value)} placeholder="Miraflores" style={ed} /></div></Linea>
-            <Linea etiqueta="Proyecto"><select value={form.proyecto_id} onChange={(e) => set("proyecto_id", e.target.value)} style={edSel}><option value="">SIN PROYECTO</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></Linea>
-            {(form.cliente_estado_sunat || form.cliente_condicion_sunat) && <div style={{ fontSize: 8.5, fontWeight: 700, color: form.cliente_condicion_sunat === "HABIDO" ? C.green : C.muted }}>{form.cliente_estado_sunat} · {form.cliente_condicion_sunat}</div>}
-          </Bloque>
-          <Bloque titulo="">
+            <Linea etiqueta="Departamento"><div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 4, alignItems: "center" }}><input value={form.cliente_departamento} onChange={(e) => set("cliente_departamento", e.target.value)} placeholder="Lima" style={ed} /><b>Provincia:</b><input value={form.cliente_provincia} onChange={(e) => set("cliente_provincia", e.target.value)} placeholder="Lima" style={ed} /><b>Distrito:</b><input value={form.cliente_distrito} onChange={(e) => set("cliente_distrito", e.target.value)} placeholder="Miraflores" style={ed} /></div></Linea>
+            <Linea etiqueta="Proyecto"><select value={form.proyecto_id} onChange={(e) => set("proyecto_id", e.target.value)} style={edSel}><option value="">—</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></Linea>
             {(tipo === "07" || tipo === "08") && <>
               <Linea etiqueta="Modifica a"><select value={form.referencia_id} onChange={(e) => set("referencia_id", e.target.value)} style={edSel}><option value="">Selecciona...</option>{refs.map((r) => <option key={r.id} value={r.id}>{r.numero}</option>)}</select></Linea>
               <Linea etiqueta="Motivo"><select value={form.motivo_nota_codigo} onChange={(e) => set("motivo_nota_codigo", e.target.value)} style={edSel}>{(tipo === "07" ? MOTIVOS_NOTA_CREDITO : MOTIVOS_NOTA_DEBITO).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>
               <Linea etiqueta="Sustento"><input value={form.motivo_nota_descripcion} onChange={(e) => set("motivo_nota_descripcion", e.target.value)} style={ed} /></Linea>
             </>}
           </Bloque>
-          <Bloque titulo="">
-            <Linea etiqueta="Moneda"><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={edSel}><option value="PEN">Soles</option><option value="USD">Dólares</option></select></Linea>
-            {form.moneda === "USD" && <Linea etiqueta="T. cambio">
-              <span style={{ display: "flex", gap: 4 }}>
-                <input type="number" step="0.001" value={form.tipo_cambio} onChange={(e) => set("tipo_cambio", e.target.value)} style={ed} />
-                <button type="button" onClick={() => void traerTipoCambio()} disabled={buscando} title="Tipo de cambio oficial del día" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Search size={12} /></button>
-              </span>
-            </Linea>}
-            <Linea etiqueta="IGV"><select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} style={edSel}><option value="18">18%</option><option value="10.5">10.5%</option><option value="10">10%</option></select></Linea>
-          </Bloque>
+          <div style={{ display: "grid", gridTemplateColumns: "52px 8px auto", columnGap: 2, alignItems: "center", alignContent: "start", lineHeight: 1.15 }}>
+            <b>Moneda</b><span>:</span><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={{ ...edSel, width: "auto" }}><option value="PEN">PEN</option><option value="USD">USD</option></select>
+            {form.moneda === "USD" && <><b>T. cambio</b><span>:</span><span style={{ display: "flex", gap: 3, alignItems: "center" }}><input type="number" step="0.001" value={form.tipo_cambio} onChange={(e) => set("tipo_cambio", e.target.value)} style={{ ...ed, width: 52 }} /><button type="button" onClick={() => void traerTipoCambio()} disabled={buscando} title="Tipo de cambio oficial del día" style={{ border: "none", color: C.muted, background: "transparent", padding: 0, cursor: "pointer", display: "flex" }}><Search size={10} /></button></span></>}
+            <b>IGV</b><span>:</span><select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} style={{ ...edSel, width: "auto" }}><option value="18">18%</option><option value="10.5">10.5%</option><option value="10">10%</option></select>
+          </div>
         </div>
         {(() => {
           const celdas: [string, ReactNode][] = [
@@ -181,9 +185,8 @@ export function HojaComprobante(props: {
             ["Fecha de Vencimiento", <FechaComprobante etiqueta="Fecha de vencimiento" value={form.fecha_vencimiento} onChange={(v) => set("fecha_vencimiento", v)} style={{ ...ed, textAlign: "center" }} />],
             ...(tipo !== "09" ? [["N° Guía de Remisión", <input value={form.guia_remision_numero} onChange={(e) => set("guia_remision_numero", e.target.value.toUpperCase())} placeholder="T001-00000045" style={{ ...ed, textAlign: "center" }} />] as [string, ReactNode]] : []),
           ];
-          return <div style={{ display: "grid", gridTemplateColumns: `repeat(${celdas.length}, 1fr)`, border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 10, fontSize: 9.5, textAlign: "center", lineHeight: 1.15 }}>{celdas.map(([l, v], i) => <div key={l} style={{ padding: "5px 6px", borderLeft: i ? `1.5px solid ${C.gris}` : "none" }}><b style={{ display: "block", marginBottom: 3 }}>{l}:</b>{v}</div>)}</div>;
+          return <div style={{ display: "grid", gridTemplateColumns: `repeat(${celdas.length}, 1fr)`, border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 10, fontSize: 9, textAlign: "center", lineHeight: 1.15 }}>{celdas.map(([l, v], i) => <div key={l} style={{ padding: "5px 4px", borderLeft: i ? `1.5px solid ${C.gris}` : "none" }}><b style={{ display: "block", marginBottom: 3 }}>{l}:</b>{v}</div>)}</div>;
         })()}
-        {aviso && <div style={{ fontSize: 9, color: C.greenDark, background: C.greenSoft, padding: "5px 9px", marginTop: 6 }}>{aviso}</div>}
 
         {tipo === "09" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginTop: 15, fontSize: 10, border: `1px solid ${C.line}`, padding: 12 }}>
           <Bloque titulo="TRASLADO">
@@ -247,22 +250,22 @@ export function HojaComprobante(props: {
         </div>}
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9, tableLayout: "fixed" }}>
-          {usaImportes(tipo) && <colgroup><col style={{ width: "8%" }} /><col style={{ width: "40%" }} /><col style={{ width: "7%" }} /><col style={{ width: "8%" }} /><col style={{ width: "13%" }} /><col style={{ width: "8%" }} /><col style={{ width: "14%" }} /><col style={{ width: "2%" }} /></colgroup>}
+          {usaImportes(tipo) && <colgroup><col style={{ width: "8%" }} /><col style={{ width: "40%" }} /><col style={{ width: "7%" }} /><col style={{ width: "9%" }} /><col style={{ width: "13%" }} /><col style={{ width: "9%" }} /><col style={{ width: "14%" }} /><col style={{ width: 0 }} /></colgroup>}
           <thead><tr style={{ background: C.gris, color: C.white }}><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>CÓDIGO</th><th style={{ padding: "4px 4px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>DESCRIPCIÓN</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>UNIDAD</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>CANTIDAD</th>{usaImportes(tipo) && <><th style={{ padding: "3px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center", lineHeight: 1.1 }}>V. UNITARIO</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>DESCUENTO</th><th style={{ padding: "3px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center", lineHeight: 1.1 }}>V. VENTA</th></>}<th /></tr></thead>
           <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white, verticalAlign: "top" }}>
-            <td style={{ padding: 4, verticalAlign: "top" }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
-            <td style={{ padding: 4, paddingLeft: 12, verticalAlign: "top" }}><textarea value={x.descripcion} rows={Math.max(1, Math.ceil((x.descripcion.length || 1) / 55))} onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} onInput={(e) => { e.currentTarget.style.height = "auto"; e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; }} placeholder="Descripción del bien o servicio" style={{ ...cel, display: "block", fontSize: 7, fontWeight: 400, lineHeight: 1.25, resize: "none", overflow: "hidden", minHeight: 24 }} /></td>
-            <td style={{ padding: 4, verticalAlign: "top" }}><select value={x.unidad_sunat} onChange={(e) => actualizarItem(i, "unidad_sunat", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{UNIDADES_SUNAT.map(([v, l]) => <option key={v} value={v}>{v} · {l}</option>)}</select></td>
-            <td style={{ padding: 4, verticalAlign: "top" }}><input type="number" step="0.001" value={x.cantidad} onChange={(e) => actualizarItem(i, "cantidad", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
+            <td style={{ padding: 6, verticalAlign: "top" }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
+            <td style={{ padding: 6, paddingLeft: 12, verticalAlign: "top" }}><TextoCreciente value={x.descripcion} onChange={(v) => actualizarItem(i, "descripcion", v)} placeholder="Descripción del bien o servicio" style={{ ...cel, padding: 0, display: "block", fontSize: 7, fontWeight: 400, lineHeight: 1.25 }} /></td>
+            <td style={{ padding: 6, verticalAlign: "top" }}><select value={x.unidad_sunat} onChange={(e) => actualizarItem(i, "unidad_sunat", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{UNIDADES_SUNAT.map(([v, l]) => <option key={v} value={v}>{v} · {l}</option>)}</select></td>
+            <td style={{ padding: 6, verticalAlign: "top" }}><input type="number" step="0.001" value={x.cantidad} onChange={(e) => actualizarItem(i, "cantidad", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
             {usaImportes(tipo) && <>
-              <td style={{ padding: 4, verticalAlign: "top" }}><input type="number" step="0.01" value={x.valor_unitario} onChange={(e) => actualizarItem(i, "valor_unitario", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
-              <td style={{ padding: 4, verticalAlign: "top" }}><input type="number" step="0.01" value={x.descuento} onChange={(e) => actualizarItem(i, "descuento", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
+              <td style={{ padding: 6, verticalAlign: "top" }}><input type="number" step="0.01" value={x.valor_unitario} onChange={(e) => actualizarItem(i, "valor_unitario", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
+              <td style={{ padding: 6, verticalAlign: "top" }}><input type="number" step="0.01" value={x.descuento} onChange={(e) => actualizarItem(i, "descuento", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
               <td style={{ padding: 6, textAlign: "right", fontWeight: 700, verticalAlign: "top" }}>{money(calcularItem(x, form.operacion_tipo, Number(form.igv_tasa)).subtotal)}</td>
             </>}
-            <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setItems(items.length === 1 ? [itemComprobanteVacio()] : items.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={13} /></button></td>
+            <td style={{ width: 0, padding: 0, position: "relative" }}><button type="button" title="Quitar" onClick={() => setItems(items.length === 1 ? [itemComprobanteVacio()] : items.filter((_, n) => n !== i))} style={{ position: "absolute", left: 2, top: 6, border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer", padding: 0 }}><Trash2 size={10} /></button></td>
           </tr>)}</tbody>
         </table>}
-        {usaItems(tipo) && <button type="button" onClick={() => setItems([...items, itemComprobanteVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar línea</button>}
+        {usaItems(tipo) && <button type="button" onClick={() => setItems([...items, itemComprobanteVacio()])} style={{ alignSelf: "flex-start", marginTop: 4, fontSize: 8, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar línea</button>}
 
         {usaRelacionados(tipo) && <><table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9 }}>
           <thead><tr style={{ background: "#f8fafc", color: C.ink, textAlign: "left", borderBottom: `1px solid ${C.line}` }}>{["#", "Tipo", "Serie", "Número", "Fecha", "Importe", ""].map((x, i) => <th key={i} style={{ padding: "7px 6px" }}>{x}</th>)}</tr></thead>
@@ -278,90 +281,40 @@ export function HojaComprobante(props: {
         </table>
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
 
-        {usaImportes(tipo) && <>
-          <div style={{ display: "flex", gap: 14, alignItems: "stretch", marginTop: 18 }}>
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", fontSize: 9.5, textAlign: "left" }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><textarea value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" rows={4} style={{ ...ed, marginTop: 4, resize: "vertical", textAlign: "left", border: `1px dashed ${C.line}`, borderRadius: 4, padding: 4 }} />
+        {usaImportes(tipo) && <div style={{ display: "flex", gap: 14, alignItems: "stretch", marginTop: 18 }}>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", fontSize: 9, textAlign: "left" }}><b style={{ fontSize: 8, color: C.green }}>OBSERVACIONES</b><TextoCreciente value={form.observacion} onChange={(v) => set("observacion", v)} placeholder="Texto adicional que se imprime en el comprobante" style={{ ...ed, marginTop: 3, textAlign: "left" }} />
             {form.tipo_tributario !== "ninguno" && (() => { const det = form.tipo_tributario === "detraccion"; const L = (a: string, v: string) => <><b>{a}</b><b>{v}</b></>; return <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 28, rowGap: 1, marginTop: "auto", paddingTop: 10, fontSize: 10, color: "#4B5563", lineHeight: 1.2 }}>{det && L("Cta. Cte. Banco de la Nación", cuentaDetraccionDe(cuentas)?.numero_cuenta || "—")}{L(`${det ? "Detracción" : "Retención"} (${form.pct_detraccion}%)`, `S/ ${(det ? montos.montoDetraccion : montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}{det && <><b>Bien o Servicio</b><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} title="Bien o servicio sujeto a detracción" style={{ ...edSel, fontWeight: 700, color: "#4B5563" }}>{CODIGOS_SPOT.filter(([v]) => v).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></>}<span style={{ gridColumn: "1 / -1", height: 10 }} />{L("Neto a Pagar", money(baseCuotas))}</div>; })()}
           </div>
-          <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10 }}>
-            {(() => {
-              return <>
-                <div style={{ display: "grid", gap: 3 }}>{filasDesglose({ operacionTipo: form.operacion_tipo, valorVenta: montos.valorVenta, descuentos: montos.descuentos, anticipo: montos.anticipo, isc: montos.isc, icbper: montos.icbper, igv: montos.igv, otrosCargos: montos.otrosCargos, total: montos.total, detraccion: form.tipo_tributario === "detraccion" ? (form.moneda === "USD" ? (montos.detraccionUsd ?? 0) : montos.montoDetraccion) : 0, retencion: form.tipo_tributario === "retencion" ? (form.moneda === "USD" ? (montos.retencionUsd ?? 0) : montos.montoRetencion) : 0 }).map((f) => { const col = f.total ? C.totalDesglose : C.gris; return <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}><div style={{ background: f.total ? col : C.grisClaro, color: f.total ? C.white : C.ink, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div><div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: f.total ? col : C.ink }}>{money(f.valor)}</div></div>; })}</div>
-              </>;
-            })()}
-          </div>
-          </div>
-          <div style={{ marginTop: 12, ...CARD, padding: 11, fontSize: 9.5 }}>
-            <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 700, cursor: "pointer" }}>
-              <input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} />
-              AÑADIR ANTICIPO
-            </label>
-            {form.anticipo_tipo !== "ninguno" && <div style={{ marginTop: 7, display: "grid", gridTemplateColumns: form.anticipo_tipo === "anticipo" ? "minmax(0, 360px)" : "1fr 1fr 1fr", gap: 10 }}>
-              <Linea etiqueta="Modalidad"><select value={form.anticipo_tipo} onChange={(e) => { const v = e.target.value as AnticipoTipo; setForm({ ...form, anticipo_tipo: v, ...datosAnticipo(v, form.anticipo_documento, form.anticipo_monto) }); }} style={edSel}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select></Linea>
-              {form.anticipo_tipo === "deduccion" && <>
-                <Linea etiqueta="Comprobante"><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={ed} /></Linea>
-                <Linea etiqueta="Importe"><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} style={ed} /></Linea>
-              </>}
-            </div>}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, fontSize: 9.5, textAlign: "left" }}>
-            <div style={{ ...CARD, padding: 11 }}>
-              <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
-              <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
-                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => cambiarCondicion(e.target.value)} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
-                {form.condicion_pago === "Crédito" && <>
-                  <Linea etiqueta="N° de cuotas">
-                    <span style={{ display: "flex", gap: 5, alignItems: "center" }}>
-                      <input type="number" min="1" max="24" value={cuotas.length || 1} onChange={(e) => { const n = Math.max(1, Math.min(24, Number(e.target.value || 1))); const fechas = Array.from({ length: n }, (_, i) => cuotas[i]?.fecha || form.fecha_vencimiento); setCuotas(repartirCuotas(baseCuotas, fechas)); }} style={ed} />
-                      <button type="button" onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.map((c) => c.fecha || form.fecha_vencimiento)))} title="Repartir el neto a pagar en partes iguales" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "1px 6px", cursor: "pointer", fontSize: 8.5, whiteSpace: "nowrap" }}>Repartir</button>
-                    </span>
-                  </Linea>
-                  <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4, fontSize: 9 }}>
-                    <thead><tr style={{ textAlign: "left", color: C.muted }}><th style={{ padding: "2px 0" }}>Cuota</th><th>Fecha de pago</th><th style={{ textAlign: "right" }}>Importe ({simbolo})</th><th /></tr></thead>
-                    <tbody>{cuotas.map((q, i) => <tr key={i}>
-                      <td style={{ padding: "2px 0", width: 42 }}>{String(i + 1).padStart(3, "0")}</td>
-                      <td><FechaComprobante etiqueta={`Fecha de cuota ${i + 1}`} value={q.fecha} onChange={(v) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: v } : c)))} style={cel} /></td>
-                      <td style={{ width: 96 }}>
-                        <span style={{ display: "flex", alignItems: "center", border: `1px solid ${C.line}`, borderRadius: 3, background: C.white, overflow: "hidden" }}>
-                          <span style={{ padding: "0 4px", color: C.muted, fontSize: 8.5, borderRight: `1px solid ${C.line}`, background: C.greenSoft, whiteSpace: "nowrap" }}>{simbolo}</span>
-                          <input type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...cel, border: "none", textAlign: "right", flex: 1 }} />
-                        </span>
-                      </td>
-                      <td style={{ width: 18 }}><button type="button" title="Quitar cuota" disabled={cuotas.length === 1} onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.filter((_, n) => n !== i).map((c) => c.fecha)))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={11} /></button></td>
-                    </tr>)}</tbody>
-                  </table>
-                  <button type="button" onClick={() => setCuotas(repartirCuotas(baseCuotas, [...cuotas.map((c) => c.fecha), form.fecha_vencimiento]))} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
-                  <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas (neto a pagar: {money(baseCuotas)})</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
-                </>}
-              </div>
-            </div>
-            <div style={{ ...CARD, padding: 11, fontSize: 8.5 }}>
-              <b style={{ fontSize: 8, color: C.green }}>RÉGIMEN DE RETENCIONES DEL IGV</b>
-              <div style={{ marginTop: 6, display: "grid", gap: 3 }}>
-                <Linea etiqueta="Régimen"><select value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributarioCpe, pct_detraccion: p ?? "0", codigo_spot: t === "detraccion" ? (p === "4" ? "030" : "037") : "" }); }} style={edSel}>
-                  <option value="ninguno|0">No aplica</option><option value="detraccion|4">Detracción 4% · construcción</option><option value="detraccion|12">Detracción 12% · otros servicios</option><option value="retencion|3">Retención 3%</option>
-                </select></Linea>
-                {form.tipo_tributario === "detraccion" ? <>
-                  <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(baseCuotas)}</b></div>
-                 </> : form.tipo_tributario === "retencion" ? <>
-                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Retención ({form.pct_detraccion}%)</span><b>S/ {(montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
-                   <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(baseCuotas)}</b></div>
-                 </> : null}
-              </div>
-            </div>
-          </div>
-          {cuentas.length > 0 && <div style={{ ...CARD, padding: "0 11px 8px", marginTop: 10 }}><CuentasComprobante cuentas={cuentas} tipo="todas" compacto /></div>}
-        </>}
+          <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10, display: "grid", gap: 3, alignContent: "start" }}>{filasDesglose({ operacionTipo: form.operacion_tipo, valorVenta: montos.valorVenta, descuentos: montos.descuentos, anticipo: montos.anticipo, isc: montos.isc, icbper: montos.icbper, igv: montos.igv, otrosCargos: montos.otrosCargos, total: montos.total, detraccion: form.tipo_tributario === "detraccion" ? (form.moneda === "USD" ? (montos.detraccionUsd ?? 0) : montos.montoDetraccion) : 0, retencion: form.tipo_tributario === "retencion" ? (form.moneda === "USD" ? (montos.retencionUsd ?? 0) : montos.montoRetencion) : 0 }).map((f) => { const col = f.total ? C.totalDesglose : C.gris; return <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}><div style={{ background: f.total ? col : C.grisClaro, color: f.total ? C.white : C.ink, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div><div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: f.total ? col : C.ink }}>{money(f.valor)}</div></div>; })}</div>
+        </div>}
 
         <div style={{ marginTop: "auto", paddingTop: 18 }}>
-          {usaImportes(tipo) && <div style={{ padding: "5px 0", fontSize: 9.5, fontWeight: 700, textAlign: "justify", width: "100%" }}>{montoEnLetras(montos.total, form.moneda)}</div>}
-          <div style={{ marginTop: 18, borderTop: `1px solid ${C.line}`, paddingTop: 10, fontSize: 9, color: C.muted }}>
-            <b>REPRESENTACIÓN IMPRESA DEL COMPROBANTE ELECTRÓNICO</b>
-            <div style={{ marginTop: 5 }}>Vista de captura: lo que escribes aquí es exactamente lo que saldrá impreso.</div>
+          {usaImportes(tipo) && <div style={{ padding: "4px 0", fontSize: 9, fontWeight: 700, textAlign: "justify", width: "100%" }}>{montoEnLetras(montos.total, form.moneda)}</div>}
+          {usaImportes(tipo) && <div style={{ ...CARD, padding: 8, marginTop: 8, fontSize: 9 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginBottom: 4 }}><b style={{ color: C.green }}>FORMA DE PAGO</b><select value={form.condicion_pago} onChange={(e) => cambiarCondicion(e.target.value)} style={{ ...edSel, width: "auto", fontSize: 10, fontWeight: 700, textAlign: "right" }}><option>Contado</option><option>Crédito</option></select></div>
+            {form.condicion_pago === "Crédito" && <>
+              {cuotas.map((q, i) => <div key={i} style={{ marginTop: 2, lineHeight: 1.2, display: "flex", gap: 4, alignItems: "center" }}>
+                <span>Cuota {String(i + 1).padStart(3, "0")} ·</span>
+                <FechaComprobante etiqueta={`Fecha de cuota ${i + 1}`} value={q.fecha} onChange={(v) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: v } : c)))} style={{ ...ed, width: 70, padding: 0 }} />
+                <span>· {simbolo}</span>
+                <input type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...ed, width: 80, padding: 0 }} />
+                {cuotas.length > 1 && <button type="button" title="Quitar cuota" onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.filter((_, n) => n !== i).map((c) => c.fecha)))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer", padding: 0, display: "flex" }}><Trash2 size={9} /></button>}
+              </div>)}
+              <div style={{ marginTop: 4, display: "flex", gap: 6, alignItems: "center", fontSize: 8 }}>
+                <button type="button" onClick={() => setCuotas(repartirCuotas(baseCuotas, [...cuotas.map((c) => c.fecha), form.fecha_vencimiento]))} style={{ border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "1px 6px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center", fontSize: 8 }}><Plus size={9} />Cuota</button>
+                {cuotas.length > 1 && <button type="button" onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.map((c) => c.fecha || form.fecha_vencimiento)))} title="Repartir el neto a pagar en partes iguales" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "1px 6px", cursor: "pointer", fontSize: 8 }}>Repartir</button>}
+                {Math.abs(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0) - baseCuotas) > 0.005 && <span style={{ color: "var(--color-bad)", fontWeight: 700 }}>Las cuotas suman {money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}; el neto es {money(baseCuotas)}</span>}
+              </div>
+            </>}
+          </div>}
+          {usaImportes(tipo) && cuentas.length > 0 && <div style={{ ...CARD, padding: "0 8px 6px", marginTop: 8 }}><CuentasComprobante cuentas={cuentas} tipo="todas" compacto /></div>}
+          <div style={{ marginTop: 10, borderTop: `1px solid ${C.line}`, paddingTop: 7, fontWeight: 300, fontSize: 8, color: C.ink }}>
+            <b style={{ fontWeight: 700 }}>REPRESENTACIÓN IMPRESA DEL COMPROBANTE ELECTRÓNICO</b>
+            <div style={{ marginTop: 3, fontSize: 7.5 }}>BORRADOR SIN VALIDEZ TRIBUTARIA.</div>
           </div>
         </div>
       </section>
     </div>
   );
 }
+
