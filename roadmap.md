@@ -238,3 +238,7 @@
 - [x] Departamento, Provincia y Distrito en una misma fila (editor, vista previa y PDF).
 - [x] Bloque de la empresa más a la izquierda y sin línea horizontal bajo el encabezado (vista previa, editor y PDF).
 - [x] Banda del cliente más arriba sin tocarse con el encabezado y rectángulo de factura más bajo (vista previa, editor y PDF).
+
+## Comprobante: neto y volver
+- [ ] Neto a pagar = monto de la cuota única o suma de cuotas (editor, vista previa y PDF).
+- [ ] Botón «Volver» de la vista previa regresa al modo edición del comprobante.
