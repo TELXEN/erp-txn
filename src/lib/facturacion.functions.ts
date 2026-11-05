@@ -90,7 +90,7 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     return { id: comprobanteId, numero: (comprobante as { id: string; numero: string }).numero };
   });
 
-const editarBorradorSchema = inputSchema.omit({ emitir: true }).extend({ id: z.string().uuid() });
+const editarBorradorSchema = inputSchema.extend({ id: z.string().uuid() });
 
 export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

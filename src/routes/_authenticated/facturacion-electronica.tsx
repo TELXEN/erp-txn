@@ -230,7 +230,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         extra={<div className="flex flex-wrap items-center justify-end gap-2">
           {error && <p className="text-xs text-bad">{error}</p>}
           <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
-          {!editando && <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>}
+          <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>
           <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>
         </div>}
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
