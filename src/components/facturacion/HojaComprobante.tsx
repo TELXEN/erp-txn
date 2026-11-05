@@ -32,7 +32,7 @@ export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
   };
 }
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
+const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", fontStyle: "inherit", lineHeight: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
