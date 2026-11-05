@@ -64,3 +64,4 @@
 - Insumos: public.insumos is the only item row; type views are INSTEAD-OF over it (EPP extras 1:1). Ficha fields live on insumos; approvals/history via aprobar_insumo/ficha_insumo RPCs.
 - Categories and their subcategories use DB A–Z numbering; subcategories restart per category with no manual moves. Item codes remain unique per prefix, parent deletion is blocked when non-empty, and IDs preserve links.
 - Subdirectories have their own AGENTS.md (e.g. src/routes); read it before changing files there.
+- Invoice editor (HojaComprobante) mirrors comprobante-vista: same 794px A4 layout and sizes, scaled with CSS zoom to the window; edit-only controls live in a strip outside the sheet — editor and print stay identical.
