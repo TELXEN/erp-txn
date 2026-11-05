@@ -32,7 +32,7 @@ export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
   };
 }
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", font: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
+const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", fontStyle: "inherit", lineHeight: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
 const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
@@ -114,11 +114,11 @@ export function HojaComprobante(props: {
             <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ background: C.white, border: `1px solid ${C.line}`, borderTop: `4px solid ${C.green}`, borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: "12px 10px", color: C.green }}>
+            <div style={{ background: C.white, border: `2px solid ${C.green}`, borderRadius: 8, padding: "12px 10px", color: C.green, fontSize: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
               <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
-              <div style={{ fontSize: 9, fontWeight: 700, marginTop: 4 }}>RUC: {empresa?.ruc || "—"}</div>
               <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
                 <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 15, fontWeight: 700, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>

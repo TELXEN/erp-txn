@@ -229,3 +229,9 @@
 ## Iconos de la cinta
 - [x] Preliquidaciones: icono FileChartColumn (documento con barras de avance); verificado en pantalla.
 - [x] Mantenimiento: dos llaves de mecánico cruzadas (Logística y Finanzas); verificado en pantalla a 16 px.
+
+## Comprobante: RUC y línea
+- [x] RUC encima de FACTURA ELECTRÓNICA con el mismo tamaño de letra (vista previa, editor y PDF).
+- [x] Quitar la línea horizontal del recuadro del comprobante (vista previa, editor y PDF).
+- [x] Mejorar el borde del recuadro del comprobante (vista previa, editor y PDF).
+- [x] Alinear el dos puntos de DEPARTAMENTO con los demás del comprobante.
