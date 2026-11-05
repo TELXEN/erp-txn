@@ -12,6 +12,7 @@ import { hoy } from "@/lib/format";
 import { nombreConductor, useTransportistas, vencido } from "@/lib/transportistas";
 import { VentanaTransportista } from "@/components/TransportistasPanel";
 import { VentanaPartidasGuia, unidadSunat } from "@/components/facturacion/PartidasGuia";
+import { FechaComprobante } from "@/components/facturacion/FechaComprobante";
 
 export const C = DOC;
 const CARD: CSSProperties = { background: "#ffffff", border: "1px solid #E5E7EB", borderRadius: 8, boxShadow: "0 1px 2px rgba(16,24,40,.06)", padding: 14, textAlign: "left" };
@@ -168,8 +169,8 @@ export function HojaComprobante(props: {
             </>}
           </Bloque>
           <Bloque titulo="">
-            <Linea etiqueta="Emisión"><input type="date" value={form.fecha_emision} onChange={(e) => set("fecha_emision", e.target.value)} style={ed} /></Linea>
-            <Linea etiqueta="Vencimiento"><input type="date" value={form.fecha_vencimiento} onChange={(e) => set("fecha_vencimiento", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="Emisión"><FechaComprobante etiqueta="Fecha de emisión" value={form.fecha_emision} onChange={(v) => set("fecha_emision", v)} style={ed} /></Linea>
+            <Linea etiqueta="Vencimiento"><FechaComprobante etiqueta="Fecha de vencimiento" value={form.fecha_vencimiento} onChange={(v) => set("fecha_vencimiento", v)} style={ed} /></Linea>
             <Linea etiqueta="Moneda"><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={edSel}><option value="PEN">Soles</option><option value="USD">Dólares</option></select></Linea>
             {form.moneda === "USD" && <Linea etiqueta="T. cambio">
               <span style={{ display: "flex", gap: 4 }}>
@@ -185,7 +186,7 @@ export function HojaComprobante(props: {
           <Bloque titulo="TRASLADO">
             <Linea etiqueta="Motivo"><select value={form.guia_motivo} onChange={(e) => set("guia_motivo", e.target.value)} style={edSel}>{MOTIVOS_TRASLADO.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>
             <Linea etiqueta="Modalidad"><select value={form.guia_modalidad} onChange={(e) => set("guia_modalidad", e.target.value)} style={edSel}>{MODALIDADES_TRASLADO.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>
-            <Linea etiqueta="Fecha"><input type="date" value={form.guia_fecha_traslado} onChange={(e) => set("guia_fecha_traslado", e.target.value)} style={ed} /></Linea>
+            <Linea etiqueta="Fecha"><FechaComprobante etiqueta="Fecha de traslado" value={form.guia_fecha_traslado} onChange={(v) => set("guia_fecha_traslado", v)} style={ed} /></Linea>
             <Linea etiqueta="Peso (kg)"><input type="number" step="0.01" value={form.guia_peso} onChange={(e) => set("guia_peso", e.target.value)} style={ed} /></Linea>
             <Linea etiqueta="Bultos"><input type="number" value={form.guia_bultos} onChange={(e) => set("guia_bultos", e.target.value)} style={ed} /></Linea>
           </Bloque>
@@ -268,7 +269,7 @@ export function HojaComprobante(props: {
             <td style={{ padding: 4, width: 110 }}><select value={d.tipo} onChange={(e) => actualizarDoc(i, "tipo", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{TIPOS_DOC_RELACIONADO.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></td>
             <td style={{ padding: 4, width: 70 }}><input value={d.serie} onChange={(e) => actualizarDoc(i, "serie", e.target.value.toUpperCase())} style={cel} /></td>
             <td style={{ padding: 4, width: 100 }}><input value={d.numero} onChange={(e) => actualizarDoc(i, "numero", e.target.value)} style={cel} /></td>
-            <td style={{ padding: 4, width: 110 }}><input type="date" value={d.fecha} onChange={(e) => actualizarDoc(i, "fecha", e.target.value)} style={cel} /></td>
+            <td style={{ padding: 4, width: 110 }}><FechaComprobante etiqueta={`Fecha de documento ${i + 1}`} value={d.fecha} onChange={(v) => actualizarDoc(i, "fecha", v)} style={cel} /></td>
             <td style={{ padding: 4, width: 96 }}><input type="number" step="0.01" value={d.importe} onChange={(e) => actualizarDoc(i, "importe", e.target.value)} style={{ ...cel, textAlign: "right" }} /></td>
             <td style={{ width: 22 }}><button type="button" title="Quitar" onClick={() => setDocs(docs.length === 1 ? [docRelacionadoVacio()] : docs.filter((_, n) => n !== i))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer" }}><Trash2 size={13} /></button></td>
           </tr>)}</tbody>
@@ -328,7 +329,7 @@ export function HojaComprobante(props: {
                     <thead><tr style={{ textAlign: "left", color: C.muted }}><th style={{ padding: "2px 0" }}>Cuota</th><th>Fecha de pago</th><th style={{ textAlign: "right" }}>Importe ({simbolo})</th><th /></tr></thead>
                     <tbody>{cuotas.map((q, i) => <tr key={i}>
                       <td style={{ padding: "2px 0", width: 42 }}>{String(i + 1).padStart(3, "0")}</td>
-                      <td><input type="date" value={q.fecha} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: e.target.value } : c)))} style={cel} /></td>
+                      <td><FechaComprobante etiqueta={`Fecha de cuota ${i + 1}`} value={q.fecha} onChange={(v) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: v } : c)))} style={cel} /></td>
                       <td style={{ width: 96 }}>
                         <span style={{ display: "flex", alignItems: "center", border: `1px solid ${C.line}`, borderRadius: 3, background: C.white, overflow: "hidden" }}>
                           <span style={{ padding: "0 4px", color: C.muted, fontSize: 8.5, borderRight: `1px solid ${C.line}`, background: C.greenSoft, whiteSpace: "nowrap" }}>{simbolo}</span>
