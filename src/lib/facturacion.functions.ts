@@ -109,7 +109,7 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
     if (actualError || !actual) throw new Error("No se encontró el comprobante.");
     if (actual.estado_fiscal !== "Borrador") throw new Error("Solo se pueden editar comprobantes en borrador.");
 
-    const { id, items, cuotas, tipo_comprobante: _tipo, serie: _serie, correlativo_inicial: _corr, ...campos } = data;
+    const { id, items, cuotas, emitir, tipo_comprobante: _tipo, serie: _serie, correlativo_inicial: _corr, ...campos } = data;
     const payloadFiscal = {
       version: "1.0",
       proveedor: null,
@@ -119,9 +119,10 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
       totales: { valorVenta: data.valor_venta, igv: data.igv, total: data.total },
       items,
     };
+    const qrPayload = emitir ? JSON.stringify({ ruc: "", tipo: actual.tipo_comprobante, numero: actual.numero, fecha: data.fecha_emision, igv: data.igv, total: data.total }) : "";
     const { error: updateError } = await supabaseAdmin
       .from("comprobantes_electronicos")
-      .update({ ...campos, payload_fiscal: payloadFiscal, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica" } as never)
+      .update({ ...campos, payload_fiscal: payloadFiscal, estado_fiscal: emitir ? "Emitido - Pendiente SUNAT" : "Borrador", qr_payload: qrPayload, detraccion_estado: data.monto_detraccion > 0 ? "Pendiente" : "No aplica" } as never)
       .eq("id", id);
     if (updateError) throw new Error(updateError.message);
 
