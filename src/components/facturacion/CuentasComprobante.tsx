@@ -1,4 +1,4 @@
-import { cuentasDelComprobante, esDetraccion, prefijoNumeroCuenta, tituloCuenta, type CuentaCpe } from "@/lib/cuentas-comprobante";
+import { cuentasDelComprobante, esDetraccion, tituloCuenta, type CuentaCpe } from "@/lib/cuentas-comprobante";
 
 export {
   cuentaDetraccionDe,
@@ -7,7 +7,6 @@ export {
   esDolar,
   nombreBanco,
   ordenarCuentas,
-  prefijoNumeroCuenta,
   tituloCuenta,
   type CuentaCpe,
 } from "@/lib/cuentas-comprobante";
@@ -18,7 +17,7 @@ export function LineasCuenta({ c, compacto }: { c: CuentaCpe; compacto: boolean 
     <div style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}>
       <div style={{ fontWeight: 700 }}>{tituloCuenta(c)}</div>
       <div style={{ display: "flex", gap: compacto ? 8 : 14, flexWrap: "wrap", minWidth: 0 }}>
-        <span style={{ minWidth: 0 }}>{prefijoNumeroCuenta(c)}{c.numero_cuenta}</span>
+        <span style={{ minWidth: 0 }}>CTA: {c.numero_cuenta}</span>
         {c.cci ? <span style={{ minWidth: 0 }}>CCI: {c.cci}</span> : null}
       </div>
     </div>

@@ -26,9 +26,6 @@ export const nombreBanco = (c: CuentaCpe) => (c.nombre || "")
 /** Rótulo en negrita de la columna: «BCP EN SOLES», «BCP EN DÓLARES» o «CUENTA DE DETRACCIONES». */
 export const tituloCuenta = (c: CuentaCpe) => esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${nombreBanco(c)} EN ${columnaDe(c)}`;
 
-/** Rótulo que precede al número: en detracciones el título ya lo indica, así que el número va solo. */
-export const prefijoNumeroCuenta = (c: CuentaCpe) => (esDetraccion(c) ? "" : "CTA: ");
-
 export const cuentaDetraccionDe = (cuentas: CuentaCpe[]) => cuentas.find(esDetraccion) ?? null;
 
 /** Todas las cuentas; la de detracciones al final. */
