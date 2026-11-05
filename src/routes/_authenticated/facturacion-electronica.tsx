@@ -57,16 +57,6 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipoQ]);
 
-  // Volver desde la vista previa reabre el borrador en modo edición.
-  useEffect(() => {
-    if (!editarQ || editando?.id === editarQ || guardando) return;
-    const x = lista.find((c) => c.id === editarQ);
-    if (!x) return;
-    if (x.estado_fiscal === "Borrador") void editarBorrador(x);
-    else void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: x.tipo_comprobante }, replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editarQ, lista]);
-
   const { data: empresa } = useEmpresa();
   const { data: clientes = [] } = useQuery({ queryKey: ["terceros", "clientes-cpe"], queryFn: async () => { const { data, error } = await supabase.from("terceros").select("id,razon_social,numero_documento,direccion,tipo_documento").eq("es_cliente", true).eq("activo", true).order("razon_social"); if (error) throw error; return data ?? []; } });
   const { data: proyectos = [] } = useQuery({ queryKey: ["proyectos"], queryFn: async () => { const { data, error } = await supabase.from("proyectos").select("id,nombre,codigo").order("nombre"); if (error) throw error; return data ?? []; } });
@@ -90,6 +80,16 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const totalRegimen = docs.reduce((s, d) => s + Number(d.importe || 0), 0);
   const importeRegimen = Number(((totalRegimen * Number(form.regimen_tasa || 0)) / 100).toFixed(2));
   const filtrados = lista.filter((x) => x.tipo_comprobante === pestana && coincide(busqueda, x.numero, TIPOS_COMPROBANTE[x.tipo_comprobante as TipoComprobante], x.estado_fiscal, clientes.find((c) => c.id === x.cliente_id)?.razon_social));
+
+  // Volver desde la vista previa reabre el borrador en modo edición.
+  useEffect(() => {
+    if (!editarQ || editando?.id === editarQ || guardando) return;
+    const x = lista.find((c) => c.id === editarQ);
+    if (!x) return;
+    if (x.estado_fiscal === "Borrador") void editarBorrador(x);
+    else void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: x.tipo_comprobante }, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editarQ, lista]);
 
   if (!puedeVerDinero(rol)) return <SinAcceso />;
 
