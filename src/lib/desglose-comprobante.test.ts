@@ -13,11 +13,7 @@ describe("filasDesglose", () => {
     expect(f[0]?.valor).toBe(0);
     expect(f[2]?.valor).toBe(23728.81);
   });
-  it("agrega DETRACCIÓN o RETENCIÓN antes del TOTAL solo cuando hay monto", () => {
-    const conDet = filasDesglose({ ...base, detraccion: 1038.4 });
-    expect(conDet).toHaveLength(14);
-    expect(conDet[12]).toEqual({ etiqueta: "DETRACCIÓN", valor: 1038.4 });
-    expect(conDet[13]?.etiqueta).toBe("TOTAL");
+  it("agrega RETENCIÓN antes del TOTAL solo cuando hay monto", () => {
     const conRet = filasDesglose({ ...base, retencion: 840 });
     expect(conRet[12]?.etiqueta).toBe("RETENCIÓN");
     expect(filasDesglose(base).some((x) => x.etiqueta === "DETRACCIÓN" || x.etiqueta === "RETENCIÓN")).toBe(false);

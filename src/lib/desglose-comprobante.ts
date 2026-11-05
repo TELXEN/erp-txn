@@ -17,7 +17,6 @@ export function filasDesglose(m: MontosDesglose): FilaDesglose[] {
     { etiqueta: "ISC", valor: m.isc },
     { etiqueta: "IGV", valor: m.igv },
     { etiqueta: "OTROS CARGOS", valor: m.otrosCargos },
-    ...(m.detraccion ? [{ etiqueta: "DETRACCIÓN", valor: m.detraccion }] : []),
     ...(m.retencion ? [{ etiqueta: "RETENCIÓN", valor: m.retencion }] : []),
     { etiqueta: "TOTAL", valor: m.total, total: true },
   ];
