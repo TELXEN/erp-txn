@@ -1752,7 +1752,10 @@ export type Database = {
           aplica_igv: boolean
           atencion: string
           cliente: string
+          cliente_departamento: string
+          cliente_distrito: string
           cliente_id: string | null
+          cliente_provincia: string
           codigo: string | null
           condicion_venta: string | null
           condiciones: string
@@ -1790,7 +1793,10 @@ export type Database = {
           aplica_igv?: boolean
           atencion?: string
           cliente?: string
+          cliente_departamento?: string
+          cliente_distrito?: string
           cliente_id?: string | null
+          cliente_provincia?: string
           codigo?: string | null
           condicion_venta?: string | null
           condiciones?: string
@@ -1828,7 +1834,10 @@ export type Database = {
           aplica_igv?: boolean
           atencion?: string
           cliente?: string
+          cliente_departamento?: string
+          cliente_distrito?: string
           cliente_id?: string | null
+          cliente_provincia?: string
           codigo?: string | null
           condicion_venta?: string | null
           condiciones?: string
