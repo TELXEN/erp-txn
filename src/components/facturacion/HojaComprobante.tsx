@@ -170,6 +170,7 @@ export function HojaComprobante(props: {
                 <button type="button" onClick={() => void traerTipoCambio()} disabled={buscando} title="Tipo de cambio oficial del día" style={{ border: `1px solid ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "0 6px", cursor: "pointer" }}><Search size={12} /></button>
               </span>
             </Linea>}
+            <Linea etiqueta="IGV"><select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} style={edSel}><option value="18">18%</option><option value="10.5">10.5%</option><option value="10">10%</option></select></Linea>
           </Bloque>
         </div>
         {(() => {
@@ -285,7 +286,7 @@ export function HojaComprobante(props: {
           <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10 }}>
             {(() => {
               return <>
-                <div style={{ display: "grid", gap: 3 }}>{filasDesglose({ operacionTipo: form.operacion_tipo, valorVenta: montos.valorVenta, descuentos: montos.descuentos, anticipo: montos.anticipo, isc: montos.isc, icbper: montos.icbper, igv: montos.igv, otrosCargos: montos.otrosCargos, total: montos.total }).map((f) => { const col = f.total ? C.totalDesglose : C.gris; return <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}><div style={{ background: col, color: C.white, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div><div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: f.total ? col : C.ink }}>{money(f.valor)}</div></div>; })}</div>
+                <div style={{ display: "grid", gap: 3 }}>{filasDesglose({ operacionTipo: form.operacion_tipo, valorVenta: montos.valorVenta, descuentos: montos.descuentos, anticipo: montos.anticipo, isc: montos.isc, icbper: montos.icbper, igv: montos.igv, otrosCargos: montos.otrosCargos, total: montos.total, detraccion: form.tipo_tributario === "detraccion" ? (form.moneda === "USD" ? (montos.detraccionUsd ?? 0) : montos.montoDetraccion) : 0, retencion: form.tipo_tributario === "retencion" ? (form.moneda === "USD" ? (montos.retencionUsd ?? 0) : montos.montoRetencion) : 0 }).map((f) => { const col = f.total ? C.totalDesglose : C.gris; return <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}><div style={{ background: f.total ? col : "transparent", color: f.total ? C.white : C.ink, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div><div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: f.total ? col : C.ink }}>{money(f.valor)}</div></div>; })}</div>
               </>;
             })()}
           </div>

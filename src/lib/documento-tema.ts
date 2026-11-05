@@ -22,7 +22,7 @@ export const DOC = {
   /** Gris de encabezado de tabla, recuadro de datos y píldoras del desglose de la factura. */
   gris: "#A9A9A9",
   /** Fila TOTAL del desglose de la factura. */
-  totalDesglose: "#1AB0D8",
+  totalDesglose: "#107C41",
 } as const;
 
 /** Paleta monocromática para impresión/PDF: negro puro, grises neutros, sin acentos de color. */

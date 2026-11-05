@@ -262,3 +262,4 @@
 - [x] Encabezado de factura: sin rótulos CLIENTE/PROYECTO, fila PROYECTO (solo nombre), OC/guía arriba, interlineado 1.15, mayúsculas
 - [x] Observaciones a la izquierda del desglose de precios
 - [x] Factura: tabla gris, recuadro de datos, desglose en píldoras y bloque de detracción
+- [x] Factura: selector IGV 10/10.5/18 bajo Moneda (TC en medio si USD), desglose sin fondo gris, fila DETRACCIÓN/RETENCIÓN, TOTAL verde Excel #107C41

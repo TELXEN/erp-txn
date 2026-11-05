@@ -1,5 +1,5 @@
 /** Filas del desglose de la factura (editor, vista previa y PDF usan la misma lista). */
-export type MontosDesglose = { operacionTipo: string; valorVenta: number; descuentos: number; anticipo: number; isc: number; icbper: number; igv: number; otrosCargos: number; total: number };
+export type MontosDesglose = { operacionTipo: string; valorVenta: number; descuentos: number; anticipo: number; isc: number; icbper: number; igv: number; otrosCargos: number; total: number; detraccion?: number; retencion?: number };
 export type FilaDesglose = { etiqueta: string; valor: number; total?: boolean };
 
 export function filasDesglose(m: MontosDesglose): FilaDesglose[] {
@@ -17,6 +17,8 @@ export function filasDesglose(m: MontosDesglose): FilaDesglose[] {
     { etiqueta: "ISC", valor: m.isc },
     { etiqueta: "IGV", valor: m.igv },
     { etiqueta: "OTROS CARGOS", valor: m.otrosCargos },
+    ...(m.detraccion ? [{ etiqueta: "DETRACCIÓN", valor: m.detraccion }] : []),
+    ...(m.retencion ? [{ etiqueta: "RETENCIÓN", valor: m.retencion }] : []),
     { etiqueta: "TOTAL", valor: m.total, total: true },
   ];
 }
