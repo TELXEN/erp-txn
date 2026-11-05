@@ -242,3 +242,4 @@
 ## Comprobante: neto y volver
 - [x] Neto a pagar = monto de la cuota única o suma de cuotas (editor, vista previa y PDF); verificado con detracción 4%: neto = S/ 25,960.00 = cuota.
 - [x] Botón «Volver» de la vista previa regresa al modo edición del comprobante (parámetro editar en la URL); verificado ida y vuelta.
+- [x] Cuentas bancarias del comprobante: texto un punto más grande, formato «AHORRO EN SOLES» + N° + CCI por cuenta, y cuenta de detracciones incluida al final (vista previa, editor y PDF); verificado en pantalla y en el PDF descargado.
