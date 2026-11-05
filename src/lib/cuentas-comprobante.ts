@@ -1,8 +1,8 @@
 /**
  * Cuentas bancarias que se imprimen en los comprobantes (factura, boleta, notas).
  * Una sola cuenta por columna, en este orden: principal en soles, la de dólares
- * y la de detracciones. Los rótulos salen «BCP EN SOLES», «BCP EN DÓLARES» y,
- * en detracciones, el banco arriba y «CUENTA DE DETRACCIONES» debajo.
+ * y la de detracciones. Los rótulos salen «BCP EN SOLES», «BCP EN DÓLARES» y
+ * «CUENTA DE DETRACCIONES», sin nombre de banco, con el número debajo.
  */
 export type CuentaCpe = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
 
@@ -23,11 +23,11 @@ export const nombreBanco = (c: CuentaCpe) => (c.nombre || "")
   .replace(/[\s-]+$/g, "")
   .trim() || "SIN BANCO";
 
-/** Rótulo en negrita de la columna: «BCP EN SOLES», «BCP EN DÓLARES» o el banco en detracciones. */
-export const tituloCuenta = (c: CuentaCpe) => esDetraccion(c) ? nombreBanco(c) : `${nombreBanco(c)} EN ${columnaDe(c)}`;
+/** Rótulo en negrita de la columna: «BCP EN SOLES», «BCP EN DÓLARES» o «CUENTA DE DETRACCIONES». */
+export const tituloCuenta = (c: CuentaCpe) => esDetraccion(c) ? "CUENTA DE DETRACCIONES" : `${nombreBanco(c)} EN ${columnaDe(c)}`;
 
-/** Segunda línea, solo en la columna de detracciones. */
-export const subtituloCuenta = (c: CuentaCpe) => (esDetraccion(c) ? "CUENTA DE DETRACCIONES" : "");
+/** Rótulo que precede al número: en detracciones el título ya lo indica, así que el número va solo. */
+export const prefijoNumeroCuenta = (c: CuentaCpe) => (esDetraccion(c) ? "" : "CTA: ");
 
 export const cuentaDetraccionDe = (cuentas: CuentaCpe[]) => cuentas.find(esDetraccion) ?? null;
 

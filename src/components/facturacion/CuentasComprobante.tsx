@@ -1,4 +1,4 @@
-import { cuentasDelComprobante, esDetraccion, subtituloCuenta, tituloCuenta, type CuentaCpe } from "@/lib/cuentas-comprobante";
+import { cuentasDelComprobante, esDetraccion, prefijoNumeroCuenta, tituloCuenta, type CuentaCpe } from "@/lib/cuentas-comprobante";
 
 export {
   cuentaDetraccionDe,
@@ -7,7 +7,7 @@ export {
   esDolar,
   nombreBanco,
   ordenarCuentas,
-  subtituloCuenta,
+  prefijoNumeroCuenta,
   tituloCuenta,
   type CuentaCpe,
 } from "@/lib/cuentas-comprobante";
@@ -17,9 +17,8 @@ export function LineasCuenta({ c, compacto }: { c: CuentaCpe; compacto: boolean 
   return (
     <div style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}>
       <div style={{ fontWeight: 700 }}>{tituloCuenta(c)}</div>
-      {subtituloCuenta(c) ? <div>{subtituloCuenta(c)}</div> : null}
       <div style={{ display: "flex", gap: compacto ? 8 : 14, flexWrap: "wrap", minWidth: 0 }}>
-        <span style={{ minWidth: 0 }}>CTA: {c.numero_cuenta}</span>
+        <span style={{ minWidth: 0 }}>{prefijoNumeroCuenta(c)}{c.numero_cuenta}</span>
         {c.cci ? <span style={{ minWidth: 0 }}>CCI: {c.cci}</span> : null}
       </div>
     </div>
@@ -32,8 +31,8 @@ export function CuentasComprobante({ cuentas, tipo = "todas", compacto = false }
   if (!visibles.length) return null;
   const titulo = tipo === "detraccion" ? "CUENTA DE DETRACCIONES" : "CUENTAS BANCARIAS";
   return (
-    <div style={{ marginTop: compacto ? 6 : 14, borderTop: "1px solid #E5E7EB", paddingTop: compacto ? 4 : 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: compacto ? 9 : 11, color: "#374151", minWidth: 0, textAlign: "left" }}>
-      <span style={{ fontFamily: "var(--font-global)", fontWeight: 700, fontSize: compacto ? 9 : 11, letterSpacing: 0 }}>{titulo}</span>
+    <div style={{ marginTop: compacto ? 6 : 14, borderTop: "1px solid #E5E7EB", paddingTop: compacto ? 4 : 7, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: compacto ? 10 : 11, color: "#374151", minWidth: 0, textAlign: "left" }}>
+      <span style={{ fontFamily: "var(--font-global)", fontWeight: 700, fontSize: compacto ? 10 : 11, letterSpacing: 0 }}>{titulo}</span>
       <div style={{ display: "grid", gridTemplateColumns: `repeat(${visibles.length}, 1fr)`, columnGap: 14, marginTop: compacto ? 2 : 4 }}>
         {visibles.map((cuenta, i) => <div key={i} style={{ minWidth: 0 }}><LineasCuenta c={cuenta} compacto={compacto} /></div>)}
       </div>
