@@ -245,3 +245,5 @@
 - [x] Cuentas bancarias del comprobante: texto un punto más grande, formato «AHORRO EN SOLES» + N° + CCI por cuenta, y cuenta de detracciones incluida al final (vista previa, editor y PDF); verificado en pantalla y en el PDF descargado.
 
 - [x] Cuentas bancarias del comprobante: «CTA:» y «CCI:» en la misma fila y quitar la columna de dólares; editor, vista previa y PDF verificados.
+
+- [x] Cuentas del comprobante en tres columnas (BCP EN SOLES principal, BCP EN DÓLARES y detracciones), cuenta auxiliar fuera; editor, vista previa y PDF verificados.
