@@ -261,3 +261,4 @@
 - [x] Factura por pago anticipado: se ocultan COMPROBANTE e IMPORTE del anticipo (solo Modalidad); al elegir «Factura que resta anticipos» vuelven; verificado en el navegador y con prueba de datos guardados.
 - [x] Encabezado de factura: sin rótulos CLIENTE/PROYECTO, fila PROYECTO (solo nombre), OC/guía arriba, interlineado 1.15, mayúsculas
 - [x] Observaciones a la izquierda del desglose de precios
+- [x] Factura: tabla gris, recuadro de datos, desglose en píldoras y bloque de detracción

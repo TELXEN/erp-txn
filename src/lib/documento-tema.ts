@@ -19,6 +19,10 @@ export const DOC = {
   accent: "#F1C40F",
   accentSoft: "#FEF9E7",
   accentText: "#7D6608",
+  /** Gris de encabezado de tabla, recuadro de datos y píldoras del desglose de la factura. */
+  gris: "#A9A9A9",
+  /** Fila TOTAL del desglose de la factura. */
+  totalDesglose: "#1AB0D8",
 } as const;
 
 /** Paleta monocromática para impresión/PDF: negro puro, grises neutros, sin acentos de color. */
