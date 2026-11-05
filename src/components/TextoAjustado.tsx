@@ -8,7 +8,7 @@ import type { CSSProperties } from "react";
  * igual que las etiquetas de la cinta; nunca estima por número de caracteres.
  */
 export function TextoAjustado({ texto, basePt = 8.5, minimoPt = 5.5, className, style }: {
-  texto?: string | null;
+  texto?: string | null | undefined;
   basePt?: number;
   minimoPt?: number;
   className?: string;
