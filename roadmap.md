@@ -235,3 +235,4 @@
 - [x] Quitar la línea horizontal del recuadro del comprobante (vista previa, editor y PDF).
 - [x] Mejorar el borde del recuadro del comprobante (vista previa, editor y PDF).
 - [x] Alinear el dos puntos de DEPARTAMENTO con los demás del comprobante.
+- [x] Departamento, Provincia y Distrito en una misma fila (editor, vista previa y PDF).
