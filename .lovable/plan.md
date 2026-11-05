@@ -3,6 +3,8 @@
 La vista de impresión no se toca. El editor se ajusta para verse como ella.
 
 ## Qué cambia en el editor
+- El editor ya no es una hoja A4 pequeña: ocupa todo el ancho de la ventana y escala la hoja en proporción, así el diseño se mantiene igual a la impresión pero más grande.
+- La letra crece en la misma proporción, con un mínimo de unos 13 px para que se lea bien. La impresión y el PDF no cambian de tamaño.
 - Las secciones van en el mismo orden y lugar: encabezado con logo y recuadro de FACTURA ELECTRÓNICA, datos del cliente, recuadro de 5 datos, tabla de ítems, Observaciones y detracción a la izquierda con el desglose a la derecha, Forma de pago y régimen, y Cuentas bancarias.
 - Se usan los mismos tamaños de letra, márgenes, anchos de columna, bordes y colores.
 - Los campos editables quedan integrados en la hoja: sin caja ni sombra, con un subrayado tenue solo al pasar el cursor o al escribir. Así el texto queda donde aparece al imprimir.
@@ -15,4 +17,5 @@ La vista de impresión no se toca. El editor se ajusta para verse como ella.
 ## Detalles técnicos
 - Solo se modifica `HojaComprobante.tsx`, tomando como referencia los estilos de `comprobante-vista.tsx` (mismas constantes de `documento-tema.ts`). No se cambia la lógica de cálculo ni el guardado.
 - Se usa un estilo base común para los campos (`campoHoja`: transparent, border 0, font inherit) en lugar de los estilos de casilla actuales.
-- Se verifica con Playwright en la factura de prueba F001-00000006.
+- La hoja del editor se mide en el ancho disponible (ResizeObserver) y aplica un factor de escala a tamaños y espaciados mediante una variable CSS. No se usa zoom de imagen, así los campos siguen nítidos y editables.
+- Se verifica con Playwright, con el ancho actual de 1378 px, en la factura de prueba F001-00000006.
