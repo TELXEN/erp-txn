@@ -806,6 +806,13 @@
       "when": 1793769064469,
       "tag": "0114_cotizacion_elaborado_por",
       "breakpoints": true
+    },
+    {
+      "idx": 115,
+      "version": "7",
+      "when": 1793838303407,
+      "tag": "0115_cliente_ubigeo_comprobantes",
+      "breakpoints": true
     }
   ]
 }

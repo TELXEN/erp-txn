@@ -1,0 +1,3 @@
+ALTER TABLE public.comprobantes_electronicos ADD COLUMN IF NOT EXISTS cliente_departamento text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS cliente_provincia text NOT NULL DEFAULT '', ADD COLUMN IF NOT EXISTS cliente_distrito text NOT NULL DEFAULT '';
+UPDATE public.comprobantes_electronicos SET cliente_departamento = cliente_ciudad WHERE coalesce(cliente_ciudad,'') <> '' AND cliente_departamento = '';
+COMMENT ON COLUMN public.comprobantes_electronicos.cliente_ciudad IS 'DEPRECATED: replaced by cliente_departamento';

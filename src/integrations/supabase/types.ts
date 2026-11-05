@@ -1066,10 +1066,13 @@ export type Database = {
           cdr_url: string
           cliente_ciudad: string
           cliente_condicion_sunat: string
+          cliente_departamento: string
           cliente_direccion: string
+          cliente_distrito: string
           cliente_estado_sunat: string
           cliente_id: string | null
           cliente_numero_documento: string
+          cliente_provincia: string
           cliente_razon_social: string
           codigo_spot: string
           comprobante_referencia_id: string | null
@@ -1139,10 +1142,13 @@ export type Database = {
           cdr_url?: string
           cliente_ciudad?: string
           cliente_condicion_sunat?: string
+          cliente_departamento?: string
           cliente_direccion?: string
+          cliente_distrito?: string
           cliente_estado_sunat?: string
           cliente_id?: string | null
           cliente_numero_documento?: string
+          cliente_provincia?: string
           cliente_razon_social?: string
           codigo_spot?: string
           comprobante_referencia_id?: string | null
@@ -1212,10 +1218,13 @@ export type Database = {
           cdr_url?: string
           cliente_ciudad?: string
           cliente_condicion_sunat?: string
+          cliente_departamento?: string
           cliente_direccion?: string
+          cliente_distrito?: string
           cliente_estado_sunat?: string
           cliente_id?: string | null
           cliente_numero_documento?: string
+          cliente_provincia?: string
           cliente_razon_social?: string
           codigo_spot?: string
           comprobante_referencia_id?: string | null
