@@ -105,27 +105,27 @@ export function HojaComprobante(props: {
   return (
     <div className="cpe-editor-canvas" style={{ overflowX: "auto", paddingBottom: 18 }}>
       <section className="cpe-editor-sheet" style={{ width: "100%", maxWidth: 1500, minWidth: 980, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 12.5, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
-        <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6, color: C.green }}>
+        <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6, color: "#000" }}>
           <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "flex-start" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 92, maxHeight: 54 }} /> : <div style={{ width: 52, height: 52, borderRadius: 9, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
           <div style={{ flex: 1, minHeight: 62, textAlign: "left", paddingLeft: 4, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <b style={{ fontSize: 15, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
-            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
-            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.direccion || "—"}</div>
-            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
+            <b style={{ fontSize: 13, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 7, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 7.5, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.direccion || "—"}</div>
+            <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 7.5, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ background: C.white, border: `2px solid ${C.green}`, borderRadius: 8, padding: "5px 10px", color: C.green, fontSize: 12, lineHeight: 1.15 }}>
-              <div style={{ fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
+            <div style={{ background: C.white, border: `1px solid ${"#000"}`, borderRadius: 8, padding: "10px 10px", color: "#000", fontSize: 12, lineHeight: 1.15 }}>
+              <div style={{ fontSize: 10, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
               <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
               </select>
               <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", marginTop: 3 }}>
-                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 15, fontWeight: 700, borderBottom: "none", textAlign: "right" }} />
+                <input value={form.serie} disabled={bloqueado} onChange={(e) => set("serie", e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4))} list="cpe-series" title="Serie editable (4 caracteres)" style={{ ...ed, width: 52, fontSize: 13, fontWeight: 700, borderBottom: "none", textAlign: "right" }} />
                 <datalist id="cpe-series">{series.filter((s) => s.tipo_comprobante === tipo).map((s) => <option key={s.id} value={s.serie} />)}</datalist>
-                <span style={{ fontSize: 15, fontWeight: 700 }}>-</span>
+                <span style={{ fontSize: 13, fontWeight: 700 }}>-</span>
                 {bloqueado
-                  ? <span style={{ fontSize: 15, fontWeight: 700 }}>{numeroPreview}</span>
-                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 110, fontSize: 15, fontWeight: 700, borderBottom: "none", textAlign: "left" }} />}
+                  ? <span style={{ fontSize: 13, fontWeight: 700 }}>{numeroPreview}</span>
+                  : <input value={form.correlativo_inicial} onChange={(e) => set("correlativo_inicial", e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder="AUTOMÁTICO" title="Correlativo editable: si lo defines, la numeración continúa desde aquí" style={{ ...ed, width: 110, fontSize: 13, fontWeight: 700, borderBottom: "none", textAlign: "left" }} />}
               </div>
             </div>
             <div style={{ alignSelf: "center", marginTop: 6, fontSize: 8, fontWeight: 700, letterSpacing: ".05em", padding: "2px 10px", borderRadius: 999, background: "#FEF9E7", color: "#7D6608", border: `1px solid ${C.accent}` }}>{etiquetaTipo}</div>
