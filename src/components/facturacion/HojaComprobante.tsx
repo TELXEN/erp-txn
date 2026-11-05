@@ -38,7 +38,7 @@ const edSel: CSSProperties = { ...ed, cursor: "pointer" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
 function Bloque({ titulo, children, style }: { titulo: string; children: ReactNode; style?: CSSProperties }) {
-  return <div style={{ ...style }}><span style={{ fontSize: 9, color: C.green, fontFamily: "var(--font-global)", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase" }}>{titulo}</span><div style={{ marginTop: 5, display: "grid", gap: 4 }}>{children}</div></div>;
+  return <div style={{ ...style }}>{titulo && <span style={{ fontSize: 9, color: C.green, fontFamily: "var(--font-global)", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase" }}>{titulo}</span>}<div style={{ marginTop: titulo ? 5 : 0, display: "grid", gap: 4 }}>{children}</div></div>;
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
@@ -139,8 +139,8 @@ export function HojaComprobante(props: {
           </div>
         </header>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, ...CARD, background: C.soft, borderLeft: `3px solid ${C.accent}`, marginTop: 8, fontSize: 10, textAlign: "left" }}>
-          <Bloque titulo={tipo === "09" ? "DESTINATARIO" : "CLIENTE"}>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr .8fr", gap: 16, ...CARD, background: C.soft, borderLeft: `3px solid ${C.accent}`, marginTop: 8, fontSize: 10, textAlign: "left", textTransform: "uppercase", lineHeight: 1.15 }}>
+          <Bloque titulo="">
             <Linea etiqueta="RUC / DNI">
               <span style={{ display: "flex", gap: 4 }}>
                 <input value={form.cliente_numero_documento} onChange={(e) => set("cliente_numero_documento", e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void buscarCliente(); } }} placeholder="20601234567" style={ed} />
@@ -150,16 +150,10 @@ export function HojaComprobante(props: {
             <Linea etiqueta="Nombre"><input value={form.cliente_razon_social} onChange={(e) => set("cliente_razon_social", e.target.value)} placeholder="Razón social del cliente" style={{ ...ed, fontWeight: 700 }} /></Linea>
             <Linea etiqueta="Dirección"><input value={form.cliente_direccion} onChange={(e) => set("cliente_direccion", e.target.value)} placeholder="Dirección fiscal" style={ed} /></Linea>
             <Linea etiqueta="Departamento"><div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr auto 1fr", gap: 4, alignItems: "center" }}><input value={form.cliente_departamento} onChange={(e) => set("cliente_departamento", e.target.value)} placeholder="Lima" style={ed} /><b>Provincia</b><input value={form.cliente_provincia} onChange={(e) => set("cliente_provincia", e.target.value)} placeholder="Lima" style={ed} /><b>Distrito</b><input value={form.cliente_distrito} onChange={(e) => set("cliente_distrito", e.target.value)} placeholder="Miraflores" style={ed} /></div></Linea>
-            <Linea etiqueta="Registrado">
-              <select value={form.cliente_id} onChange={(e) => { const c = clientes.find((x) => x.id === e.target.value); setForm({ ...form, cliente_id: e.target.value, cliente_numero_documento: c?.numero_documento ?? form.cliente_numero_documento, cliente_razon_social: c?.razon_social ?? form.cliente_razon_social, cliente_direccion: c?.direccion ?? form.cliente_direccion }); }} style={edSel}>
-                <option value="">Cliente nuevo / no registrado</option>
-                {clientes.map((c) => <option key={c.id} value={c.id}>{c.razon_social}</option>)}
-              </select>
-            </Linea>
+            <Linea etiqueta="Proyecto"><select value={form.proyecto_id} onChange={(e) => set("proyecto_id", e.target.value)} style={edSel}><option value="">SIN PROYECTO</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></Linea>
             {(form.cliente_estado_sunat || form.cliente_condicion_sunat) && <div style={{ fontSize: 8.5, fontWeight: 700, color: form.cliente_condicion_sunat === "HABIDO" ? C.green : C.muted }}>{form.cliente_estado_sunat} · {form.cliente_condicion_sunat}</div>}
           </Bloque>
-          <Bloque titulo="PROYECTO / REFERENCIA">
-            <Linea etiqueta="Proyecto"><select value={form.proyecto_id} onChange={(e) => set("proyecto_id", e.target.value)} style={edSel}><option value="">Sin proyecto</option>{proyectos.map((p) => <option key={p.id} value={p.id}>{p.codigo} · {p.nombre}</option>)}</select></Linea>
+          <Bloque titulo="">
             <Linea etiqueta="O. de compra"><input value={form.orden_compra} onChange={(e) => set("orden_compra", e.target.value)} style={ed} /></Linea>
             {tipo !== "09" && <Linea etiqueta="Guía de remisión"><input value={form.guia_remision_numero} onChange={(e) => set("guia_remision_numero", e.target.value.toUpperCase())} placeholder="T001-00000045" style={ed} /></Linea>}
             {(tipo === "07" || tipo === "08") && <>
