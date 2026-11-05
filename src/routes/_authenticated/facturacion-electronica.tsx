@@ -179,7 +179,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
 
   const tiposVisibles = esGuias ? PESTANAS_CPE.filter((p) => p.tipo === "09") : PESTANAS_CPE;
   const ETIQUETA_BOTON: Record<string, string> = { "01": "Crear Factura", "03": "Crear Boleta", "07": "Crear Notas de Crédito", "08": "Crear Notas de Débito", "09": "Crear Guía de Remisión", "20": "Crear Retenciones", "40": "Crear Percepciones", RA: "Nueva comunicación de baja" };
-  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{abierto ? <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton> : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Crear Guía de Remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
+  return <><Encabezado titulo={esGuias ? "Guías de Remisión" : "Facturación Electrónica"} subtitulo={esGuias ? "Logística · guías de remisión remitente y traslados" : "Comercial · comprobantes, estados SUNAT y cobranza"} acciones={<div className="flex items-center gap-2">{abierto ? null : <Boton onClick={() => abrirNuevo(pestana)}><FilePlus2 size={14} />{esGuias ? "Crear Guía de Remisión" : ETIQUETA_BOTON[pestana] ?? "Nuevo comprobante"}</Boton>}</div>} />
     <div className={`flex flex-col ${abierto ? "md:h-[calc(100dvh-3rem)] md:-my-3 md:min-h-0 md:overflow-hidden" : ""}`}>
 
 
@@ -227,19 +227,19 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     {abierto && <div className="-mx-3 flex flex-1 flex-col bg-background sm:-mx-4 md:min-h-0">
       <Panel
         titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacionOrigen ? `Facturar preliquidación ${pl?.p.codigo ?? ""}` : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
-        extra={<Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>}
+        extra={<div className="flex flex-wrap items-center justify-end gap-2">
+          {error && <p className="text-xs text-bad">{error}</p>}
+          <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
+          {!editando && <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>}
+          <Boton variante="linea" type="button" onClick={cerrar}>Cancelar</Boton>
+          <Boton variante="linea" onClick={cerrar}>Cerrar editor</Boton>
+        </div>}
         className="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
       <div className="min-h-0 flex-1 overflow-y-auto bg-muted/60 px-4 py-2 sm:px-6">
         {preliquidacionOrigen && cargandoPl && <p role="status" className="py-2 text-sm text-muted-foreground">Cargando preliquidación…</p>}
         {errorPl && <p role="alert" className="py-2 text-sm text-bad">No se pudo cargar la preliquidación: {errorPl.message}</p>}
         <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
-      </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line bg-card p-3">
-        <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
-        {!editando && <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>}
-        <Boton variante="linea" type="button" onClick={cerrar}>Cancelar</Boton>
-        {error && <p className="text-xs text-bad">{error}</p>}
       </div>
       </Panel>
     </div>}
