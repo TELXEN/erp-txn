@@ -65,6 +65,9 @@ export type ResultadoDocumento = {
   numero: string;
   razonSocial: string;
   direccion: string;
+  departamento: string;
+  provincia: string;
+  distrito: string;
   estado: string;
   condicion: string;
   mensaje: string;
@@ -76,7 +79,7 @@ export const consultarDocumentoSunat = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ numero: z.string().regex(/^(\d{8}|\d{11})$/, "Ingresa 8 dígitos (DNI) u 11 dígitos (RUC).") }).parse(data))
   .handler(async ({ data }): Promise<ResultadoDocumento> => {
     const esRuc = data.numero.length === 11;
-    const vacio: ResultadoDocumento = { configurado: true, encontrado: false, tipoDocumento: esRuc ? "RUC" : "DNI", numero: data.numero, razonSocial: "", direccion: "", estado: "", condicion: "", mensaje: "" };
+    const vacio: ResultadoDocumento = { configurado: true, encontrado: false, tipoDocumento: esRuc ? "RUC" : "DNI", numero: data.numero, razonSocial: "", direccion: "", departamento: "", provincia: "", distrito: "", estado: "", condicion: "", mensaje: "" };
     const token = await obtenerToken();
     if (!token) return { ...vacio, configurado: false, mensaje: "La consulta automática aún no está activada. Escribe los datos del cliente manualmente." };
     try {
@@ -89,8 +92,8 @@ export const consultarDocumentoSunat = createServerFn({ method: "POST" })
       const nombre = esRuc
         ? txt("razon_social") || txt("nombre_o_razon_social")
         : [txt("first_name"), txt("first_last_name"), txt("second_last_name")].filter(Boolean).join(" ") || txt("full_name");
-      const direccion = [txt("direccion") || txt("address"), txt("distrito"), txt("provincia"), txt("departamento")].filter(Boolean).join(" - ");
-      return { ...vacio, encontrado: Boolean(nombre), razonSocial: nombre.toUpperCase(), direccion: direccion.toUpperCase(), estado: (txt("estado") || txt("status")).toUpperCase(), condicion: (txt("condicion") || txt("condition")).toUpperCase(), mensaje: nombre ? "" : "El servicio no devolvió datos para ese número." };
+      const direccion = (txt("direccion") || txt("address")).trim();
+      return { ...vacio, encontrado: Boolean(nombre), razonSocial: nombre.toUpperCase(), direccion: direccion.toUpperCase(), departamento: txt("departamento").toUpperCase(), provincia: txt("provincia").toUpperCase(), distrito: txt("distrito").toUpperCase(), estado: (txt("estado") || txt("status")).toUpperCase(), condicion: (txt("condicion") || txt("condition")).toUpperCase(), mensaje: nombre ? "" : "El servicio no devolvió datos para ese número." };
     } catch {
       return { ...vacio, mensaje: "No se pudo conectar con el servicio de consulta." };
     }
