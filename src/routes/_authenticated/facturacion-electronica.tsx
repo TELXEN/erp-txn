@@ -165,7 +165,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         items: validos.map((x) => { const m = calcularItem(x, form.operacion_tipo, Number(form.igv_tasa || 18)); return { codigo: x.codigo, descripcion: x.descripcion.trim(), unidad_sunat: x.unidad_sunat, ...m, valor_unitario: m.valorUnitario, afectacion_igv: form.operacion_tipo === "gravada" ? ("10" as const) : form.operacion_tipo === "exonerada" ? ("20" as const) : ("30" as const) }; }),
         cuotas: cuotasPayload,
       };
-      const res = editando ? await actualizar({ data: { ...payload, id: editando.id } }) : await crear({ data: { ...payload, emitir } });
+      const res = editando ? await actualizar({ data: { ...payload, emitir, id: editando.id } }) : await crear({ data: { ...payload, emitir } });
       qc.invalidateQueries(); cerrar();
       navigate({ to: "/comprobante-vista", search: { id: res.id } });
     } catch (e) { setError(e instanceof Error ? e.message : "No se pudo guardar el comprobante."); } finally { setGuardando(false); }
