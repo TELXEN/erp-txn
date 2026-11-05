@@ -263,3 +263,5 @@
 - [x] Observaciones a la izquierda del desglose de precios
 - [x] Factura: tabla gris, recuadro de datos, desglose en píldoras y bloque de detracción
 - [x] Factura: selector IGV 10/10.5/18 bajo Moneda (TC en medio si USD), desglose sin fondo gris, fila DETRACCIÓN/RETENCIÓN, TOTAL verde Excel #107C41
+
+- [x] Editor de factura igual a la vista de impresión: hoja A4 escalada a todo el ancho, campos integrados, descripción que crece.
