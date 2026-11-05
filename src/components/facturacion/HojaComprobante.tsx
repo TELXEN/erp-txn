@@ -114,7 +114,7 @@ export function HojaComprobante(props: {
             <div style={{ fontFamily: "var(--font-global)", fontWeight: 300, fontSize: 8.5, marginTop: 2, lineHeight: 1.15, textAlign: "left" }}>{empresa?.web || "—"}</div>
           </div>
           <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ background: C.white, border: `2px solid ${C.green}`, borderRadius: 8, padding: "6px 10px", color: C.green, fontSize: 12 }}>
+            <div style={{ background: C.white, border: `2px solid ${C.green}`, borderRadius: 8, padding: "5px 10px", color: C.green, fontSize: 12, lineHeight: 1.15 }}>
               <div style={{ fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
               <select value={tipo} disabled={bloqueado} onChange={(e) => onTipoChange(e.target.value as TipoComprobante)} title="Tipo de comprobante" style={{ ...edSel, textAlign: "center", fontFamily: "var(--font-global)", fontSize: 12, fontWeight: 700, borderBottom: "none", whiteSpace: "nowrap" }}>
                 {tipos.map((p) => <option key={p.tipo} value={p.tipo}>{p.corto}</option>)}
