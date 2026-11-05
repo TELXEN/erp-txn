@@ -26,9 +26,9 @@ Aplica igual en el editor, la vista previa/impresión y el PDF descargado.
 
 ## 6. Bloque de detracción (imagen 3)
 - Solo cuando la factura tiene detracción: bloque de dos columnas (rótulo en negrita a la izquierda, valor a la derecha), texto gris oscuro, sin recuadro:
-  - Cta. Cte. Banco de la Nación — número de la cuenta de detracciones (sin guiones).
+  - Cta. Cte. Banco de la Nación — número de la cuenta de detracciones exactamente como está en el registro de la empresa (con o sin guiones, sin reformatear).
   - Detracción (X%) — importe en soles (ej. S/ 1,120.00).
-  - Bien o Servicio — código y nombre del bien/servicio (ej. 030 - Contratos de construcción).
+  - Bien o Servicio — elegido por el usuario en el editor desde una lista desplegable con los códigos SUNAT de detracción (ej. 030 - Contratos de construcción, 037 - Demás servicios gravados con el IGV, 022 - Otros servicios empresariales, etc.); se guarda con la factura y se imprime tal cual.
   - (línea en blanco)
   - Neto a Pagar — total menos detracción.
 - Va debajo de Observaciones, a la izquierda del desglose. Con retención se usa el mismo formato (Retención (3%)) sin la fila de cuenta ni bien/servicio.
