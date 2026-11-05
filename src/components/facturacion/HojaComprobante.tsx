@@ -335,7 +335,6 @@ export function HojaComprobante(props: {
                   <button type="button" onClick={() => setCuotas([...cuotas, cuotaVacia(form.fecha_vencimiento)])} style={{ marginTop: 4, fontSize: 9, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "2px 7px", cursor: "pointer", display: "inline-flex", gap: 3, alignItems: "center" }}><Plus size={11} />Agregar cuota</button>
                   <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between", fontWeight: 700 }}><span>Suma de cuotas (neto a pagar: {money(baseCuotas)})</span><span>{money(cuotas.reduce((s, c) => s + Number(c.monto || 0), 0))}</span></div>
                 </>}
-                <CuentasComprobante cuentas={cuentas} tipo="todas" compacto />
               </div>
             </div>
             <div style={{ ...CARD, padding: 11, fontSize: 8.5 }}>
@@ -355,6 +354,7 @@ export function HojaComprobante(props: {
               </div>
             </div>
           </div>
+          {cuentas.length > 0 && <div style={{ ...CARD, padding: "0 11px 8px", marginTop: 10 }}><CuentasComprobante cuentas={cuentas} tipo="todas" compacto /></div>}
           <div style={{ marginTop: 12, fontSize: 9.5 }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><input value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" style={{ ...ed, marginTop: 4 }} /></div>
         </>}
 
