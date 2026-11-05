@@ -271,7 +271,9 @@ export function HojaComprobante(props: {
           <button type="button" onClick={() => setDocs([...docs, docRelacionadoVacio()])} style={{ marginTop: 7, fontSize: 9.5, border: `1px dashed ${C.green}`, color: C.green, background: C.white, borderRadius: 4, padding: "4px 9px", cursor: "pointer", display: "inline-flex", gap: 4, alignItems: "center" }}><Plus size={12} />Agregar comprobante</button></>}
 
         {usaImportes(tipo) && <>
-          <div style={{ width: 300, marginLeft: "auto", marginTop: 18, fontSize: 10, background: C.total, borderRadius: 8, padding: "8px 6px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginTop: 18 }}>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 9.5, textAlign: "left" }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><textarea value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" rows={4} style={{ ...ed, marginTop: 4, resize: "vertical", textAlign: "left", border: `1px dashed ${C.line}`, borderRadius: 4, padding: 4 }} /></div>
+          <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10, background: C.total, borderRadius: 8, padding: "8px 6px" }}>
             {(() => {
               const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
@@ -295,6 +297,7 @@ export function HojaComprobante(props: {
                 <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 6px 2px", color: C.green, fontWeight: 900, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
               </>;
             })()}
+          </div>
           </div>
           <div style={{ marginTop: 12, ...CARD, padding: 11, fontSize: 9.5 }}>
             <label style={{ display: "flex", gap: 6, alignItems: "center", fontWeight: 700, cursor: "pointer" }}>
@@ -358,7 +361,6 @@ export function HojaComprobante(props: {
             </div>
           </div>
           {cuentas.length > 0 && <div style={{ ...CARD, padding: "0 11px 8px", marginTop: 10 }}><CuentasComprobante cuentas={cuentas} tipo="todas" compacto /></div>}
-          <div style={{ marginTop: 12, fontSize: 9.5 }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><input value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" style={{ ...ed, marginTop: 4 }} /></div>
         </>}
 
         <div style={{ marginTop: "auto", paddingTop: 18 }}>
