@@ -119,7 +119,7 @@ export function HojaComprobante(props: {
 
   const lienzo = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
-  useEffect(() => { const el = lienzo.current; if (!el) return; const ro = new ResizeObserver(([e]) => setZoom(Math.max(1, Math.min(2, (e.contentRect.width - 8) / 794)))); ro.observe(el); return () => ro.disconnect(); }, []);
+  useEffect(() => { const el = lienzo.current; if (!el) return; const ro = new ResizeObserver(([e]) => e && setZoom(Math.max(1, Math.min(2, (e.contentRect.width - 8) / 794)))); ro.observe(el); return () => ro.disconnect(); }, []);
 
   return (
     <div ref={lienzo} className="cpe-editor-canvas" style={{ paddingBottom: 18 }}>
