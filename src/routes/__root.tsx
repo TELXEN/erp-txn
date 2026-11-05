@@ -89,6 +89,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      // Evita que el traductor del navegador reescriba textos y rompa React (removeChild).
+      { name: "google", content: "notranslate" },
       { title: "ERP TELXEN" },
       { name: "description", content: "Sistema de ERP TELXEN de construcción" },
       { property: "og:type", content: "website" },
@@ -113,7 +115,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" spellCheck>
+    <html lang="es" spellCheck translate="no" className="notranslate">
       <head>
         <HeadContent />
       </head>
