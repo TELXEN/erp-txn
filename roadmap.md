@@ -232,5 +232,5 @@
 
 ## Comprobante: RUC y línea
 - [x] RUC encima de FACTURA ELECTRÓNICA con el mismo tamaño de letra (vista previa, editor y PDF).
-- [ ] Quitar la línea horizontal del recuadro del comprobante (vista previa, editor y PDF).
+- [x] Quitar la línea horizontal del recuadro del comprobante (vista previa, editor y PDF).
 - [ ] Mejorar el borde del recuadro del comprobante (vista previa, editor y PDF).
