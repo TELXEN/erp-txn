@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Corregir neto de comprobantes y asegurar que una cuota o la suma de varias coincida con total menos detracción/retención.
 - [x] Agrandar el texto de Términos y condiciones (recursos humanos, tiempo, pago y comerciales) en la hoja de cotización.
 - [x] Títulos de columnas ampliados y recuadro redondeado; creación real de borrador, cierre incompleto y reapertura del encabezado verificados, borrador de prueba retirado.
 - [x] Unificar Encabezado en edición/vista; menús moneda/venta/IGV y cierre en Subtotal sin IGV verificados en TXN26-C010.
