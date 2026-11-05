@@ -21,6 +21,7 @@ export const DOC = {
   accentText: "#7D6608",
   /** Gris de encabezado de tabla, recuadro de datos y píldoras del desglose de la factura. */
   gris: "#A9A9A9",
+  grisClaro: "#C9C9C9",
   /** Fila TOTAL del desglose de la factura. */
   totalDesglose: "#107C41",
 } as const;
