@@ -256,3 +256,4 @@
 - [x] Factura: Departamento, Provincia y Distrito en una sola fila; la columna de cliente se ensancha (2.1fr) para que quepa y el texto de la derecha corre; verificado en vista previa, editor y PDF.
 
 - [x] Cuentas bancarias del comprobante: texto un punto más chico (9 en vista previa y editor, 8.2 en PDF); medido en pantalla y en el PDF descargado.
+- [x] Recuadro del encabezado: RUC, tipo y número separados con 5 px de aire (editor, vista previa y PDF); verificado que el recuadro no toca la banda CLIENTE.
