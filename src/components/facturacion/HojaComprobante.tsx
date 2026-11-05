@@ -7,7 +7,8 @@ import { CuentasComprobante, type CuentaCpe } from "@/components/facturacion/Cue
 import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
 import { fechaLima, useTipoCambioHoy } from "@/lib/tipo-cambio";
-import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, datosAnticipo, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type AnticipoTipo, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
+import { filasDesglose } from "@/lib/desglose-comprobante";
+import { CODIGOS_SPOT, nombreSpot, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, datosAnticipo, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type AnticipoTipo, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 import { nombreConductor, useTransportistas, vencido } from "@/lib/transportistas";
 import { VentanaTransportista } from "@/components/TransportistasPanel";
@@ -154,8 +155,6 @@ export function HojaComprobante(props: {
             {(form.cliente_estado_sunat || form.cliente_condicion_sunat) && <div style={{ fontSize: 8.5, fontWeight: 700, color: form.cliente_condicion_sunat === "HABIDO" ? C.green : C.muted }}>{form.cliente_estado_sunat} · {form.cliente_condicion_sunat}</div>}
           </Bloque>
           <Bloque titulo="">
-            <Linea etiqueta="O. de compra"><input value={form.orden_compra} onChange={(e) => set("orden_compra", e.target.value)} style={ed} /></Linea>
-            {tipo !== "09" && <Linea etiqueta="Guía de remisión"><input value={form.guia_remision_numero} onChange={(e) => set("guia_remision_numero", e.target.value.toUpperCase())} placeholder="T001-00000045" style={ed} /></Linea>}
             {(tipo === "07" || tipo === "08") && <>
               <Linea etiqueta="Modifica a"><select value={form.referencia_id} onChange={(e) => set("referencia_id", e.target.value)} style={edSel}><option value="">Selecciona...</option>{refs.map((r) => <option key={r.id} value={r.id}>{r.numero}</option>)}</select></Linea>
               <Linea etiqueta="Motivo"><select value={form.motivo_nota_codigo} onChange={(e) => set("motivo_nota_codigo", e.target.value)} style={edSel}>{(tipo === "07" ? MOTIVOS_NOTA_CREDITO : MOTIVOS_NOTA_DEBITO).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>
@@ -163,8 +162,6 @@ export function HojaComprobante(props: {
             </>}
           </Bloque>
           <Bloque titulo="">
-            <Linea etiqueta="Emisión"><FechaComprobante etiqueta="Fecha de emisión" value={form.fecha_emision} onChange={(v) => set("fecha_emision", v)} style={ed} /></Linea>
-            <Linea etiqueta="Vencimiento"><FechaComprobante etiqueta="Fecha de vencimiento" value={form.fecha_vencimiento} onChange={(v) => set("fecha_vencimiento", v)} style={ed} /></Linea>
             <Linea etiqueta="Moneda"><select value={form.moneda} onChange={(e) => set("moneda", e.target.value)} style={edSel}><option value="PEN">Soles</option><option value="USD">Dólares</option></select></Linea>
             {form.moneda === "USD" && <Linea etiqueta="T. cambio">
               <span style={{ display: "flex", gap: 4 }}>
@@ -174,6 +171,16 @@ export function HojaComprobante(props: {
             </Linea>}
           </Bloque>
         </div>
+        {(() => {
+          const celdas: [string, ReactNode][] = [
+            ["Fecha de Emisión", <FechaComprobante etiqueta="Fecha de emisión" value={form.fecha_emision} onChange={(v) => set("fecha_emision", v)} style={{ ...ed, textAlign: "center" }} />],
+            ["Forma de Pago", <select value={form.condicion_pago} onChange={(e) => cambiarCondicion(e.target.value)} style={{ ...edSel, textAlign: "center" }}><option>Contado</option><option>Crédito</option></select>],
+            ["Orden de Compra", <input value={form.orden_compra} onChange={(e) => set("orden_compra", e.target.value)} style={{ ...ed, textAlign: "center" }} />],
+            ["Fecha de Vencimiento", <FechaComprobante etiqueta="Fecha de vencimiento" value={form.fecha_vencimiento} onChange={(v) => set("fecha_vencimiento", v)} style={{ ...ed, textAlign: "center" }} />],
+            ...(tipo !== "09" ? [["N° Guía de Remisión", <input value={form.guia_remision_numero} onChange={(e) => set("guia_remision_numero", e.target.value.toUpperCase())} placeholder="T001-00000045" style={{ ...ed, textAlign: "center" }} />] as [string, ReactNode]] : []),
+          ];
+          return <div style={{ display: "grid", gridTemplateColumns: `repeat(${celdas.length}, 1fr)`, border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 10, fontSize: 9.5, textAlign: "center", lineHeight: 1.15 }}>{celdas.map(([l, v], i) => <div key={l} style={{ padding: "5px 6px", borderLeft: i ? `1.5px solid ${C.gris}` : "none" }}><b style={{ display: "block", marginBottom: 3 }}>{l}:</b>{v}</div>)}</div>;
+        })()}
         {aviso && <div style={{ fontSize: 9, color: C.greenDark, background: C.greenSoft, padding: "5px 9px", marginTop: 6 }}>{aviso}</div>}
 
         {tipo === "09" && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginTop: 15, fontSize: 10, border: `1px solid ${C.line}`, padding: 12 }}>
@@ -238,10 +245,9 @@ export function HojaComprobante(props: {
         </div>}
 
         {usaItems(tipo) && <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9, tableLayout: "fixed" }}>
-          {usaImportes(tipo) && <colgroup><col style={{ width: "3%" }} /><col style={{ width: "8%" }} /><col style={{ width: "37%" }} /><col style={{ width: "7%" }} /><col style={{ width: "8%" }} /><col style={{ width: "13%" }} /><col style={{ width: "8%" }} /><col style={{ width: "14%" }} /><col style={{ width: "2%" }} /></colgroup>}
-          <thead><tr style={{ background: C.green, color: C.white }}><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>#</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>CÓDIGO</th><th style={{ padding: "4px 4px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>DESCRIPCIÓN</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>UNIDAD</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>CANTIDAD</th>{usaImportes(tipo) && <><th style={{ padding: "3px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center", lineHeight: 1.1 }}>V. UNITARIO</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>DESCUENTO</th><th style={{ padding: "3px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center", lineHeight: 1.1 }}>IMPORTE&nbsp;TOTAL</th></>}<th /></tr></thead>
+          {usaImportes(tipo) && <colgroup><col style={{ width: "8%" }} /><col style={{ width: "40%" }} /><col style={{ width: "7%" }} /><col style={{ width: "8%" }} /><col style={{ width: "13%" }} /><col style={{ width: "8%" }} /><col style={{ width: "14%" }} /><col style={{ width: "2%" }} /></colgroup>}
+          <thead><tr style={{ background: C.gris, color: C.white }}><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>CÓDIGO</th><th style={{ padding: "4px 4px", fontWeight: 700, fontSize: 6.5, textAlign: "left" }}>DESCRIPCIÓN</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>UNIDAD</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>CANTIDAD</th>{usaImportes(tipo) && <><th style={{ padding: "3px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center", lineHeight: 1.1 }}>V. UNITARIO</th><th style={{ padding: "4px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center" }}>DESCUENTO</th><th style={{ padding: "3px 2px", fontWeight: 700, fontSize: 6.5, textAlign: "center", lineHeight: 1.1 }}>V. VENTA</th></>}<th /></tr></thead>
           <tbody>{items.map((x, i) => <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white, verticalAlign: "top" }}>
-            <td style={{ padding: 4, verticalAlign: "top" }}>{i + 1}</td>
             <td style={{ padding: 4, verticalAlign: "top" }}><input value={x.codigo} onChange={(e) => actualizarItem(i, "codigo", e.target.value)} style={cel} /></td>
             <td style={{ padding: 4, paddingLeft: 12, verticalAlign: "top" }}><textarea value={x.descripcion} rows={Math.max(1, Math.ceil((x.descripcion.length || 1) / 55))} onChange={(e) => actualizarItem(i, "descripcion", e.target.value)} onInput={(e) => { e.currentTarget.style.height = "auto"; e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`; }} placeholder="Descripción del bien o servicio" style={{ ...cel, display: "block", fontSize: 7, fontWeight: 400, lineHeight: 1.25, resize: "none", overflow: "hidden", minHeight: 24 }} /></td>
             <td style={{ padding: 4, verticalAlign: "top" }}><select value={x.unidad_sunat} onChange={(e) => actualizarItem(i, "unidad_sunat", e.target.value)} style={{ ...cel, cursor: "pointer" }}>{UNIDADES_SUNAT.map(([v, l]) => <option key={v} value={v}>{v} · {l}</option>)}</select></td>
@@ -272,29 +278,21 @@ export function HojaComprobante(props: {
 
         {usaImportes(tipo) && <>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginTop: 18 }}>
-          <div style={{ flex: 1, minWidth: 0, fontSize: 9.5, textAlign: "left" }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><textarea value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" rows={4} style={{ ...ed, marginTop: 4, resize: "vertical", textAlign: "left", border: `1px dashed ${C.line}`, borderRadius: 4, padding: 4 }} /></div>
-          <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10, background: C.total, borderRadius: 8, padding: "8px 6px" }}>
+          <div style={{ flex: 1, minWidth: 0, fontSize: 9.5, textAlign: "left" }}><b style={{ fontSize: 8, color: C.muted }}>OBSERVACIONES</b><textarea value={form.observacion} onChange={(e) => set("observacion", e.target.value)} placeholder="Texto adicional que se imprime en el comprobante" rows={4} style={{ ...ed, marginTop: 4, resize: "vertical", textAlign: "left", border: `1px dashed ${C.line}`, borderRadius: 4, padding: 4 }} />
+            {form.tipo_tributario !== "ninguno" && (() => { const det = form.tipo_tributario === "detraccion"; const L = (a: string, v: string) => <><b>{a}</b><b>{v}</b></>; return <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 28, rowGap: 1, marginTop: 10, fontSize: 10, color: "#4B5563", lineHeight: 1.2 }}>{det && L("Cta. Cte. Banco de la Nación", cuentaDetraccionDe(cuentas)?.numero_cuenta || "—")}{L(`${det ? "Detracción" : "Retención"} (${form.pct_detraccion}%)`, `S/ ${(det ? montos.montoDetraccion : montos.montoRetencion).toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)}{det && <><b>Bien o Servicio</b><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} title="Bien o servicio sujeto a detracción" style={{ ...edSel, fontWeight: 700, color: "#4B5563" }}>{CODIGOS_SPOT.filter(([v]) => v).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></>}<span style={{ gridColumn: "1 / -1", height: 10 }} />{L("Neto a Pagar", money(baseCuotas))}</div>; })()}
+          </div>
+          <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10 }}>
             {(() => {
-              const fila = (etiqueta: ReactNode, valor: string, negrita = false) => (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1px 6px", lineHeight: 1.2, borderBottom: `1px solid ${C.line}`, fontWeight: negrita ? 700 : 400 }}><span style={{ display: "flex", alignItems: "center", gap: 4 }}>{etiqueta}</span><span>{valor}</span></div>
-              );
-              const cargo = (k: "isc" | "icbper" | "otros_cargos" | "otros_tributos") => (
-                <input type="number" step="0.01" min="0" value={form[k]} onChange={(e) => set(k, e.target.value)} style={{ ...ed, width: 76, borderBottom: "none", textAlign: "right" }} />
+              const cargo = (etq: string, k: "isc" | "icbper" | "otros_cargos" | "otros_tributos") => (
+                <label style={{ display: "flex", alignItems: "center", gap: 3 }}>{etq}<input type="number" step="0.01" min="0" value={form[k]} onChange={(e) => set(k, e.target.value)} style={{ ...ed, width: 58, textAlign: "right" }} /></label>
               );
               return <>
-                {fila("Sub Total Ventas", money(montos.subTotalVentas))}
-                {fila("(−) Anticipos", montos.anticipo > 0 ? `− ${money(montos.anticipo)}` : money(0))}
-                {fila("(−) Descuentos", montos.descuentos > 0 ? `− ${money(montos.descuentos)}` : money(0))}
-                {fila(<select value={form.operacion_tipo} onChange={(e) => set("operacion_tipo", e.target.value)} style={{ ...edSel, width: 150, borderBottom: "none" }}><option value="gravada">Valor de venta (gravada)</option><option value="exonerada">Valor de venta (exonerada)</option><option value="inafecta">Valor de venta (inafecta)</option></select>, money(montos.valorVenta), true)}
-                {fila(<>ISC {cargo("isc")}</>, money(montos.isc))}
-                {fila(<span>IGV {form.operacion_tipo === "gravada"
-                  ? <select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} title="Tasa de IGV aplicada" style={{ ...edSel, width: 62, borderBottom: "none" }}>{TASAS_IGV.map(([v]) => <option key={v} value={v}>{v}%</option>)}</select>
-                  : <b>0%</b>}</span>, money(montos.igv), true)}
-                {fila(<>ICBPER {cargo("icbper")}</>, money(montos.icbper))}
-                {fila(<>Otros Cargos {cargo("otros_cargos")}</>, money(montos.otrosCargos))}
-                {fila(<>Otros Tributos {cargo("otros_tributos")}</>, money(montos.otrosTributos))}
-                {fila("Monto de Redondeo", money(montos.redondeo))}
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 6px 2px", color: C.green, fontWeight: 900, fontSize: 12 }}><span>IMPORTE TOTAL</span><span>{money(montos.total)}</span></div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "3px 8px", fontSize: 8.5, color: C.muted, marginBottom: 5 }}>
+                  <select value={form.operacion_tipo} onChange={(e) => set("operacion_tipo", e.target.value)} title="Tipo de operación" style={{ ...edSel, width: 92 }}><option value="gravada">Gravada</option><option value="exonerada">Exonerada</option><option value="inafecta">Inafecta</option></select>
+                  {form.operacion_tipo === "gravada" && <label style={{ display: "flex", alignItems: "center", gap: 3 }}>IGV<select value={form.igv_tasa} onChange={(e) => set("igv_tasa", e.target.value)} title="Tasa de IGV aplicada" style={{ ...edSel, width: 52 }}>{TASAS_IGV.map(([v]) => <option key={v} value={v}>{v}%</option>)}</select></label>}
+                  {cargo("ISC", "isc")}{cargo("ICBPER", "icbper")}{cargo("Otros cargos", "otros_cargos")}{cargo("Otros tributos", "otros_tributos")}
+                </div>
+                <div style={{ display: "grid", gap: 3 }}>{filasDesglose({ operacionTipo: form.operacion_tipo, valorVenta: montos.valorVenta, descuentos: montos.descuentos, anticipo: montos.anticipo, isc: montos.isc, icbper: montos.icbper, igv: montos.igv, otrosCargos: montos.otrosCargos, total: montos.total }).map((f) => { const col = f.total ? C.totalDesglose : C.gris; return <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}><div style={{ background: col, color: C.white, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div><div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: f.total ? col : C.ink }}>{money(f.valor)}</div></div>; })}</div>
               </>;
             })()}
           </div>
@@ -316,7 +314,7 @@ export function HojaComprobante(props: {
             <div style={{ ...CARD, padding: 11 }}>
               <b style={{ fontSize: 8, color: C.muted }}>FORMA DE PAGO</b>
               <div style={{ marginTop: 6, display: "grid", gap: 4 }}>
-                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => { const v = e.target.value; setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
+                <Linea etiqueta="Condición"><select value={form.condicion_pago} onChange={(e) => cambiarCondicion(e.target.value)} style={edSel}><option>Contado</option><option>Crédito</option></select></Linea>
                 {form.condicion_pago === "Crédito" && <>
                   <Linea etiqueta="N° de cuotas">
                     <span style={{ display: "flex", gap: 5, alignItems: "center" }}>
@@ -349,7 +347,6 @@ export function HojaComprobante(props: {
                 <Linea etiqueta="Régimen"><select value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributarioCpe, pct_detraccion: p ?? "0", codigo_spot: t === "detraccion" ? (p === "4" ? "030" : "037") : "" }); }} style={edSel}>
                   <option value="ninguno|0">No aplica</option><option value="detraccion|4">Detracción 4% · construcción</option><option value="detraccion|12">Detracción 12% · otros servicios</option><option value="retencion|3">Retención 3%</option>
                 </select></Linea>
-                {form.tipo_tributario === "detraccion" && <Linea etiqueta="Código SPOT"><select value={form.codigo_spot} onChange={(e) => set("codigo_spot", e.target.value)} style={edSel}>{CODIGOS_SPOT.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></Linea>}
                 {form.tipo_tributario === "detraccion" ? <>
                   <div style={{ display: "flex", justifyContent: "space-between", lineHeight: 1.1 }}><span>Detracción ({form.pct_detraccion}%)</span><b>S/ {(montos.montoDetraccion).toLocaleString("es-PE", { minimumFractionDigits: 2 })}</b></div>
                    <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${C.line}`, paddingTop: 3, lineHeight: 1.1 }}><span>Neto a pagar</span><b>{money(baseCuotas)}</b></div>
