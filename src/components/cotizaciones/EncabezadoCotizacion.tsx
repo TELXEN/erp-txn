@@ -11,6 +11,7 @@ import { formatearTexto } from "@/lib/formato-texto";
 import { useAuth } from "@/lib/auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
+import { TextoAjustado } from "@/components/TextoAjustado";
 
 type Cliente = { id: string; razon_social: string; numero_documento: string };
 
@@ -69,6 +70,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       }
       await guardar({
         ruc_cliente: numero, cliente_id: registrado?.id ?? null, cliente: resultado.razonSocial, ubicacion: resultado.direccion,
+        cliente_departamento: resultado.departamento, cliente_provincia: resultado.provincia, cliente_distrito: resultado.distrito,
         ...(contacto ? { atencion: formatearTexto(contacto.contacto || "", "titulo"), telefono: contacto.celular_contacto || contacto.telefono || "" } : {}),
       });
     } catch {
@@ -99,7 +101,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
   return <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.35 }}>
     <div className="flex flex-wrap items-start gap-4 sm:flex-nowrap">
       <div style={{ width: 120, height: 76, flexShrink: 0, display: "flex", alignItems: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 120, maxHeight: 64, objectFit: "contain" }} /> : <b style={{ fontSize: 20 }}>Telxen</b>}</div>
-      <div style={{ flex: 1, minWidth: 0, fontSize: "8.5pt" }}><b style={{ fontSize: 12 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b><div>{empresa?.eslogan}</div><div>{empresa?.direccion || "—"}</div><div>{empresa?.web || "—"}</div></div>
+      <div style={{ flex: 1, minWidth: 0, fontSize: "8.5pt" }}><b style={{ fontSize: 12 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b><TextoAjustado texto={empresa?.eslogan} basePt={8.5} minimoPt={5.5} /><div>{empresa?.direccion || "—"}</div><div>{empresa?.web || "—"}</div></div>
       <div style={{ width: 200, flexShrink: 0, textAlign: "right" }}><div className="rounded-md" style={{ border: `3px solid ${DOC.dark}`, padding: "8px 6px", textAlign: "center" }}><div style={{ fontSize: 15 }}>COTIZACIÓN</div><div style={{ fontSize: 10, marginTop: 3 }}>{cot.codigo || "SIN CÓDIGO"}</div></div><div style={{ marginTop: 3 }}>Rev. {(cot.revision || "00").padStart(2, "0")}</div><div style={{ fontSize: 7.5 }}>Hoja {numero} de {totalHojas}</div></div>
     </div>
     <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,270px)]">
@@ -114,11 +116,14 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
           if (!/^\d{11}$/.test(numero)) { setError("Ingresa un RUC de 11 dígitos."); return; }
           // The pending automatic lookup saves all client fields together.
           if (!timerRuc.current) void completarRuc(numero);
-        }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—")}
-        {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""))}
-        {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""))}
-        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || "", "text", (v) => formatearTexto(v, "titulo")))}
-        {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""))}
+        }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—", 88)}
+        {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""), 88)}
+        {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""), 88)}
+        {fila("DEPARTAMENTO", campo("cliente_departamento", cot.cliente_departamento || ""), 88)}
+        {fila("PROVINCIA", campo("cliente_provincia", cot.cliente_provincia || ""), 88)}
+        {fila("DISTRITO", campo("cliente_distrito", cot.cliente_distrito || ""), 88)}
+        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || "", "text", (v) => formatearTexto(v, "titulo")), 88)}
+        {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""), 88)}
       </div>
       <div>
         {fila("FECHA DE EMISIÓN", editable ? campo("fecha_emision", cot.fecha_emision, "date") : fecha(cot.fecha_emision), 118)}

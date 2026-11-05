@@ -17,6 +17,9 @@ export type Cotizacion = {
   cliente: string;
   nombre: string;
   ubicacion: string;
+  cliente_departamento?: string;
+  cliente_provincia?: string;
+  cliente_distrito?: string;
   fecha_emision: string;
   validez_dias: number;
   pct_gastos_generales: number;
@@ -553,6 +556,9 @@ export async function crearRevision(
       cliente: cot.cliente,
       nombre: cot.nombre,
       ubicacion: cot.ubicacion,
+      cliente_departamento: cot.cliente_departamento ?? "",
+      cliente_provincia: cot.cliente_provincia ?? "",
+      cliente_distrito: cot.cliente_distrito ?? "",
       fecha_emision: new Date().toISOString().slice(0, 10),
       validez_dias: cot.validez_dias,
       pct_gastos_generales: cot.pct_gastos_generales,
