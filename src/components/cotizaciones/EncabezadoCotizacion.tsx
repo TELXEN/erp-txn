@@ -12,6 +12,7 @@ import { useAuth } from "@/lib/auth";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { consultarDocumentoSunat } from "@/lib/decolecta.functions";
 import { TextoAjustado } from "@/components/TextoAjustado";
+import { direccionSinUbicacion } from "@/lib/direccion-documento";
 
 type Cliente = { id: string; razon_social: string; numero_documento: string };
 
@@ -118,10 +119,16 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
           if (!timerRuc.current) void completarRuc(numero);
         }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—", 88)}
         {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""), 88)}
-        {fila("DIRECCIÓN", campo("ubicacion", cot.ubicacion || cliente?.direccion || ""), 88)}
-        {fila("DEPARTAMENTO", campo("cliente_departamento", cot.cliente_departamento || ""), 88)}
-        {fila("PROVINCIA", campo("cliente_provincia", cot.cliente_provincia || ""), 88)}
-        {fila("DISTRITO", campo("cliente_distrito", cot.cliente_distrito || ""), 88)}
+        {fila("DIRECCIÓN", campo("ubicacion", direccionSinUbicacion(cot.ubicacion || cliente?.direccion || "", cot.cliente_departamento || "", cot.cliente_provincia || "", cot.cliente_distrito || "")), 88)}
+        {editable ? <>
+          {fila("DEPARTAMENTO", campo("cliente_departamento", cot.cliente_departamento || ""), 88)}
+          {fila("PROVINCIA", campo("cliente_provincia", cot.cliente_provincia || ""), 88)}
+          {fila("DISTRITO", campo("cliente_distrito", cot.cliente_distrito || ""), 88)}
+        </> : <div className="flex items-baseline gap-2 whitespace-nowrap" style={{ fontSize: "6pt" }}>
+          <span>DEPARTAMENTO: <b>{cot.cliente_departamento || "—"}</b></span>
+          <span>PROVINCIA: <b>{cot.cliente_provincia || "—"}</b></span>
+          <span>DISTRITO: <b>{cot.cliente_distrito || "—"}</b></span>
+        </div>}
         {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || "", "text", (v) => formatearTexto(v, "titulo")), 88)}
         {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""), 88)}
       </div>
