@@ -24,6 +24,16 @@ Aplica igual en el editor, la vista previa/impresión y el PDF descargado.
 - Valores sin dato muestran 0.00. Detracción/retención y Neto a pagar se mantienen debajo del TOTAL con el mismo estilo de píldora.
 - Observaciones sigue a la izquierda del desglose.
 
+## 6. Bloque de detracción (imagen 3)
+- Solo cuando la factura tiene detracción: bloque de dos columnas (rótulo en negrita a la izquierda, valor a la derecha), texto gris oscuro, sin recuadro:
+  - Cta. Cte. Banco de la Nación — número de la cuenta de detracciones (sin guiones).
+  - Detracción (X%) — importe en soles (ej. S/ 1,120.00).
+  - Bien o Servicio — código y nombre del bien/servicio (ej. 030 - Contratos de construcción).
+  - (línea en blanco)
+  - Neto a Pagar — total menos detracción.
+- Va debajo de Observaciones, a la izquierda del desglose. Con retención se usa el mismo formato (Retención (3%)) sin la fila de cuenta ni bien/servicio.
+- El Neto a pagar ya no se repite en el desglose cuando aparece en este bloque.
+
 ## Detalles técnicos
 - Archivos: `HojaComprobante.tsx` (editor), `comprobante-vista.tsx` (vista/impresión), `ComprobantePdf.tsx` (PDF). Color gris como constante compartida en `documento-tema.ts`.
 - Importes del desglose desde los totales ya calculados (sin cambiar cálculo); categorías no manejadas hoy (inafectas, exoneradas, exportación, gratuitas, ICBPER, ISC, otros cargos) salen en 0.00.
