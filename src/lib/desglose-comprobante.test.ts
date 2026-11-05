@@ -10,7 +10,7 @@ describe("filasDesglose", () => {
   });
   it("pone el valor de venta solo en su tipo de operación", () => {
     const f = filasDesglose({ ...base, operacionTipo: "exonerada" });
-    expect(f[0].valor).toBe(0);
-    expect(f[2].valor).toBe(23728.81);
+    expect(f[0]?.valor).toBe(0);
+    expect(f[2]?.valor).toBe(23728.81);
   });
 });
