@@ -17,6 +17,9 @@ export type Cotizacion = {
   cliente: string;
   nombre: string;
   ubicacion: string;
+  cliente_departamento?: string;
+  cliente_provincia?: string;
+  cliente_distrito?: string;
   fecha_emision: string;
   validez_dias: number;
   pct_gastos_generales: number;
