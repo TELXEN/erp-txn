@@ -22,11 +22,11 @@ import { actualizarBorradorComprobante, crearComprobanteElectronico, eliminarBor
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>): { preliquidacion: string; tipo?: string } => { const r: { preliquidacion: string; tipo?: string } = { preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "" }; if (typeof s["tipo"] === "string" && s["tipo"] in TIPOS_COMPROBANTE) r.tipo = s["tipo"]; return r; }, head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de comprobantes de pago electrónicos: facturas, boletas, notas y retenciones y percepciones." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
+export const Route = createFileRoute("/_authenticated/facturacion-electronica")({ validateSearch: (s: Record<string, unknown>): { preliquidacion: string; tipo?: string; editar?: string } => { const r: { preliquidacion: string; tipo?: string; editar?: string } = { preliquidacion: typeof s["preliquidacion"] === "string" ? s["preliquidacion"] : "" }; if (typeof s["tipo"] === "string" && s["tipo"] in TIPOS_COMPROBANTE) r.tipo = s["tipo"]; if (typeof s["editar"] === "string" && s["editar"]) r.editar = s["editar"]; return r; }, head: () => ({ meta: [{ title: "Facturación Electrónica — ERP TELXEN" }, { name: "description", content: "Emisión y control de comprobantes de pago electrónicos: facturas, boletas, notas y retenciones y percepciones." }, { property: "og:title", content: "Facturación Electrónica — ERP TELXEN" }, { property: "og:description", content: "Comprobantes electrónicos, estados fiscales y cobranza." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }), component: FacturacionElectronica });
 
 export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo" | "guias" } = {}) {
   const esGuias = modo === "guias";
-  const { rol } = useAuth(); const { preliquidacion, tipo: tipoQ } = Route.useSearch(); const navigate = useNavigate(); const qc = useQueryClient();
+  const { rol } = useAuth(); const { preliquidacion, tipo: tipoQ, editar: editarQ } = Route.useSearch(); const navigate = useNavigate(); const qc = useQueryClient();
   const crear = useServerFn(crearComprobanteElectronico); const actualizar = useServerFn(actualizarBorradorComprobante); const eliminar = useServerFn(eliminarBorradorComprobante);
   const pestanaInicial: TipoComprobante = esGuias ? "09" : "01";
   const [sel, setSel] = useState("");
@@ -56,6 +56,16 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     if (abierto) cambiarTipo(t); else setPestana(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tipoQ]);
+
+  // Volver desde la vista previa reabre el borrador en modo edición.
+  useEffect(() => {
+    if (!editarQ || editando?.id === editarQ || guardando) return;
+    const x = lista.find((c) => c.id === editarQ);
+    if (!x) return;
+    if (x.estado_fiscal === "Borrador") void editarBorrador(x);
+    else void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: x.tipo_comprobante }, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editarQ, lista]);
 
   const { data: empresa } = useEmpresa();
   const { data: clientes = [] } = useQuery({ queryKey: ["terceros", "clientes-cpe"], queryFn: async () => { const { data, error } = await supabase.from("terceros").select("id,razon_social,numero_documento,direccion,tipo_documento").eq("es_cliente", true).eq("activo", true).order("razon_social"); if (error) throw error; return data ?? []; } });
