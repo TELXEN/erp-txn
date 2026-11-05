@@ -7,7 +7,7 @@ import { CuentasComprobante, type CuentaCpe } from "@/components/facturacion/Cue
 import { Plus, Search, Trash2 } from "lucide-react";
 import { consultarDocumentoSunat, consultarTipoCambio } from "@/lib/decolecta.functions";
 import { fechaLima, useTipoCambioHoy } from "@/lib/tipo-cambio";
-import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
+import { CODIGOS_SPOT, MODALIDADES_TRASLADO, MOTIVOS_BAJA, MOTIVOS_NOTA_CREDITO, MOTIVOS_NOTA_DEBITO, MOTIVOS_TRASLADO, PESTANAS_CPE, TASAS_IGV, TASAS_PERCEPCION, TASAS_RETENCION, TIPOS_DOC_RELACIONADO, UNIDADES_SUNAT, calcularItem, cuotaVacia, datosAnticipo, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, repartirCuotas, usaImportes, usaItems, usaRelacionados, type AnticipoTipo, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { hoy } from "@/lib/format";
 import { nombreConductor, useTransportistas, vencido } from "@/lib/transportistas";
 import { VentanaTransportista } from "@/components/TransportistasPanel";
@@ -307,10 +307,12 @@ export function HojaComprobante(props: {
               <input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} />
               AÑADIR ANTICIPO
             </label>
-            {form.anticipo_tipo !== "ninguno" && <div style={{ marginTop: 7, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-              <Linea etiqueta="Modalidad"><select value={form.anticipo_tipo} onChange={(e) => set("anticipo_tipo", e.target.value)} style={edSel}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select></Linea>
-              <Linea etiqueta="Comprobante"><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={ed} /></Linea>
-              <Linea etiqueta="Importe"><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} disabled={form.anticipo_tipo === "anticipo"} style={ed} /></Linea>
+            {form.anticipo_tipo !== "ninguno" && <div style={{ marginTop: 7, display: "grid", gridTemplateColumns: form.anticipo_tipo === "anticipo" ? "minmax(0, 360px)" : "1fr 1fr 1fr", gap: 10 }}>
+              <Linea etiqueta="Modalidad"><select value={form.anticipo_tipo} onChange={(e) => { const v = e.target.value as AnticipoTipo; setForm({ ...form, anticipo_tipo: v, ...datosAnticipo(v, form.anticipo_documento, form.anticipo_monto) }); }} style={edSel}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select></Linea>
+              {form.anticipo_tipo === "deduccion" && <>
+                <Linea etiqueta="Comprobante"><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={ed} /></Linea>
+                <Linea etiqueta="Importe"><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} style={ed} /></Linea>
+              </>}
             </div>}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14, fontSize: 9.5, textAlign: "left" }}>

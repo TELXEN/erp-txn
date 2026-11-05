@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cuotasCoincidenConNeto, netoComprobante, repartirCuotas } from "./facturacion";
+import { cuotasCoincidenConNeto, datosAnticipo, netoComprobante, repartirCuotas } from "./facturacion";
 
 describe("Neto y cuotas de comprobantes", () => {
   it("resta la detracción al importe total, no depende de las cuotas", () => {
