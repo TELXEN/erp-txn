@@ -615,3 +615,6 @@ svg.icono-dt .acento {
   stroke: var(--color-cinta-icono-acento);
 }
 svg.icono-dt .acento[fill="currentColor"] { fill: var(--color-cinta-icono-acento); }
+
+/* Editor de comprobante: campos integrados en la hoja, subrayado tenue solo al pasar o escribir. */
+.cpe-editor-sheet :is(input, select, textarea):is(:hover, :focus) { border-bottom-color: #9CA3AF !important; }

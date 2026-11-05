@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { DOC } from "@/lib/documento-tema";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
@@ -34,15 +34,21 @@ export function nuevoFormCpe(tipo: TipoComprobante, serie: string) {
   };
 }
 
-const ed: CSSProperties = { border: "none", borderBottom: `1px dashed ${C.line}`, background: "transparent", fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", fontStyle: "inherit", textTransform: "inherit", lineHeight: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
-const edSel: CSSProperties = { ...ed, cursor: "pointer" };
+const ed: CSSProperties = { border: "none", borderBottom: "1px solid transparent", background: "transparent", fontFamily: "inherit", fontSize: "inherit", fontWeight: "inherit", fontStyle: "inherit", textTransform: "inherit", lineHeight: "inherit", color: "inherit", width: "100%", padding: "2px 0", outline: "none" };
+const edSel: CSSProperties = { ...ed, cursor: "pointer", appearance: "none" };
 const cel: CSSProperties = { ...ed, borderBottom: "none", padding: "4px 2px" };
 
 function Bloque({ titulo, children, style }: { titulo: string; children: ReactNode; style?: CSSProperties }) {
   return <div style={{ ...style }}>{titulo && <span style={{ fontSize: 9, color: C.green, fontFamily: "var(--font-global)", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase" }}>{titulo}</span>}<div style={{ marginTop: titulo ? 5 : 0, display: "grid", gap: 4 }}>{children}</div></div>;
 }
 function Linea({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
-  return <label style={{ display: "grid", gridTemplateColumns: "88px 1fr", alignItems: "center", gap: 6 }}><span style={{ fontSize: 9, color: C.muted, fontFamily: "var(--font-global)", fontWeight: 700, textTransform: "uppercase" }}>{etiqueta}</span>{children}</label>;
+  return <label style={{ display: "grid", gridTemplateColumns: "74px 8px 1fr", alignItems: "center", columnGap: 2 }}><b style={{ textTransform: "uppercase" }}>{etiqueta}</b><span>:</span>{children}</label>;
+}
+/** Campo de texto que crece hacia abajo con el contenido, sin barra ni texto cortado. */
+function TextoCreciente({ value, onChange, placeholder, style }: { value: string; onChange: (v: string) => void; placeholder?: string; style?: CSSProperties }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => { const el = ref.current; if (!el) return; el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; }, [value]);
+  return <textarea ref={ref} rows={1} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ ...style, resize: "none", overflow: "hidden", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }} />;
 }
 
 export type Empresa = { razon_social?: string; eslogan?: string; ruc?: string; direccion?: string; telefono?: string; web?: string; logo_url?: string } | null | undefined;
@@ -110,6 +116,10 @@ export function HojaComprobante(props: {
   }
   const actualizarItem = (i: number, k: keyof ItemEditor, v: string) => setItems(items.map((x, n) => (n === i ? { ...x, [k]: v } : x)));
   const actualizarDoc = (i: number, k: keyof DocRelacionado, v: string) => setDocs(docs.map((x, n) => (n === i ? { ...x, [k]: v } : x)));
+
+  const lienzo = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  useEffect(() => { const el = lienzo.current; if (!el) return; const ro = new ResizeObserver(([e]) => setZoom(Math.max(1, Math.min(2, (e.contentRect.width - 8) / 794)))); ro.observe(el); return () => ro.disconnect(); }, []);
 
   return (
     <div ref={lienzo} className="cpe-editor-canvas" style={{ paddingBottom: 18 }}>
