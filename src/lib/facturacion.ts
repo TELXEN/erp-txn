@@ -108,6 +108,13 @@ export function repartirCuotas(total: number, fechas: string[]): CuotaEditor[] {
 export const TASAS_IGV = [["18", "18% · Tasa general"], ["10.5", "10.5% · Tasa especial"]] as const;
 export type AnticipoTipo = "ninguno" | "anticipo" | "deduccion";
 
+/** Pago anticipado: la factura no referencia comprobante ni importe de anticipo; solo la resta de anticipos los usa. */
+export function datosAnticipo(tipo: AnticipoTipo, documento: string, monto: string | number) {
+  return tipo === "deduccion"
+    ? { anticipo_documento: documento, anticipo_monto: String(monto) }
+    : { anticipo_documento: "", anticipo_monto: "" };
+}
+
 export function calcularItem(item: ItemEditor, operacion: OperacionTipo, tasaIgv = 18) {
   const cantidad = Math.max(0, Number(item.cantidad || 0));
   const valorUnitario = Math.max(0, Number(item.valor_unitario || 0));

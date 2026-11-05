@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { cuotasCoincidenConNeto, calcularComprobante, calcularItem, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, PESTANAS_CPE, repartirCuotas, SERIE_DEFECTO, TIPOS_COMPROBANTE, usaImportes, type Comprobante, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
+import { cuotasCoincidenConNeto, calcularComprobante, calcularItem, datosAnticipo, docRelacionadoVacio, itemComprobanteVacio, montoEnLetras, PESTANAS_CPE, repartirCuotas, SERIE_DEFECTO, TIPOS_COMPROBANTE, usaImportes, type AnticipoTipo, type Comprobante, type CuotaEditor, type DocRelacionado, type ItemEditor, type OperacionTipo, type TipoComprobante, type TipoTributarioCpe } from "@/lib/facturacion";
 import { actualizarBorradorComprobante, crearComprobanteElectronico, eliminarBorradorComprobante } from "@/lib/facturacion.functions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -161,7 +161,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         comprobante_referencia_id: form.referencia_id || null, motivo_nota_codigo: form.motivo_nota_codigo, motivo_nota_descripcion: form.motivo_nota_descripcion,
         fecha_emision: form.fecha_emision, fecha_vencimiento: fechaVenc, moneda: form.moneda, tipo_cambio: tc, operacion_tipo: form.operacion_tipo,
         cliente_departamento: form.cliente_departamento, cliente_provincia: form.cliente_provincia, cliente_distrito: form.cliente_distrito, guia_remision_numero: form.guia_remision_numero, igv_tasa: Number(form.igv_tasa || 18),
-        anticipo_tipo: form.anticipo_tipo, anticipo_documento: form.anticipo_tipo === "ninguno" ? "" : form.anticipo_documento, anticipo_monto: conImportes ? montos.anticipo : 0,
+        anticipo_tipo: form.anticipo_tipo, anticipo_documento: datosAnticipo(form.anticipo_tipo as AnticipoTipo, form.anticipo_documento, form.anticipo_monto).anticipo_documento, anticipo_monto: conImportes ? montos.anticipo : 0,
         isc: conImportes ? montos.isc : 0, icbper: conImportes ? montos.icbper : 0, otros_cargos: conImportes ? montos.otrosCargos : 0, otros_tributos: conImportes ? montos.otrosTributos : 0, redondeo: conImportes ? montos.redondeo : 0,
         valor_venta: conImportes ? montos.valorVenta : 0, total_descuentos: conImportes ? montos.descuentos : 0, igv: conImportes ? montos.igv : 0,
         total: totalDoc, total_soles: totalDoc * (tc > 0 ? tc : 1), total_letras: montoEnLetras(totalDoc, form.moneda),

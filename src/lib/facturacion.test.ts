@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cuotasCoincidenConNeto, netoComprobante, repartirCuotas } from "./facturacion";
+import { cuotasCoincidenConNeto, datosAnticipo, netoComprobante, repartirCuotas } from "./facturacion";
 
 describe("Neto y cuotas de comprobantes", () => {
   it("resta la detracción al importe total, no depende de las cuotas", () => {
@@ -24,5 +24,17 @@ describe("Neto y cuotas de comprobantes", () => {
   });
   it("sin detracción ni retención el neto es el total", () => {
     expect(netoComprobante(1000, 1, "ninguno", 150, 30)).toBe(1000);
+  });
+});
+
+describe("Anticipo en comprobantes", () => {
+  it("el pago anticipado no guarda comprobante ni importe", () => {
+    expect(datosAnticipo("anticipo", "F001-00000012", 500)).toEqual({ anticipo_documento: "", anticipo_monto: "" });
+  });
+  it("la factura que resta anticipos conserva comprobante e importe", () => {
+    expect(datosAnticipo("deduccion", "F001-00000012", 500)).toEqual({ anticipo_documento: "F001-00000012", anticipo_monto: "500" });
+  });
+  it("sin anticipo no queda ninguna referencia", () => {
+    expect(datosAnticipo("ninguno", "F001-00000012", 500)).toEqual({ anticipo_documento: "", anticipo_monto: "" });
   });
 });
