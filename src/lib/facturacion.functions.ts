@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { netoComprobante, cuotasCoincidenConNeto, usaImportes } from "./facturacion";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const itemSchema = z.object({ codigo: z.string().max(40), descripcion: z.string().min(1).max(500), unidad_sunat: z.string().min(1).max(8), cantidad: z.number().positive(), valor_unitario: z.number().nonnegative(), descuento: z.number().nonnegative(), afectacion_igv: z.enum(["10", "20", "30"]), subtotal: z.number().nonnegative(), igv: z.number().nonnegative(), total: z.number().nonnegative() });
@@ -39,12 +40,7 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     if (["01", "03", "07", "08", "09"].includes(data.tipo_comprobante) && !data.items.length) throw new Error("Agrega al menos un concepto.");
     if (conImportes && Math.abs(data.items.reduce((s, i) => s + i.total, 0) - data.total) > 0.05) throw new Error("Los totales del comprobante no coinciden con sus ítems.");
 
-    if (data.condicion_pago === "Crédito" && data.cuotas.length) {
-      const suma = data.cuotas.reduce((s, c) => s + c.monto, 0);
-      const descuentoRegimen = data.tipo_tributario === "detraccion" ? data.monto_detraccion / (data.moneda === "USD" ? data.tipo_cambio || 1 : 1) : data.tipo_tributario === "retencion" ? data.monto_retencion / (data.moneda === "USD" ? data.tipo_cambio || 1 : 1) : 0;
-      const neto = data.total - descuentoRegimen;
-      if (Math.abs(suma - data.total) > 0.05 && Math.abs(suma - neto) > 0.05) throw new Error("Las cuotas deben sumar el neto a pagar del comprobante.");
-    }
+    validarCuotas(data);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const serieFinal = data.serie.toUpperCase();
@@ -90,6 +86,12 @@ export const crearComprobanteElectronico = createServerFn({ method: "POST" })
     return { id: comprobanteId, numero: (comprobante as { id: string; numero: string }).numero };
   });
 
+function validarCuotas(data: z.infer<typeof inputSchema>) {
+  if (!usaImportes(data.tipo_comprobante) || data.condicion_pago !== "Crédito") return;
+  const neto = netoComprobante(data.total, data.moneda === "USD" ? data.tipo_cambio : 1, data.tipo_tributario, data.monto_detraccion, data.monto_retencion);
+  if (neto > 0 && !cuotasCoincidenConNeto(neto, data.cuotas.map((q) => q.monto))) throw new Error("Las cuotas deben sumar exactamente el neto a pagar del comprobante.");
+}
+
 const editarBorradorSchema = inputSchema.extend({ id: z.string().uuid() });
 
 export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
@@ -99,6 +101,7 @@ export const actualizarBorradorComprobante = createServerFn({ method: "POST" })
     const { data: autorizado, error: authError } = await context.supabase.rpc("is_admin_o_gerente", { _user_id: context.userId });
     if (authError) throw new Error(authError.message);
     if (!autorizado) throw new Error("No autorizado para editar comprobantes.");
+    validarCuotas(data);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: actual, error: actualError } = await supabaseAdmin
