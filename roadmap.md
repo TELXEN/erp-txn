@@ -247,3 +247,5 @@
 - [x] Cuentas bancarias del comprobante: «CTA:» y «CCI:» en la misma fila y quitar la columna de dólares; editor, vista previa y PDF verificados.
 
 - [x] Cuentas del comprobante en tres columnas (BCP EN SOLES principal, BCP EN DÓLARES y detracciones), cuenta auxiliar fuera; editor, vista previa y PDF verificados.
+- [x] Cuentas del comprobante: la columna de detracciones dice solo «CUENTA DE DETRACCIONES» con el número debajo, sin nombre de banco; verificado en vista previa, editor y PDF.
+- [x] Números de cuenta un punto más grandes en vista previa, editor y PDF (10 en hoja, 9.2 en PDF).
