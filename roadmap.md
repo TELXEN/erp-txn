@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Cotización: Departamento/Provincia/Distrito en una fila en vista previa y Dirección sin ubicación geográfica duplicada.
+- [x] Cotización: Departamento/Provincia/Distrito en una fila y Dirección sin ubicación duplicada; verificado en TXN26-C010, dos pruebas pasan.
 - [x] Neto = total menos detracción/retención; cuota única automática, varias con suma exacta; 18 pruebas y guardado/vista previa/PDF verificados, factura de prueba restaurada.
 - [x] Agrandar el texto de Términos y condiciones (recursos humanos, tiempo, pago y comerciales) en la hoja de cotización.
 - [x] Títulos de columnas ampliados y recuadro redondeado; creación real de borrador, cierre incompleto y reapertura del encabezado verificados, borrador de prueba retirado.
