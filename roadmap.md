@@ -252,3 +252,5 @@
 - [x] Cuentas del comprobante: la columna de detracciones dice solo «CUENTA DE DETRACCIONES» con el número debajo, sin nombre de banco; verificado en vista previa, editor y PDF.
 - [x] Números de cuenta un punto más grandes en vista previa, editor y PDF (10 en hoja, 9.2 en PDF).
 - [x] El número de la cuenta de detracciones lleva «CTA:» delante, igual que las demás; editor, vista previa y PDF verificados.
+
+- [x] Factura: Departamento, Provincia y Distrito en una sola fila; la columna de cliente se ensancha (2.1fr) para que quepa y el texto de la derecha corre; verificado en vista previa, editor y PDF.
