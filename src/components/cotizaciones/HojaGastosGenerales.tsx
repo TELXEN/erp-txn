@@ -1,5 +1,6 @@
 import { EncabezadoAnexo } from "@/components/cotizaciones/EncabezadoAnexo";
 import * as React from "react";
+import { DOC } from "@/lib/documento-tema";
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -115,20 +116,24 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
                   </tbody>
                 </table>
                 {pIdx === paginas.length - 1 && (
-                  <div className="ml-auto mt-3 w-80 border border-line text-[10px]">
+                  <div className="ml-auto mt-3" style={{ width: 320, display: "grid", gap: 3, lineHeight: 1.15 }}>
                     {([
-                      ["Costo directo total", cd, ""],
-                      ["(+) Total gastos generales fijos", fijos, ""],
-                      ["(+) Total gastos generales variables", variables, ""],
-                      ["(=) Subtotal valor referencial", res.subtotal, "font-semibold bg-muted/40"],
-                      [`(+) Margen de utilidad (${n2(pctU)} %)`, res.utilidad, ""],
-                      ["(=) Valor venta neto total", res.venta, "font-semibold bg-muted/40"],
-                      [`(+) IGV (${n2(pctI)} %)`, res.igv, ""],
-                      ["(=) PRESUPUESTO FINAL TOTAL", res.total, "font-bold bg-muted/60 text-[11px]"],
-                    ] as const).map(([a, b, c]) => (
-                      <div key={a} className={`flex justify-between border-b border-line px-2 py-1 last:border-b-0 ${c}`}><span>{a}</span><span className="font-mono">{sim} {n2(b)}</span></div>
+                      ["COSTO DIRECTO TOTAL", cd, false],
+                      ["(+) GASTOS GENERALES FIJOS", fijos, false],
+                      ["(+) GASTOS GENERALES VARIABLES", variables, false],
+                      ["(=) SUB TOTAL VALOR REFERENCIAL", res.subtotal, false],
+                      [`(+) UTILIDAD (${n2(pctU)}%)`, res.utilidad, false],
+                      ["(=) VALOR VENTA NETO", res.venta, false],
+                      [`(+) IGV (${n2(pctI)}%)`, res.igv, false],
+                      ["TOTAL", res.total, true],
+                    ] as const).map(([a, b, t]) => (
+                      <div key={a} style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 4, alignItems: "stretch" }}>
+                        <span style={{ background: t ? DOC.totalDesglose : DOC.grisClaro, color: t ? "#000" : "#333", borderRadius: 999, padding: "3px 10px", fontWeight: 700, fontSize: t ? 10 : 8.5 }}>{a}</span>
+                        <span style={{ border: `1px solid ${t ? DOC.totalDesglose : DOC.gris}`, background: t ? DOC.totalDesglose : "transparent", color: "#000", borderRadius: 6, padding: "3px 8px", textAlign: "right", fontWeight: t ? 700 : 400, fontSize: t ? 10 : 8.5, whiteSpace: "nowrap" }}>{sim} {n2(b)}</span>
+                      </div>
                     ))}
-                    <div className="px-2 py-1 text-right text-muted-foreground">% Gastos generales: {n2(pct)} %</div>
+                    <div style={{ textAlign: "right", fontSize: 8.5, color: "#555" }}>% Gastos generales: {n2(pct)} %</div>
+                  </div>
                   </div>
                 )}
               </section>
