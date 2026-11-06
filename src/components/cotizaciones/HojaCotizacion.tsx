@@ -126,7 +126,7 @@ export function HojaCotizacion({
     <div style={{ overflowX: "auto", padding: mostrarEncabezado ? "18px 0" : 0, background: C.soft }}>
       <section
         style={{
-          width: "100%", maxWidth: 1500, boxSizing: "border-box",
+          width: "100%", maxWidth: "none", boxSizing: "border-box",
           margin: "0 auto",
           padding: mostrarEncabezado ? "36px 38px" : "0 8px 8px",
           background: C.white,
