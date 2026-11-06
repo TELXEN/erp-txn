@@ -79,7 +79,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
     } finally { setConsultandoRuc(false); }
   }
   const campo = (nombre: string, valor: string | number, tipo = "text", formatear?: (v: string) => string) => editable
-    ? <input key={`${nombre}-${valor}`} aria-label={nombre === "nombre" ? "Proyecto" : nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-dashed border-line bg-transparent py-0.5 font-semibold outline-none focus:border-primary" onBlur={(e) => {
+    ? <input key={`${nombre}-${valor}`} aria-label={nombre === "nombre" ? "Proyecto" : nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-transparent bg-transparent py-0 text-inherit uppercase outline-none hover:border-muted-foreground focus:border-muted-foreground" style={{ font: "inherit", textAlign: "inherit" }} onBlur={(e) => {
       const escrito = tipo === "number" ? Number(e.target.value) : formatear ? formatear(e.target.value) : e.target.value;
       if (String(valor) !== String(escrito)) { e.target.value = String(escrito); void guardar({ [nombre]: escrito }); }
     }} />
@@ -107,7 +107,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
     </header>
     <div style={{ display: "grid", gridTemplateColumns: "1fr 190px", gap: 12, padding: 13, border: `1.5px solid ${DOC.gris}`, borderRadius: 10, marginTop: 8, textAlign: "left" }}>
       <div style={{ minWidth: 0 }}>
-        {fila("RUC", editable ? <><input aria-label="RUC" aria-busy={consultandoRuc} inputMode="numeric" maxLength={11} list={`ruc-${cot.id}`} defaultValue={ruc} key={ruc} className="w-full border-b border-dashed border-line bg-transparent py-0.5 outline-none" onChange={(e) => {
+        {fila("RUC", editable ? <><input aria-label="RUC" aria-busy={consultandoRuc} inputMode="numeric" maxLength={11} list={`ruc-${cot.id}`} defaultValue={ruc} key={ruc} className="w-full border-0 border-b border-transparent bg-transparent py-0 outline-none hover:border-muted-foreground focus:border-muted-foreground" style={{ font: "inherit" }} onChange={(e) => {
           const numero = e.target.value.trim(); rucActual.current = numero;
           clearTimeout(timerRuc.current);
           if (/^\d{11}$/.test(numero)) timerRuc.current = setTimeout(() => void completarRuc(numero), 400);
@@ -159,7 +159,7 @@ export function PieCotizacion({ cot, editable = false }: { cot: Cotizacion; edit
     await Promise.all([qc.invalidateQueries({ queryKey: ["cotizaciones"] }), qc.invalidateQueries({ queryKey: ["cotizacion"] })]);
   }
   const campo = (nombre: string, valor: string, tipo = "text", formatear?: (v: string) => string) => editable
-    ? <input key={`${nombre}-${valor}`} aria-label={nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-dashed border-line bg-transparent py-0.5 font-semibold outline-none focus:border-primary" onBlur={(e) => {
+    ? <input key={`${nombre}-${valor}`} aria-label={nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-transparent bg-transparent py-0 text-inherit uppercase outline-none hover:border-muted-foreground focus:border-muted-foreground" style={{ font: "inherit", textAlign: "inherit" }} onBlur={(e) => {
       const escrito = formatear ? formatear(e.target.value) : e.target.value;
       if (String(valor) !== String(escrito)) { e.target.value = String(escrito); void guardar({ [nombre]: escrito }); }
     }} />
