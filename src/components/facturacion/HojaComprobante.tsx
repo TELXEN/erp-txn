@@ -92,7 +92,7 @@ export function HojaComprobante(props: {
   useEffect(() => { if (pendienteTransp && transportistas.some((t) => t.id === pendienteTransp)) { elegirTransportista(pendienteTransp); setPendienteTransp(""); } }, [pendienteTransp, transportistas]); // eslint-disable-line react-hooks/exhaustive-deps
   const tipo = form.tipo_comprobante as TipoComprobante;
   const etiquetaTipo = PESTANAS_CPE.find((p) => p.tipo === tipo)?.corto ?? "";
-  const sym = form.moneda === "USD" ? "US$" : "S/";
+  const sym = form.moneda === "USD" ? "$" : "S/";
   const money = (n: number) => `${sym} ${N(n)}`;
   const set = (k: keyof FormCpe, v: string) => setForm({ ...form, [k]: v });
 
