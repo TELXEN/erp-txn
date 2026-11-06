@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileDown, Link2, Printer } from "lucide-react";
+import { ArrowLeft, FileDown, Printer } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,7 +35,6 @@ function VistaPreliquidacion() {
   const { data: empresa, isLoading: cargandoEmpresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
   const [pdfCargando, setPdfCargando] = useState(false);
-  const [copiado, setCopiado] = useState(false);
 
   const { data: pl, isLoading: cargandoPl } = useQuery({
     queryKey: ["preliquidacion", id],
@@ -128,16 +127,6 @@ function VistaPreliquidacion() {
   const ctaDetraccion = cuentas.find((c) => c.tipo_cuenta === "Detracciones") ?? null;
   const cuentasOrdenadas = [...cuentas].sort((a, b) => Number(a.tipo_cuenta === "Detracciones") - Number(b.tipo_cuenta === "Detracciones"));
 
-  function copiarEnlace() {
-    const url = `${window.location.origin}/preliquidacion-vista?id=${id}`;
-    navigator.clipboard
-      .writeText(url)
-      .then(() => {
-        setCopiado(true);
-        window.setTimeout(() => setCopiado(false), 2500);
-      })
-      .catch(() => window.prompt("Copia este enlace de vista previa:", url));
-  }
 
   function imprimir() {
     const el = document.getElementById("preliquidacion-impresion");
