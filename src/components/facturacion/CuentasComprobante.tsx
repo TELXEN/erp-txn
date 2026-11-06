@@ -14,7 +14,7 @@ export {
 /** Detalle de una cuenta: rótulo en negrita, su segunda línea si la tiene, y CTA:/CCI: en la misma fila. */
 export function LineasCuenta({ c, compacto }: { c: CuentaCpe; compacto: boolean }) {
   return (
-    <div style={{ lineHeight: compacto ? 1.12 : 1.25, minWidth: 0, overflowWrap: "anywhere" }}>
+    <div style={{ lineHeight: compacto ? 1.05 : 1.15, minWidth: 0, overflowWrap: "anywhere" }}>
       <div style={{ fontWeight: 700 }}>{tituloCuenta(c)}</div>
       <div style={{ display: "flex", gap: compacto ? 8 : 14, flexWrap: "wrap", minWidth: 0 }}>
         <span style={{ minWidth: 0 }}>CTA: {c.numero_cuenta}</span>
