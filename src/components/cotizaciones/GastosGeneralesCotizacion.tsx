@@ -207,9 +207,7 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
 
   const celda = "h-6 w-full rounded border border-transparent bg-transparent px-1 text-xs tabular-nums hover:border-line focus:border-primary focus:outline-none disabled:hover:border-transparent";
 
-  return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
-      acciones={
+  const conmutador = (
         <div className="flex items-center gap-1 text-xs">
           {([["edicion", "Edición", <PencilRuler key="e" size={14} />], ["vista", "Vista previa", <Eye key="v" size={14} />]] as const).map(([m, t, ic]) => (
             <button key={m} type="button" onClick={() => setModo(m)}
@@ -218,8 +216,14 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
             </button>
           ))}
         </div>
-      }>
-      {modo === "vista" ? <HojaGastosGenerales key={String(abierta)} id={cotizacionId} /> : (
+  );
+
+  return (
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
+      >
+      {modo === "vista" ? <HojaGastosGenerales key={String(abierta)} id={cotizacionId} acciones={conmutador} /> : (
+      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 items-center gap-2 border-b border-line bg-card px-3 py-1">{conmutador}</div>
       <div className="flex min-h-0 flex-1 flex-col p-3">
       <div className="grid shrink-0 grid-cols-3 gap-2">
         {[
