@@ -567,7 +567,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
 
 
                 {esUltima && (
-                  <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
+                  <div className="bloque-final" style={{ pageBreakInside: "avoid", paddingBottom: 80 }}>
                     {(() => {
                       const bloqueTotales = (() => {
                         const filaD = (rotulo: ReactNode, valor: string, total = false) => (
