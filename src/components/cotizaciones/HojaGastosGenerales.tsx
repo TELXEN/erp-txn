@@ -94,10 +94,10 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
                   <div style={{ width: 248, flexShrink: 0, textAlign: "center", display: "flex", flexDirection: "column" }}>
                     <div style={{ border: "1px solid #000", borderRadius: 8, padding: 10 }}>
                       <div style={{ fontSize: 10, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginTop: 5 }}>COTIZACIÓN</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginTop: 5 }}>DETALLE DE GASTOS GENERALES</div>
                       <div style={{ fontSize: 13, fontWeight: 700, marginTop: 5 }}>{cot?.codigo || "SIN CÓDIGO"}</div>
                     </div>
-                    <div style={{ marginTop: 6, fontSize: 8, fontWeight: 700 }}>GASTOS GENERALES · HOJA {pIdx + 1} DE {paginas.length}</div>
+                    <div style={{ marginTop: 6, fontSize: 8, fontWeight: 700 }}>HOJA {pIdx + 1} DE {paginas.length}</div>
                   </div>
                 </header>
                 <div style={{ marginTop: 4, fontSize: 9, textAlign: "left" }}><b>CLIENTE:</b> {cot?.cliente ?? ""} &nbsp;·&nbsp; <b>PROYECTO:</b> {cot?.nombre ?? ""}</div>
