@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Encabezado } from "@/components/AppShell";
 import { Preliquidaciones, type Preliquidacion } from "@/components/Preliquidaciones";
 import { SinAcceso } from "@/components/ui-kit";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -17,5 +16,5 @@ function PreliquidacionesPage(){
  const ofertado=(id:string)=>{const p=proyectos.find(x=>x.id===id);return p?ofertaProyecto(partidas.filter(x=>x.proyecto_id===id),tipos,Number(p.pct_gastos_generales),Number(p.pct_utilidad)).ofertado:0};
  const facturado=(id:string)=>ventas.filter(v=>v.proyecto_id===id).reduce((s,v)=>s+Number(v.monto_soles),0);
  const facturar=(pl:Preliquidacion)=>navigate({to:"/facturacion-electronica",search:{preliquidacion:pl.id}});
- return <><Encabezado titulo="Preliquidaciones" subtitulo="Comercial · valorización, aprobación y preparación del comprobante"/><Preliquidaciones proyectos={proyectos} clientes={clientes} ofertadoDe={ofertado} facturadoDe={facturado} onFacturar={facturar}/></>;
+ return <><Preliquidaciones proyectos={proyectos} clientes={clientes} ofertadoDe={ofertado} facturadoDe={facturado} onFacturar={facturar}/></>;
 }
