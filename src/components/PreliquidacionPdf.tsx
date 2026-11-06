@@ -99,7 +99,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
           <View style={{ width: 104 }}>
             {datos.empresa.logoUrl ? <Image src={datos.empresa.logoUrl} style={{ maxWidth: 99, maxHeight: 58, objectFit: "contain" }} /> : <Text style={s.b}>TX</Text>}
           </View>
-          <View style={{ flex: 1, lineHeight: 1.15 }}>
+          <View style={{ flex: 1, lineHeight: 1.15, alignSelf: "flex-start" }}>
             <Text style={[s.b, { fontSize: 9.8 }]}>{datos.empresa.razonSocial.toUpperCase()}</Text>
             <Text style={{ fontSize: 5.3, marginTop: 1.5 }}>{(datos.empresa.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL").toUpperCase()}</Text>
             <Text style={{ fontSize: 5.6, marginTop: 1.5 }}>{(datos.empresa.direccion || "—").toUpperCase()}</Text>

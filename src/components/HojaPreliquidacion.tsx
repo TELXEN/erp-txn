@@ -124,7 +124,7 @@ export function HojaPreliquidacion(props: Props) {
         <div style={{ width: 138, display: "flex", alignItems: "center" }}>
           {empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 132, maxHeight: 78 }} /> : <div style={{ width: 62, height: 62, borderRadius: 10, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}
         </div>
-        <div style={{ flex: 1, minHeight: 62, textAlign: "left", paddingLeft: 4, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <div style={{ flex: 1, minHeight: 62, textAlign: "left", paddingLeft: 4, display: "flex", flexDirection: "column", justifyContent: "flex-start", alignSelf: "flex-start" }}>
           <b style={{ fontSize: 13, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
           <div style={{ fontWeight: 300, fontSize: 7, marginTop: 2, whiteSpace: "nowrap" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
           <div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.direccion || "—"}</div>
