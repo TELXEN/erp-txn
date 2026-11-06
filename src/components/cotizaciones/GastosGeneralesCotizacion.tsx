@@ -218,12 +218,16 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
         </div>
   );
 
+  const cerrarX = (
+    <Boton type="button" variante="linea" onClick={onCerrar} className="h-7 w-7 px-0" aria-label="Cerrar" title="Cerrar"><X size={14} /></Boton>
+  );
+
   return (
-    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen
+    <VentanaFlotante titulo="Gastos generales" subtitulo="Desagregado de gastos generales de la cotización" abierta={abierta} onCerrar={onCerrar} ancho="max-w-none" ocultarBarra pantallaCompleta sinMargen sinCerrar
       >
-      {modo === "vista" ? <HojaGastosGenerales key={String(abierta)} id={cotizacionId} acciones={conmutador} /> : (
+      {modo === "vista" ? <HojaGastosGenerales key={String(abierta)} id={cotizacionId} antesImprimir={conmutador} alFinal={cerrarX} /> : (
       <div className="flex min-h-0 flex-1 flex-col">
-      <div className="flex shrink-0 items-center gap-2 border-b border-line bg-card px-3 py-1">{conmutador}</div>
+      <div className="flex shrink-0 items-center gap-2 border-b border-line bg-card px-3 py-1"><div className="ml-auto flex items-center gap-2">{conmutador}{cerrarX}</div></div>
       <div className="flex min-h-0 flex-1 flex-col p-3">
       <div className="grid shrink-0 grid-cols-3 gap-2">
         {[

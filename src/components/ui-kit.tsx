@@ -70,6 +70,7 @@ export function VentanaFlotante({
   sinMargen = false,
   superpuesta = false,
   acciones,
+  sinCerrar = false,
 }: {
   titulo: string;
   subtitulo?: string;
@@ -82,6 +83,7 @@ export function VentanaFlotante({
   sinMargen?: boolean;
   superpuesta?: boolean;
   acciones?: ReactNode;
+  sinCerrar?: boolean;
 }) {
   useEffect(() => {
     if (!abierta) return;
@@ -108,9 +110,9 @@ export function VentanaFlotante({
           </div>
           <div className="flex shrink-0 items-center gap-2">
             {acciones}
-            <Boton type="button" variante="linea" onClick={onCerrar} className="h-8 w-8 px-0" aria-label="Cerrar" title="Cerrar">
+            {!sinCerrar && <Boton type="button" variante="linea" onClick={onCerrar} className="h-8 w-8 px-0" aria-label="Cerrar" title="Cerrar">
               <X size={14} />
-            </Boton>
+            </Boton>}
           </div>
         </div>
         <div className={`min-h-0 ${pantallaCompleta ? "flex flex-1 flex-col overflow-hidden" : "overflow-y-auto"} ${ocultarBarra ? "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>{children}</div>

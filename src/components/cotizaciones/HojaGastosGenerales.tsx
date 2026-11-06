@@ -17,7 +17,7 @@ const n2 = (n: number) => n.toLocaleString("es-PE", { minimumFractionDigits: 2, 
 const ALTO_HOJA = 1080;
 const FILAS_HOJA = 44; // filas de 18 px que caben bajo el encabezado y el resumen
 
-export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: React.ReactNode }) {
+export function HojaGastosGenerales({ id, acciones, antesImprimir, alFinal }: { id: string; acciones?: React.ReactNode; antesImprimir?: React.ReactNode; alFinal?: React.ReactNode }) {
   const { data: empresa } = useEmpresa();
   const { fuente } = useFuenteDocumento();
   const { data: cotizaciones = [] } = useCotizaciones();
@@ -145,8 +145,10 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-card px-3 py-1">
         {acciones}
         <div className="ml-auto flex items-center gap-2">
+          {antesImprimir}
           <Boton variante="linea" className="border-transparent bg-cinta-seleccion text-cinta-seleccion-foreground hover:bg-cinta-seleccion hover:opacity-90" onClick={imprimir} disabled={!filas.length}><Printer size={13} /> Imprimir</Boton>
           <Boton className="border-transparent bg-cinta-seleccion text-cinta-seleccion-foreground hover:bg-cinta-seleccion hover:opacity-90" onClick={() => void descargar()} disabled={pdf || !filas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
+          {alFinal}
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto bg-muted/60 p-3">
