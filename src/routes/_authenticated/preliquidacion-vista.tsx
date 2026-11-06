@@ -225,9 +225,6 @@ function VistaPreliquidacion() {
             <Link to="/valorizaciones">
               <Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton>
             </Link>
-            <Boton variante="linea" onClick={copiarEnlace}>
-              <Link2 size={14} /> {copiado ? "Enlace copiado" : "Copiar enlace"}
-            </Boton>
             <Boton variante="accion" onClick={() => void descargarPdf()} disabled={pdfCargando}>
               <FileDown size={14} /> {pdfCargando ? "Generando..." : "Descargar PDF"}
             </Boton>
