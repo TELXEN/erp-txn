@@ -146,14 +146,10 @@ export function HojaCotizacion({
 
 
 
-        {children && <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 10 }}>
+        {children && <div style={{ marginTop: 40, paddingTop: 10 }}>
           <PieCotizacion cot={cot} editable />
         </div>}
 
-        {children && <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 14, fontSize: 10.5, color: C.muted }}>
-          <b>PROPUESTA COMERCIAL</b>
-          <div style={{ marginTop: 5 }}>Lo que escribes en esta hoja es exactamente lo que saldrá impreso.</div>
-        </div>}
       </section>
     </div>
   );
