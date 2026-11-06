@@ -96,7 +96,7 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
     <Document title={`Preliquidación ${datos.codigo}`} author={datos.empresa.razonSocial} subject="Preliquidación comercial">
       <Page size="A4" style={s.page}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingBottom: 4, color: "#000" }}>
-          <View style={{ width: 104 }}>
+          <View style={{ width: 104, alignSelf: "flex-start" }}>
             {datos.empresa.logoUrl ? <Image src={datos.empresa.logoUrl} style={{ maxWidth: 99, maxHeight: 58, objectFit: "contain" }} /> : <Text style={s.b}>TX</Text>}
           </View>
           <View style={{ flex: 1, lineHeight: 1.15, alignSelf: "flex-start" }}>
