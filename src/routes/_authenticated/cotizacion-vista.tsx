@@ -17,6 +17,7 @@ import { useFuenteDocumento } from "@/lib/fuentes-documentos";
 import { nivelDe, numerarNiveles, totalesNiveles } from "@/lib/niveles-cotizacion";
 import { simboloMoneda, totalesCotizacion, useCotizacionItems, useCotizaciones, vigenciaHasta } from "@/lib/cotizaciones";
 import { useTotalGGHoja } from "@/lib/gastos-generales-total";
+import { CuentasComprobante, type CuentaCpe } from "@/components/facturacion/CuentasComprobante";
 import { DOC, DOC_FUENTE_CSS, DOC_MONO } from "@/lib/documento-tema";
 import { ArrowLeft, FileDown, Printer, FileSpreadsheet, Calculator, Files, Receipt, FileText } from "lucide-react";
 import type { ReactNode } from "react";
@@ -159,6 +160,14 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
   const [verGG, setVerGG] = useState(false);
   const [verEncabezado, setVerEncabezado] = useState(false);
   const [enlaceCopiado, setEnlaceCopiado] = useState(false);
+  const { data: cuentasBanco = [] } = useQuery({
+    queryKey: ["bancos-documento"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre");
+      if (error) throw error;
+      return (data ?? []) as unknown as CuentaCpe[];
+    },
+  });
   const { data: clientes = [] } = useQuery({
     queryKey: ["terceros", "clientes-activos"],
     queryFn: async () => {
@@ -473,7 +482,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                   </colgroup>
 
                   <thead>
-                    <tr style={{ background: C.slate900, color: C.white }}>
+                    <tr style={{ background: DOC.gris, color: C.white }}>
                       {[
                         { h: "Ítem", a: "left" },
                         { h: "Descripción", a: "left" },
@@ -483,7 +492,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                         { h: "C. Unitario", a: "right" },
                         { h: "Sub Total", a: "right" },
                       ].map(({ h, a }) => (
-                        <th key={h} style={{ height: 26, padding: "4px 4px", fontSize: "8pt", lineHeight: 1.15, verticalAlign: "middle", textTransform: "uppercase", letterSpacing: 0, textAlign: a as "left" | "right" | "center" }}>
+                        <th key={h} style={{ height: 22, padding: "4px 4px", fontSize: 6.5, fontWeight: 700, lineHeight: 1.15, verticalAlign: "middle", textTransform: "uppercase", letterSpacing: 0, textAlign: a as "left" | "right" | "center" }}>
                           {h}
                         </th>
                       ))}
@@ -560,26 +569,25 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                 {esUltima && (
                   <div className="bloque-final" style={{ pageBreakInside: "avoid" }}>
                     {(() => {
-                      const bloqueTotales = (
-                        <div style={{ width: 248, flexShrink: 0, fontSize: "8.5pt", lineHeight: 1.2 }}>
-                          <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span>Costo Directo</span><span>{S(sim, calculo.costoDirecto)}</span></div>
-                          {calculo.gastosGenerales > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Gastos Generales</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)</span></span><span>{S(sim, calculo.gastosGenerales)}</span></div>}
-                          {calculo.utilidad > 0 && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700 }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>Utilidad</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>({Number(cot.pct_utilidad ?? 0).toFixed(2)}%)</span></span><span>{S(sim, calculo.utilidad)}</span></div>}
-                          {<div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, fontWeight: 600 }}><span>Subtotal</span><span>{S(sim, subtotal)}</span></div>}
-                          {conIgv && <div className="flex justify-between" style={{ padding: "2px 0", alignItems: "center", color: C.slate700, borderBottom: `1px solid ${C.slate100}` }}><span style={{ display: "flex" }}><span style={{ display: "inline-block", width: 96 }}>IGV</span><span style={{ display: "inline-block", width: 44, textAlign: "right" }}>{conIgv ? "(18.00%)" : "(0.00%)"}</span></span><span>{S(sim, igv)}</span></div>}
-                          {conIgv && <div className="flex justify-between" style={{ marginTop: 4, padding: "5px 12px", alignItems: "center", background: C.slate900, color: C.white, borderRadius: 6, fontFamily: DOC_FUENTE_CSS, fontSize: "9.5pt", lineHeight: 1.15, fontWeight: 400 }}>
-                            <span>TOTAL</span><span>{S(sim, total)}</span>
-                          </div>}
-                          {esUsd && tc > 0 && (
-                            <div className="flex justify-between" style={{ marginTop: 4, padding: "2px 0", alignItems: "center", color: C.slate500, fontSize: "7.5pt" }}>
-                              <span>Equivalente en soles (T.C. {tc.toFixed(3)})</span><span>{S("S/", total * tc)}</span>
-                            </div>
-                          )}
-                          <div style={{ marginTop: 6, color: C.slate500, fontSize: "7.5pt", fontStyle: "italic" }}>
-                            Valores en {esUsd ? "Dólares" : "Soles"} · {conIgv ? "Incluye IGV" : "Sin IGV"}
+                      const bloqueTotales = (() => {
+                        const filaD = (rotulo: ReactNode, valor: string, total = false) => (
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 4, alignItems: "stretch" }}>
+                            <span style={{ background: total ? DOC.totalDesglose : DOC.grisClaro, color: total ? "#000" : "#333", borderRadius: 999, padding: "3px 10px", fontWeight: 700, fontSize: total ? 10 : 8.5 }}>{rotulo}</span>
+                            <span style={{ border: `1px solid ${total ? DOC.totalDesglose : DOC.gris}`, background: total ? DOC.totalDesglose : "transparent", color: "#000", borderRadius: 6, padding: "3px 8px", textAlign: "right", fontWeight: total ? 700 : 400, fontSize: total ? 10 : 8.5, whiteSpace: "nowrap" }}>{valor}</span>
                           </div>
-                        </div>
-                      );
+                        );
+                        return (
+                          <div style={{ width: 300, flexShrink: 0, display: "grid", gap: 3, lineHeight: 1.15 }}>
+                            {filaD("COSTO DIRECTO", S(sim, calculo.costoDirecto))}
+                            {calculo.gastosGenerales > 0 && filaD(`GASTOS GENERALES (${Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)`, S(sim, calculo.gastosGenerales))}
+                            {calculo.utilidad > 0 && filaD(`UTILIDAD (${Number(cot.pct_utilidad ?? 0).toFixed(2)}%)`, S(sim, calculo.utilidad))}
+                            {filaD("SUB TOTAL", S(sim, subtotal))}
+                            {conIgv && filaD("IGV (18.00%)", S(sim, igv))}
+                            {filaD("TOTAL", S(sim, conIgv ? total : subtotal), true)}
+                            {esUsd && tc > 0 && <div style={{ marginTop: 2, color: C.slate500, fontSize: "7.5pt", textAlign: "right" }}>Equivalente en soles (T.C. {tc.toFixed(3)}): {S("S/", (conIgv ? total : subtotal) * tc)}</div>}
+                          </div>
+                        );
+                      })();
                       const bloqueTerminos = (
                         <div style={{ fontSize: 10, color: C.slate500, lineHeight: 1.45, textAlign: "left" }}>
                           <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: C.slate700, marginBottom: 5 }}>Términos y condiciones</div>
@@ -621,6 +629,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                         </>
                       );
                     })()}
+                    <div style={{ marginTop: 12, fontSize: 9, textAlign: "left" }}><CuentasComprobante cuentas={cuentasBanco} /></div>
                   </div>
                 )}
                 <div style={{ position: "absolute", left: 24, width: 300, bottom: 8 }}>
