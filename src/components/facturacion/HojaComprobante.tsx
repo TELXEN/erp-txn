@@ -307,11 +307,11 @@ export function HojaComprobante(props: {
               <b>Información del crédito</b>
               <div style={{ display: "grid", gridTemplateColumns: "200px 14px 1fr", marginTop: 2 }}><span>Monto neto pendiente de pago</span><span>:</span><span>{money(baseCuotas)}</span><span>Total de Cuotas</span><span>:</span><span>{cuotas.length}</span></div>
               <div style={{ display: "grid", gridTemplateColumns: `repeat(${columnasCuotas(cuotas.length)}, 56px 74px 80px)`, columnGap: 10, marginTop: 6, alignItems: "center" }}>
-                {Array.from({ length: columnasCuotas(cuotas.length) }).flatMap((_, i) => [<b key={"a" + i} style={{ textAlign: "center" }}>Nº Cuota</b>, <b key={"b" + i}>Fec. Venc.</b>, <b key={"c" + i} style={{ textAlign: "right" }}>Monto</b>])}
+                {Array.from({ length: columnasCuotas(cuotas.length) }).flatMap((_, i) => [<b key={"a" + i} style={{ textAlign: "center" }}>Nº Cuota</b>, <b key={"b" + i}>Fec. Venc.</b>, <b key={"c" + i} style={{ textAlign: "left" }}>Monto</b>])}
                 {cuotas.flatMap((q, i) => [
                   <span key={i + "a"} style={{ textAlign: "center", display: "inline-flex", gap: 3, justifyContent: "center", alignItems: "center" }}>{i + 1}{cuotas.length > 1 && <button type="button" title="Quitar cuota" onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.filter((_, n) => n !== i).map((c) => c.fecha)))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer", padding: 0, display: "flex" }}><Trash2 size={9} /></button>}</span>,
                   <FechaComprobante key={i + "b"} etiqueta={`Fecha de cuota ${i + 1}`} value={q.fecha} onChange={(v) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: v } : c)))} style={{ ...ed, width: 70, padding: 0 }} />,
-                  <span key={i + "c"} style={{ display: "inline-flex", alignItems: "baseline", justifyContent: "flex-end", gap: 2 }}><span>{sym}</span><input type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...ed, width: 58, padding: 0, textAlign: "right" }} /></span>,
+                  <span key={i + "c"} style={{ display: "inline-flex", alignItems: "baseline", justifyContent: "flex-start", gap: 2 }}><span>{sym}</span><input type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...ed, width: 58, padding: 0, textAlign: "left" }} /></span>,
                 ])}
               </div>
             </div>}
