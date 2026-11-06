@@ -9,7 +9,7 @@ export function LienzoEscalado({ children }: { children: ReactNode }) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setZoom(Math.min(2, Math.max(1, (e.contentRect.width - 24) / 794))));
+    const ro = new ResizeObserver(([e]) => e && setZoom(Math.min(2, Math.max(1, (e.contentRect.width - 24) / 794))));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
