@@ -266,3 +266,4 @@
 
 - [x] Editor de factura igual a la vista de impresión: hoja A4 escalada a todo el ancho, campos integrados, descripción que crece.
 - [x] Preliquidaciones: condiciones de pago encima de Información del crédito; Guardar/Cancelar fijos junto a Cerrar editor
+- [x] Preliquidaciones: V. Venta editable; menú Contado/Crédito en Forma de Pago de la hoja
