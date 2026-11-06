@@ -629,7 +629,7 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                         </>
                       );
                     })()}
-                    <div style={{ marginTop: 12, fontSize: 9, textAlign: "left" }}><CuentasComprobante cuentas={cuentasBanco} /></div>
+                    <div style={{ position: "absolute", left: 24, right: 24, bottom: 52, fontSize: 9, textAlign: "left" }}><CuentasComprobante cuentas={cuentasBanco} /></div>
                   </div>
                 )}
                 <div style={{ position: "absolute", left: 24, width: 300, bottom: 8 }}>
