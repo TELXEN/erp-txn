@@ -12,7 +12,7 @@ import { Boton, Campo, Etiqueta, MenuFiltros, Panel, Select, SinAcceso, Vacio, V
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { calcularVencimiento } from "@/components/CondicionPago";
 import { RegistrarVentaExterna } from "@/components/facturacion/RegistrarVentaExterna";
-import { HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
+import { BarraCondicionesCpe, HojaComprobante, nuevoFormCpe, type FormCpe } from "@/components/facturacion/HojaComprobante";
 import { supabase } from "@/integrations/supabase/client";
 import { useEmpresa } from "@/lib/empresa";
 import { puedeVerDinero, useAuth } from "@/lib/auth";
@@ -40,7 +40,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
   const [items, setItems] = useState<ItemEditor[]>([itemComprobanteVacio()]);
   const [docs, setDocs] = useState<DocRelacionado[]>([docRelacionadoVacio()]);
   const [cuotas, setCuotas] = useState<CuotaEditor[]>([]);
-  const [busqueda, setBusqueda] = useRecordado("facturacion:busqueda", ""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState("");
+  const [busqueda, setBusqueda] = useRecordado("facturacion:busqueda", ""); const [error, setError] = useState(""); const [guardando, setGuardando] = useState(false); const [cargado, setCargado] = useState(""); const [aviso, setAviso] = useState("");
   const [ventaExt, setVentaExt] = useState(false);
   const [origenGuiaAbierto, setOrigenGuiaAbierto] = useState(false); const [origenGuia, setOrigenGuia] = useState<"libre" | "cliente">("libre"); const [guiaCliente, setGuiaCliente] = useState(""); const [guiaProyecto, setGuiaProyecto] = useState("");
   const [editando, setEditando] = useState<Comprobante | null>(null); const [porEliminar, setPorEliminar] = useState<Comprobante | null>(null);
@@ -96,7 +96,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
 
   function abrirNuevo(t: TipoComprobante) {
     const serie = series.find((s) => s.tipo_comprobante === t)?.serie ?? SERIE_DEFECTO[t];
-    setEditando(null); setError(""); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]);
+    setEditando(null); setError(""); setAviso(""); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(t, serie)); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]);
     if (t === "01") { setOrigen("libre"); setSeleccionPl(""); setOrigenAbierto(true); setAbierto(false); }
     else if (t === "09") { setOrigenGuia("libre"); setGuiaCliente(""); setGuiaProyecto(""); setOrigenGuiaAbierto(true); setAbierto(false); }
     else setAbierto(true);
@@ -106,10 +106,10 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
     setPestana(t); setForm({ ...form, tipo_comprobante: t, serie, referencia_id: t === "07" || t === "08" ? form.referencia_id : "" });
     void navigate({ to: "/facturacion-electronica", search: { preliquidacion, tipo: t } });
   }
-  function cerrar() { setAbierto(false); setEditando(null); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
+  function cerrar() { setAbierto(false); setEditando(null); setAviso(""); setPreliquidacionOrigen(""); setCargado(""); setForm(nuevoFormCpe(pestana, SERIE_DEFECTO[pestana])); setItems([itemComprobanteVacio()]); setDocs([docRelacionadoVacio()]); setCuotas([]); }
 
   async function editarBorrador(x: Comprobante) {
-    setError(""); setGuardando(true);
+    setError(""); setAviso(""); setGuardando(true);
     try {
       const [{ data: filas, error: itemsError }, { data: filasCuotas, error: cuotasError }] = await Promise.all([
         supabase.from("comprobante_items").select("*").eq("comprobante_id", x.id).order("orden"),
@@ -239,6 +239,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
         titulo={editando ? `Editar borrador ${editando.numero}` : preliquidacionOrigen ? `Facturar preliquidación ${pl?.p.codigo ?? ""}` : esGuias ? "Nueva guía de remisión" : "Nuevo comprobante electrónico"}
         extra={<div className="flex flex-wrap items-center justify-end gap-2">
           {error && <p className="text-xs text-bad">{error}</p>}
+          <BarraCondicionesCpe form={form} setForm={setForm} cuotas={cuotas} setCuotas={setCuotas} montos={montos} aviso={aviso} />
           <Boton disabled={guardando} onClick={() => void guardar(false)}>{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
           <Boton variante="accion" disabled={guardando} onClick={() => void guardar(true)}><ReceiptText size={14} />Emitir comprobante</Boton>
           <Boton className="h-9 bg-accent px-4 font-semibold text-cinta-seleccion-foreground hover:bg-accent/90 hover:ring-0" disabled={!editando} onClick={() => { if (editando) void navigate({ to: "/comprobante-vista", search: { id: editando.id } }); }}><Eye size={18} />Vista previa</Boton>
@@ -249,7 +250,7 @@ export function FacturacionElectronica({ modo = "completo" }: { modo?: "completo
       <div className="min-h-0 flex-1 overflow-y-auto bg-muted/60 px-4 py-2 sm:px-6">
         {preliquidacionOrigen && cargandoPl && <p role="status" className="py-2 text-sm text-muted-foreground">Cargando preliquidación…</p>}
         {errorPl && <p role="alert" className="py-2 text-sm text-bad">No se pudo cargar la preliquidación: {errorPl.message}</p>}
-        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} />
+        <HojaComprobante form={form} setForm={setForm} items={items} setItems={setItems} docs={docs} setDocs={setDocs} cuotas={cuotas} setCuotas={setCuotas} empresa={empresa} clientes={clientes} proyectos={proyectos.map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo ?? "" }))} refs={refs} series={series} numeroPreview={editando ? String(editando.correlativo).padStart(8, "0") : "[AUTOGENERADO]"} montos={montos} totalRegimen={totalRegimen} importeRegimen={importeRegimen} onTipoChange={cambiarTipo} bloqueado={Boolean(editando)} tipos={tiposVisibles} onAviso={setAviso} />
       </div>
       </Panel>
     </div>}
