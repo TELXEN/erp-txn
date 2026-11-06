@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { columnasCuotas, cuotasCoincidenConNeto, datosAnticipo, netoComprobante, repartirCuotas } from "./facturacion";
+import { columnasCuotas, regimenPorDefecto, cuotasCoincidenConNeto, datosAnticipo, netoComprobante, repartirCuotas } from "./facturacion";
 
 describe("Neto y cuotas de comprobantes", () => {
   it("resta la detracción al importe total, no depende de las cuotas", () => {
@@ -45,4 +45,9 @@ describe("Grupos de cuotas en horizontal", () => {
     expect(columnasCuotas(3)).toBe(3);
     expect(columnasCuotas(5)).toBe(3);
   });
+});
+
+describe("Régimen por defecto", () => {
+  it("detracción arranca en 4 % con código 030", () => expect(regimenPorDefecto("detraccion")).toEqual({ pct_detraccion: "4", codigo_spot: "030" }));
+  it("retención arranca en 3 %", () => expect(regimenPorDefecto("retencion").pct_detraccion).toBe("3"));
 });

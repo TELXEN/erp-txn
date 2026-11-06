@@ -58,6 +58,15 @@ export const MOTIVOS_TRASLADO = [
 
 export const MODALIDADES_TRASLADO = [["02", "02 · Transporte privado"], ["01", "01 · Transporte público"]] as const;
 
+export const TASAS_DETRACCION = [["1.5", "1.5%"], ["4", "4%"], ["10", "10%"], ["12", "12%"]] as const;
+
+/** Porcentaje y código SPOT iniciales al elegir el régimen: detracción 4 % (030), retención 3 %. */
+export function regimenPorDefecto(tipo: string): { pct_detraccion: string; codigo_spot: string } {
+  if (tipo === "detraccion") return { pct_detraccion: "4", codigo_spot: "030" };
+  if (tipo === "retencion") return { pct_detraccion: "3", codigo_spot: "" };
+  return { pct_detraccion: "0", codigo_spot: "" };
+}
+
 export const TASAS_RETENCION = [["3", "3% · Régimen general"], ["6", "6% · Tasa anterior"]] as const;
 export const TASAS_PERCEPCION = [["2", "2% · Venta interna"], ["1", "1% · Combustible"], ["0.5", "0.5% · Agente de percepción"]] as const;
 
