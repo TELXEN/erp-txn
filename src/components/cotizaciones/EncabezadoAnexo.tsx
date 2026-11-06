@@ -1,7 +1,7 @@
 import { useEmpresa } from "@/lib/empresa";
 
 /** Encabezado corporativo de los anexos de cotización (Gastos generales, Dossier APU): igual al de la cotización. */
-export function EncabezadoAnexo({ titulo, codigo, hoja, total, cliente, proyecto }: { titulo: string; codigo?: string | null; hoja: number; total: number; cliente?: string | null; proyecto?: string | null }) {
+export function EncabezadoAnexo({ titulo, codigo, hoja, total, cliente, proyecto }: { titulo: string; codigo?: string | null | undefined; hoja: number; total: number; cliente?: string | null | undefined; proyecto?: string | null | undefined }) {
   const { data: empresa } = useEmpresa();
   return (
     <>
