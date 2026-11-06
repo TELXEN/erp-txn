@@ -308,6 +308,16 @@ export function HojaNiveles({
 
   return (
     <div className="flex w-full gap-2">
+      {avisoRepetida && (
+        <VentanaFlotante titulo="Partida repetida" abierta superpuesta ancho="max-w-sm" onCerrar={() => avisoRepetida.resolver(false)}>
+          <p className="text-sm text-ink">La partida <b>«{avisoRepetida.nombre}»</b> ya existe en este título o subtítulo.</p>
+          <p className="mt-2 text-sm text-muted-foreground">¿Sumar la cantidad? <span className="font-mono text-ink">{avisoRepetida.detalle}</span></p>
+          <div className="mt-4 flex justify-end gap-2">
+            <Boton type="button" variante="secundario" onClick={() => avisoRepetida.resolver(false)}>Cancelar</Boton>
+            <Boton type="button" onClick={() => avisoRepetida.resolver(true)}>Sumar cantidad</Boton>
+          </div>
+        </VentanaFlotante>
+      )}
       <ContextMenu>
       <ContextMenuTrigger asChild>
       <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-card">
