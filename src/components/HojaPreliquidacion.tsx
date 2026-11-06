@@ -64,7 +64,7 @@ type Props = {
   /** true: edición a pantalla completa (hoja ampliada con zoom); false: A4 real. */
   anchoCompleto?: boolean;
   unidades?: { id: string; simbolo: string; activo: boolean }[];
-  onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "orden_compra" | "observacion" | "amortizacion" | "dias_credito", valor: string) => void;
+  onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "orden_compra" | "observacion" | "amortizacion" | "dias_credito" | "condicion_pago", valor: string) => void;
   onLinea?: (indice: number, cambios: Partial<HojaPLLinea>) => void;
   onQuitarLinea?: (indice: number) => void;
   onAgregarLinea?: () => void;
@@ -159,7 +159,7 @@ export function HojaPreliquidacion(props: Props) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 10, fontSize: 9, textAlign: "center", lineHeight: 1.15 }}>
         {([
           ["Fecha de Emisión", editable ? <input key="f" type="date" value={fecha} onChange={(e) => onCampo?.("fecha", e.target.value)} style={{ ...ed, textAlign: "center" }} /> : F(fecha)],
-          ["Forma de Pago", condicionPago || "—"],
+          ["Forma de Pago", editable ? <select key="cp" aria-label="Forma de pago" value={condicionPago} onChange={(e) => onCampo?.("condicion_pago", e.target.value)} style={{ ...ed, textAlign: "center", textAlignLast: "center" }}><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select> : condicionPago || "—"],
           ["Orden de Compra", editable ? <input key="o" aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} style={{ ...ed, textAlign: "center" }} /> : ordenCompra],
           ["Fecha de Vencimiento", condicionPago === "Crédito" ? F(fechaVencimiento) : ""],
         ] as [string, ReactNode][]).map(([l, v], i) => (
@@ -203,7 +203,7 @@ export function HojaPreliquidacion(props: Props) {
                 </td>
                 <td style={{ ...td, textAlign: "right" }}>{editable ? <input type="number" step="0.01" min="0" value={l.cantidad} onChange={(e) => onLinea?.(i, { cantidad: e.target.value })} style={{ ...ed, textAlign: "right" }} /> : N(Number(l.cantidad))}</td>
                 <td style={{ ...td, textAlign: "right" }}>{editable ? <input type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => onLinea?.(i, { precio_unitario: e.target.value })} style={{ ...ed, textAlign: "right" }} /> : money(Number(l.precio_unitario))}</td>
-                <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{money(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
+                <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{editable ? <CampoVenta valor={Number(l.cantidad || 0) * Number(l.precio_unitario || 0)} style={{ ...ed, textAlign: "right", fontWeight: 700 }} onCambio={(v) => { const c = Number(l.cantidad || 0) > 0 ? Number(l.cantidad) : 1; onLinea?.(i, { cantidad: String(c), precio_unitario: String(Math.round((v / c) * 10000) / 10000) }); }} /> : money(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
                 {editable && (
                   <td style={{ ...td, padding: "6px 0", textAlign: "center" }}>
                     {lineas.length > 1 && <button type="button" onClick={() => onQuitarLinea?.(i)} aria-label="Quitar línea" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-bad)", padding: 0 }}><X size={10} /></button>}
@@ -276,4 +276,10 @@ export function HojaPreliquidacion(props: Props) {
       <div ref={lienzo} style={{ width: "100%", overflow: "hidden", paddingBottom: 8 }}>{hoja}</div>
     </div>
   );
+}
+
+/** V. Venta editable: al escribir recalcula el P. unitario (venta ÷ cantidad). */
+function CampoVenta({ valor, onCambio, style }: { valor: number; onCambio: (v: number) => void; style: CSSProperties }) {
+  const [texto, setTexto] = useState<string | null>(null);
+  return <input type="number" step="0.01" min="0" aria-label="Valor de venta" value={texto ?? (valor ? valor.toFixed(2) : "")} onFocus={() => setTexto(valor ? valor.toFixed(2) : "")} onBlur={() => setTexto(null)} onChange={(e) => { setTexto(e.target.value); onCambio(Number(e.target.value || 0)); }} style={style} />;
 }
