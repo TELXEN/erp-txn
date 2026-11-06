@@ -268,3 +268,4 @@
 - [x] Preliquidaciones: condiciones de pago encima de Información del crédito; Guardar/Cancelar fijos junto a Cerrar editor
 - [x] Preliquidaciones: V. Venta editable; menú Contado/Crédito en Forma de Pago de la hoja
 - [x] Preliquidaciones: fecha de vencimiento editable en la hoja (ajusta días de crédito)
+- [x] Preliquidaciones: Vista previa (ojo) y cerrar con X en el editor

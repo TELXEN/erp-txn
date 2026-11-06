@@ -3,7 +3,7 @@ import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, Plus, Receipt, Upload } from "lucide-react";
+import { Eye, Plus, Receipt, Upload, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
@@ -414,7 +414,8 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
           <div className="flex items-center gap-2">
             <Boton type="submit" form="form-preliquidacion">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
             <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
-            <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cerrar editor</Boton>
+            <Boton type="button" className="h-9 bg-accent px-4 font-semibold text-cinta-seleccion-foreground hover:bg-accent/90 hover:ring-0" disabled={!editando} title={editando ? "Vista previa" : "Guarda la preliquidación para ver la vista previa"} onClick={() => { if (editando) void navigate({ to: "/preliquidacion-vista", search: { id: editando } }); }}><Eye size={18} />Vista previa</Boton>
+            <BotonIcono etiqueta="Cerrar editor" className="size-9 border-primary/40 text-primary" onClick={() => setAbierto(false)}><X size={18} strokeWidth={1.5} /></BotonIcono>
           </div>
         </div>
         <Panel className="min-h-full">
