@@ -366,7 +366,6 @@ export function GastosGeneralesCotizacion({ abierta, onCerrar, cotizacionId, cos
         )}
       </div>
       </div>
-      </div>
       )}
     </VentanaFlotante>
   );
