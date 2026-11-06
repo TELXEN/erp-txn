@@ -144,6 +144,29 @@ export function HojaCotizacion({
 
         <div style={{ marginTop: mostrarEncabezado ? 16 : 0 }}>{children}</div>
 
+        {children && (() => {
+          const filaD = (rotulo: string, valor: number, total = false) => (
+            <div key={rotulo} style={{ display: "grid", gridTemplateColumns: "1fr 110px", gap: 4 }}>
+              <span style={{ background: total ? DOC.totalDesglose : DOC.grisClaro, color: total ? "#000" : "#333", borderRadius: 999, padding: "3px 10px", fontWeight: 700, fontSize: total ? 10 : 8.5 }}>{rotulo}</span>
+              <span style={{ border: `1px solid ${total ? DOC.totalDesglose : DOC.gris}`, background: total ? DOC.totalDesglose : "transparent", color: "#000", borderRadius: 6, padding: "3px 8px", textAlign: "right", fontWeight: total ? 700 : 400, fontSize: total ? 10 : 8.5, whiteSpace: "nowrap" }}>{money(sim, valor)}</span>
+            </div>
+          );
+          const final = conIgv ? totalConIgv : totales.total;
+          return (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
+              <div style={{ width: 300, display: "grid", gap: 3, lineHeight: 1.15 }}>
+                {filaD("COSTO DIRECTO", totales.costoDirecto)}
+                {filaD(`GASTOS GENERALES (${Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)`, totales.gastosGenerales)}
+                {filaD(`UTILIDAD (${Number(cot.pct_utilidad ?? 0).toFixed(2)}%)`, totales.utilidad)}
+                {filaD("SUB TOTAL", totales.total, !conIgv)}
+                {conIgv && filaD("IGV (18.00%)", igv)}
+                {conIgv && filaD("TOTAL", totalConIgv, true)}
+                {esUsd && tc > 0 && <div style={{ marginTop: 2, color: "#6B7280", fontSize: "7.5pt", textAlign: "right" }}>Equivalente en soles (T.C. {tc.toFixed(3)}): {money("S/", final * tc)}</div>}
+              </div>
+            </div>
+          );
+        })()}
+
 
 
         {children && <div style={{ marginTop: 40, paddingTop: 10 }}>
