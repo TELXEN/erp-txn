@@ -84,7 +84,6 @@ export function HojaCotizacion({
   /** Si se indica, el encabezado se edita en una ventana flotante en vez de en la hoja. */
   ventanaEncabezado?: { abierta: boolean; onCerrar: () => void };
 }) {
-  const [condicionesAbiertas, setCondicionesAbiertas] = useState(false);
   const [consultaRuc, setConsultaRuc] = useState("");
   const qc = useQueryClient();
   const { data: empresa } = useEmpresa();
@@ -146,40 +145,6 @@ export function HojaCotizacion({
         <div style={{ marginTop: mostrarEncabezado ? 16 : 0 }}>{children}</div>
 
 
-        {children && <div style={{ marginTop: 18 }}>
-          <button type="button" onClick={() => setCondicionesAbiertas(true)} className="inline-flex h-8 items-center gap-2 rounded-md border border-line bg-background px-3 text-xs font-medium hover:bg-muted">
-            Condiciones de la propuesta (recursos humanos, tiempo, pago y comerciales)
-          </button>
-        </div>}
-        <Dialog open={condicionesAbiertas} onOpenChange={setCondicionesAbiertas}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader><DialogTitle>Condiciones de la propuesta</DialogTitle></DialogHeader>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 4, fontSize: 10.5 }}>
-              {([
-                ["recursos_humanos", "RECURSOS HUMANOS"],
-                ["tiempo_ejecucion", "TIEMPO DE EJECUCIÓN"],
-                ["condiciones_pago", "CONDICIONES DE PAGO"],
-                ["condiciones", "CONDICIONES COMERCIALES"],
-              ] as const).map(([campo, etiqueta]) => {
-                const valor = String((cot as unknown as Record<string, unknown>)[campo] ?? "");
-                return (
-                  <div key={campo} style={{ borderTop: `3px solid ${C.green}`, padding: 11 }}>
-                    <b style={{ fontSize: 11, color: C.muted, letterSpacing: ".03em" }}>{etiqueta}</b>
-                    <textarea
-                      key={`${cot.id}-${campo}-${valor}`}
-                      rows={5}
-                      defaultValue={valor}
-                      placeholder="Una línea por punto"
-                      onBlur={(e) => alSalir(campo, e.target.value.trim(), valor)}
-                      style={{ ...ed, marginTop: 4, resize: "vertical", borderBottom: "none" }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-
-          </DialogContent>
-        </Dialog>
 
         {children && <div style={{ marginTop: 22, borderTop: `1px solid ${C.line}`, paddingTop: 10 }}>
           <PieCotizacion cot={cot} editable />

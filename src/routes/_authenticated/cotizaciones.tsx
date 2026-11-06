@@ -18,6 +18,7 @@ import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco } from "@/lib/banco-apu";
 import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
 import { PanelApuCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
+import { CondicionesPropuesta } from "@/components/cotizaciones/CondicionesPropuesta";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 import { LienzoEscalado, PanelLateralApu } from "@/components/cotizaciones/EditorEscalado";
 
@@ -58,7 +59,7 @@ import {
   type CotizacionItem,
   type EstadoCotizacion,
 } from "@/lib/cotizaciones";
-import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, RotateCcw } from "lucide-react";
+import { Check, Calculator, ChevronDown, CornerDownRight, Upload, FileSpreadsheet, Eye, EyeOff, Trash2, ArrowLeft, Library, Plus, Pencil, Copy, FileText, History, Receipt, ScrollText, RotateCcw } from "lucide-react";
 import { GastosGeneralesCotizacion } from "@/components/cotizaciones/GastosGeneralesCotizacion";
 import { totalesGGDeLista, useTotalGGHoja } from "@/lib/gastos-generales-total";
 
@@ -187,6 +188,7 @@ function Cotizaciones() {
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
   const [apuAbierto, setApuAbierto] = useState(false);
+  const [condicionesAbiertas, setCondicionesAbiertas] = useState(false);
   const [cmdInsumo, setCmdInsumo] = useState<{ grupo: string; n: number } | null>(null);
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
@@ -640,6 +642,7 @@ function Cotizaciones() {
             title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined} />
           <SeparadorBarra />
           <BotonBarra icono={<Calculator />} texto="Análisis APU" onClick={() => setApuAbierto((v) => !v)} />
+          <BotonBarra icono={<ScrollText />} texto="Condiciones" onClick={() => setCondicionesAbiertas(true)} />
           <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVentanaGG(true)} />
           <BotonBarra icono={<History />} texto="Nueva revisión" disabled={!esUltimaRevision || Boolean(cot.proyecto_id)}
             onClick={() => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); }} />
@@ -677,6 +680,7 @@ function Cotizaciones() {
             costoDirecto={totales?.costoDirecto ?? 0} pctActual={Number(cot.pct_gastos_generales)} moneda={cot.moneda}
             soloLectura={!esUltimaRevision} pctUtilidad={Number(cot.pct_utilidad)} aplicaIgv={cot.aplica_igv ?? true}
             duracionMeses={Number((cot as { duracion_meses?: number }).duracion_meses ?? 1)} />
+          {condicionesAbiertas && <CondicionesPropuesta cot={cot} abierta onCerrar={() => setCondicionesAbiertas(false)} />}
           {apuAbierto && (
             <PanelLateralApu onCerrar={() => setApuAbierto(false)}>
               <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
