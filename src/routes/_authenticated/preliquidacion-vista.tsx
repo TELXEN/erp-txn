@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileDown, Link2 } from "lucide-react";
+import { ArrowLeft, FileDown, Link2, Printer } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Panel, Vacio } from "@/components/ui-kit";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,6 +139,21 @@ function VistaPreliquidacion() {
       .catch(() => window.prompt("Copia este enlace de vista previa:", url));
   }
 
+  function imprimir() {
+    const el = document.getElementById("preliquidacion-impresion");
+    if (!el) return;
+    document.querySelectorAll(".comprobante-print-root").forEach((n) => n.remove());
+    const raiz = document.createElement("div");
+    raiz.className = "comprobante-print-root";
+    const copia = el.cloneNode(true) as HTMLElement;
+    copia.removeAttribute("id");
+    raiz.appendChild(copia);
+    document.body.appendChild(raiz);
+    const limpiar = () => { raiz.remove(); window.removeEventListener("afterprint", limpiar); };
+    window.addEventListener("afterprint", limpiar);
+    setTimeout(() => window.print(), 50);
+  }
+
   async function descargarPdf() {
     if (!pl) return;
     setPdfCargando(true);
@@ -216,12 +231,17 @@ function VistaPreliquidacion() {
             <Boton variante="accion" onClick={() => void descargarPdf()} disabled={pdfCargando}>
               <FileDown size={14} /> {pdfCargando ? "Generando..." : "Descargar PDF"}
             </Boton>
+            <Boton variante="linea" onClick={imprimir} title="Imprimir directamente">
+              <Printer size={14} /> Imprimir
+            </Boton>
           </div>
         }
       />
 
+      <style>{"@page { size: A4 portrait; margin: 0; }"}</style>
       <div className="overflow-x-auto pb-8">
         <HojaPreliquidacion
+          idHoja="preliquidacion-impresion"
           empresa={empresa}
           codigo={pl.codigo}
           estado={pl.estado}
