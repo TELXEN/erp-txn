@@ -46,3 +46,12 @@ describe("Grupos de cuotas en horizontal", () => {
     expect(columnasCuotas(5)).toBe(3);
   });
 });
+
+describe("Grupos de cuotas en horizontal", () => {
+  it("muestra tantos grupos como cuotas, máximo tres por fila", () => {
+    expect(columnasCuotas(1)).toBe(1);
+    expect(columnasCuotas(2)).toBe(2);
+    expect(columnasCuotas(3)).toBe(3);
+    expect(columnasCuotas(5)).toBe(3);
+  });
+});
