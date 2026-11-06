@@ -11,7 +11,13 @@
   - Si Régimen está en «No aplica», el % queda atenuado.
 - Los cálculos, el guardado y las opciones de las listas no cambian.
 
+## Botones fijos arriba
+- «Guardar borrador» (o «Guardar cambios») y «Cancelar» pasan a la cabecera del editor, al lado de «Cerrar editor». Desaparecen de debajo de la hoja.
+- La cabecera queda fija: se mantiene visible mientras te desplazas por la hoja.
+
 ## Detalle técnico
 - `HojaPreliquidacion.tsx`: dejar de renderizar `props.editorCondicion` tras la hoja y renderizarlo dentro del bloque absoluto inferior, antes del bloque de detracción, solo si `editable`. Envolverlo en un contenedor con estilo de recuadro y una clase de exclusión de impresión (no forma parte del A4 impreso; la vista previa usa `editable=false`).
 - La hoja tiene posición absoluta abajo. Si el bloque crece, se reserva altura extra en edición con `paddingBottom` en la hoja para que no tape el desglose.
 - `Preliquidaciones.tsx`: rehacer el JSX de `editorCondicion` como una grilla de 2 columnas, con filas `etiqueta 110px | : | valor` y los mismos controles/handlers (`edHoja`), y tamaño de letra 10.
+- `Preliquidaciones.tsx`: darle a `<form>` un `id`. Mover los botones al `extra` del `Panel` (Guardar con `type="submit" form={id}`, más Cancelar y Cerrar editor) y quitarlos del pie. La cabecera del Panel queda `sticky top-0 z-10 bg-card` dentro del contenedor que se desplaza, y el mensaje de error sigue bajo la hoja.
+- Añadir la tarea en roadmap.md.
