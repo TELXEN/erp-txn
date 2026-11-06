@@ -4,4 +4,4 @@
 - Carriers (transportistas + vehiculos/conductores) are a catalogue; guías copy carrier, vehicle and driver data into datos_guia so emitted guides never change when the catalogue does.
 - Requerimientos: obra → gerente approves (trigger) → Bandeja quotes → approved quote creates OC → recepcionar_orden_obra RPC receives in obra. «Aprobar y generar OC» shows only with prices and pending qty; registering a quote requires ≥1 price.
 - Supplier quotes open per inbox requirement. Operations has no APU-unfolding header: the icon windows pick their own obra; reception lists every obra's pending orders.
-- Quotations open in a full-screen VentanaFlotante (Edición | Vista previa toggle, tools in an inner bar via CintaCotizacion.tsx); /cotizacion-vista only wraps VistaPreviaCotizacion — the ribbon never hosts quotation tools.
+- Quotations open in a full-screen VentanaFlotante (Edición | Vista previa toggle, tools in an inner bar); the editor shows the A4 sheet scaled by LienzoEscalado and the APU in the right PanelLateralApu (EditorEscalado.tsx) — edit view mirrors print; the ribbon never hosts quotation tools.
