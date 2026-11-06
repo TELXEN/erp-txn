@@ -5,7 +5,7 @@ import { FilePlus2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, Plus, Receipt, Upload, X } from "lucide-react";
+import { Eye, Plus, Receipt, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
