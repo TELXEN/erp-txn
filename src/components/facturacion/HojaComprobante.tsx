@@ -64,8 +64,10 @@ export function HojaComprobante(props: {
   numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number; detraccionBase?: number; detraccionUsd?: number; retencionBase?: number; retencionUsd?: number; netoPagar?: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
   tipos?: { tipo: TipoComprobante; etiqueta: string; corto: string }[];
+  /** Avisos (consulta SUNAT, tipo de cambio, licencias) que se muestran en la barra fija superior. */
+  onAviso?: (m: string) => void;
 }) {
-  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado, tipos = PESTANAS_CPE } = props;
+  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado, tipos = PESTANAS_CPE, onAviso } = props;
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
   function cambiarCondicion(v: string) { setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }
@@ -77,7 +79,7 @@ export function HojaComprobante(props: {
   }, [baseCuotas, form.condicion_pago, form.fecha_vencimiento, cuotas, setCuotas]);
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio); const { data: tcHoy } = useTipoCambioHoy();
-  const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
+  const setAviso = (m: string) => onAviso?.(m); const [buscando, setBuscando] = useState(false);
   const [verPartidas, setVerPartidas] = useState(false); const [nuevoTransp, setNuevoTransp] = useState(false); const [pendienteTransp, setPendienteTransp] = useState("");
   const { data: transportistas = [] } = useTransportistas();
   const esGuia = form.tipo_comprobante === "09";
