@@ -11,8 +11,8 @@ La preliquidación (editor, vista previa, impresión y PDF) se verá igual que l
 - **Información del pago / del crédito** igual que en la factura.
 - **Datos bancarios:** tres columnas (Soles, Dólares, Cuenta de detracciones) con CTA: y CCI:.
 - **Tipografía:** la fuente elegida para documentos, mismos tamaños que la factura.
-- **Modo edición:** la hoja ocupa todo el ancho de la ventana (ampliada en proporción), campos integrados con subrayado tenue; controles que no se imprimen en una franja encima de la hoja.
-- **Vista preliminar:** botón «Imprimir» con impresora a la derecha de «Descargar PDF», imprime solo la hoja A4.
+- **Modo edición:** pantalla completa; la hoja ocupa todo el ancho de la ventana (ampliada en proporción), campos integrados con subrayado tenue; controles que no se imprimen en una franja encima de la hoja.
+- **Vista preliminar:** hoja en tamaño A4 real (sin ampliar); botón «Imprimir» con impresora a la derecha de «Descargar PDF», imprime solo la hoja A4.
 
 Los montos, la numeración y el guardado no cambian.
 
