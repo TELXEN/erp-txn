@@ -22,8 +22,8 @@ export const DOC = {
   /** Gris de encabezado de tabla, recuadro de datos y píldoras del desglose de la factura. */
   gris: "#A9A9A9",
   grisClaro: "#C9C9C9",
-  /** Fila TOTAL del desglose de la factura. */
-  totalDesglose: "#107C41",
+  /** Fila TOTAL del desglose de la factura: amarillo corporativo TXN con texto negro. */
+  totalDesglose: "#F2C12E",
 } as const;
 
 /** Paleta monocromática para impresión/PDF: negro puro, grises neutros, sin acentos de color. */
