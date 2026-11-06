@@ -145,8 +145,8 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-card px-3 py-1">
         {acciones}
         <div className="ml-auto flex items-center gap-2">
-          <Boton variante="linea" onClick={imprimir} disabled={!filas.length}><Printer size={13} /> Imprimir</Boton>
-          <Boton onClick={() => void descargar()} disabled={pdf || !filas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
+          <Boton variante="linea" className="border-transparent bg-cinta-seleccion text-cinta-seleccion-foreground hover:bg-cinta-seleccion hover:opacity-90" onClick={imprimir} disabled={!filas.length}><Printer size={13} /> Imprimir</Boton>
+          <Boton className="border-transparent bg-cinta-seleccion text-cinta-seleccion-foreground hover:bg-cinta-seleccion hover:opacity-90" onClick={() => void descargar()} disabled={pdf || !filas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto bg-muted/60 p-3">
