@@ -203,7 +203,7 @@ export function HojaPreliquidacion(props: Props) {
                 </td>
                 <td style={{ ...td, textAlign: "right" }}>{editable ? <input type="number" step="0.01" min="0" value={l.cantidad} onChange={(e) => onLinea?.(i, { cantidad: e.target.value })} style={{ ...ed, textAlign: "right" }} /> : N(Number(l.cantidad))}</td>
                 <td style={{ ...td, textAlign: "right" }}>{editable ? <input type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => onLinea?.(i, { precio_unitario: e.target.value })} style={{ ...ed, textAlign: "right" }} /> : money(Number(l.precio_unitario))}</td>
-                <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{money(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
+                <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{editable ? <CampoVenta valor={Number(l.cantidad || 0) * Number(l.precio_unitario || 0)} style={{ ...ed, textAlign: "right", fontWeight: 700 }} onCambio={(v) => { const c = Number(l.cantidad || 0) > 0 ? Number(l.cantidad) : 1; onLinea?.(i, { cantidad: String(c), precio_unitario: String(Math.round((v / c) * 10000) / 10000) }); }} /> : money(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
                 {editable && (
                   <td style={{ ...td, padding: "6px 0", textAlign: "center" }}>
                     {lineas.length > 1 && <button type="button" onClick={() => onQuitarLinea?.(i)} aria-label="Quitar línea" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-bad)", padding: 0 }}><X size={10} /></button>}
@@ -276,4 +276,10 @@ export function HojaPreliquidacion(props: Props) {
       <div ref={lienzo} style={{ width: "100%", overflow: "hidden", paddingBottom: 8 }}>{hoja}</div>
     </div>
   );
+}
+
+/** V. Venta editable: al escribir recalcula el P. unitario (venta ÷ cantidad). */
+function CampoVenta({ valor, onCambio, style }: { valor: number; onCambio: (v: number) => void; style: React.CSSProperties }) {
+  const [texto, setTexto] = useState<string | null>(null);
+  return <input type="number" step="0.01" min="0" aria-label="Valor de venta" value={texto ?? (valor ? valor.toFixed(2) : "")} onFocus={() => setTexto(valor ? valor.toFixed(2) : "")} onBlur={() => setTexto(null)} onChange={(e) => { setTexto(e.target.value); onCambio(Number(e.target.value || 0)); }} style={style} />;
 }
