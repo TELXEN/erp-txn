@@ -242,6 +242,21 @@ export function HojaPreliquidacion(props: Props) {
       </div>
 
       <div style={{ position: "absolute", left: 38, right: 38, bottom: 28 }}>
+        {!editable && (
+          <div style={{ border: `1px solid ${C.line}`, borderRadius: 10, padding: "6px 10px 8px", marginBottom: 8, fontSize: 10 }}>
+            <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".08em", color: "#6B7280", marginBottom: 4 }}>CONDICIONES DE PAGO</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 24 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "110px 10px 1fr", rowGap: 3, alignContent: "start" }}>
+                <span style={{ color: "#6B7280" }}>Régimen</span><span>:</span><b>{tipoTributario === "detraccion" ? "Detracción" : tipoTributario === "retencion" ? "Retención" : "No aplica"}</b>
+                {tipoTributario !== "ninguno" && <><span style={{ color: "#6B7280" }}>% aplicado</span><span>:</span><b>{N(pctDetraccion)}%</b></>}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "130px 10px 1fr", rowGap: 3, alignContent: "start" }}>
+                <span style={{ color: "#6B7280" }}>Condición de pago</span><span>:</span><b>{condicionPago || "Contado"}</b>
+                {condicionPago === "Crédito" && <><span style={{ color: "#6B7280" }}>Plazo</span><span>:</span><b>{diasCredito} días</b><span style={{ color: "#6B7280" }}>Vencimiento</span><span>:</span><b>{F(fechaVencimiento) || "—"}</b></>}
+              </div>
+            </div>
+          </div>
+        )}
         {editable && props.editorCondicion && (
           <div style={{ border: `1px solid ${C.line}`, background: "#FAFAFA", borderRadius: 10, padding: "6px 10px 8px", marginBottom: 8, fontSize: 10 }}>
             <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".08em", color: "#6B7280", marginBottom: 4 }}>CONDICIONES DE PAGO</div>
