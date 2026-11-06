@@ -97,16 +97,16 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
   }
   const tc = cot.fecha_envio ? Number(cot.tipo_cambio) : Number(cambio?.venta) || Number(cot.tipo_cambio);
   const fecha = (v: string) => v.split("-").reverse().join("/");
-  const fila = (label: string, valor: ReactNode, ancho = 70) => <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 27 : undefined }}><span style={{ width: ancho, flexShrink: 0 }}>{label}</span><span style={{ width: 12, flexShrink: 0, textAlign: "center" }}>:</span><div style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{valor}</div></div>;
+  const fila = (label: string, valor: ReactNode, ancho = 74) => <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 22 : undefined }}><b style={{ width: ancho, flexShrink: 0 }}>{label}</b><span style={{ width: 8, flexShrink: 0 }}>:</span><div style={{ flex: 1, minWidth: 0 }}>{valor}</div></div>;
   const ruc = cot.ruc_cliente || cliente?.numero_documento || "";
-  return <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.35 }}>
-    <div className="flex flex-wrap items-start gap-4 sm:flex-nowrap">
-      <div style={{ width: 120, height: 76, flexShrink: 0, display: "flex", alignItems: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 120, maxHeight: 64, objectFit: "contain" }} /> : <b style={{ fontSize: 20 }}>Telxen</b>}</div>
-      <div style={{ flex: 1, minWidth: 0, fontSize: "8.5pt" }}><b style={{ fontSize: 12 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b><TextoAjustado texto={empresa?.eslogan} basePt={8.5} minimoPt={5.5} /><div>{empresa?.direccion || "—"}</div><div>{empresa?.web || "—"}</div></div>
-      <div style={{ width: 200, flexShrink: 0, textAlign: "right" }}><div className="rounded-md" style={{ border: `3px solid ${DOC.dark}`, padding: "8px 6px", textAlign: "center" }}><div style={{ fontSize: 15 }}>COTIZACIÓN</div><div style={{ fontSize: 10, marginTop: 3 }}>{cot.codigo || "SIN CÓDIGO"}</div></div><div style={{ marginTop: 3 }}>Rev. {(cot.revision || "00").padStart(2, "0")}</div><div style={{ fontSize: 7.5 }}>Hoja {numero} de {totalHojas}</div></div>
-    </div>
-    <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,270px)]">
-      <div>
+  return <div style={{ fontFamily: DOC_FUENTE_CSS, color: "#000", fontSize: 9, lineHeight: 1.15, textTransform: "uppercase" }}>
+    <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6 }}>
+      <div style={{ width: 132, flexShrink: 0, display: "flex", alignItems: "center" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ maxWidth: 132, maxHeight: 78, objectFit: "contain" }} /> : <b style={{ fontSize: 20 }}>TELXEN</b>}</div>
+      <div style={{ flex: 1, minWidth: 0, textAlign: "left", paddingLeft: 4, display: "flex", flexDirection: "column", justifyContent: "center" }}><b style={{ fontSize: 13, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b><div style={{ fontWeight: 300, marginTop: 2 }}><TextoAjustado texto={empresa?.eslogan} basePt={5.5} minimoPt={4} /></div><div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.direccion || "—"}</div><div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.web || "—"}</div></div>
+      <div style={{ width: 248, flexShrink: 0, textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}><div style={{ border: "1px solid #000", borderRadius: 8, padding: "10px", lineHeight: 1.15 }}><div style={{ fontSize: 10, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div><div style={{ fontSize: 12, fontWeight: 700, marginTop: 5 }}>COTIZACIÓN</div><div style={{ fontSize: 13, fontWeight: 700, marginTop: 5 }}>{cot.codigo || "SIN CÓDIGO"}</div></div><div style={{ alignSelf: "center", marginTop: 6, fontSize: 8, fontWeight: 700, padding: "2px 10px", borderRadius: 999, background: DOC.accentSoft, color: DOC.accentText, border: `1px solid ${DOC.accent}` }}>REV. {(cot.revision || "00").padStart(2, "0")} · HOJA {numero} DE {totalHojas}</div></div>
+    </header>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 190px", gap: 12, padding: 13, border: `1.5px solid ${DOC.gris}`, borderRadius: 10, marginTop: 8, textAlign: "left" }}>
+      <div style={{ minWidth: 0 }}>
         {fila("RUC", editable ? <><input aria-label="RUC" aria-busy={consultandoRuc} inputMode="numeric" maxLength={11} list={`ruc-${cot.id}`} defaultValue={ruc} key={ruc} className="w-full border-b border-dashed border-line bg-transparent py-0.5 outline-none" onChange={(e) => {
           const numero = e.target.value.trim(); rucActual.current = numero;
           clearTimeout(timerRuc.current);
@@ -117,31 +117,33 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
           if (!/^\d{11}$/.test(numero)) { setError("Ingresa un RUC de 11 dígitos."); return; }
           // The pending automatic lookup saves all client fields together.
           if (!timerRuc.current) void completarRuc(numero);
-        }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—", 88)}
-        {fila("CLIENTE", campo("cliente", cot.cliente || cliente?.razon_social || ""), 88)}
-        {fila("DIRECCIÓN", campo("ubicacion", direccionSinUbicacion(cot.ubicacion || cliente?.direccion || "", cot.cliente_departamento || "", cot.cliente_provincia || "", cot.cliente_distrito || "")), 88)}
-        {editable ? <>
-          {fila("DEPARTAMENTO", campo("cliente_departamento", cot.cliente_departamento || ""), 88)}
-          {fila("PROVINCIA", campo("cliente_provincia", cot.cliente_provincia || ""), 88)}
-          {fila("DISTRITO", campo("cliente_distrito", cot.cliente_distrito || ""), 88)}
-        </> : <div className="flex items-baseline gap-2 whitespace-nowrap" style={{ fontSize: "6pt" }}>
-          <span>DEPARTAMENTO: <b>{cot.cliente_departamento || "—"}</b></span>
-          <span>PROVINCIA: <b>{cot.cliente_provincia || "—"}</b></span>
-          <span>DISTRITO: <b>{cot.cliente_distrito || "—"}</b></span>
-        </div>}
-        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || "", "text", (v) => formatearTexto(v, "titulo")), 88)}
-        {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""), 88)}
+        }} /><datalist id={`ruc-${cot.id}`}>{clientes.map((c) => <option key={c.id} value={c.numero_documento}>{c.razon_social}</option>)}</datalist></> : ruc || "—")}
+        {fila("NOMBRE", <b>{campo("cliente", cot.cliente || cliente?.razon_social || "")}</b>)}
+        {fila("DIRECCIÓN", campo("ubicacion", direccionSinUbicacion(cot.ubicacion || cliente?.direccion || "", cot.cliente_departamento || "", cot.cliente_provincia || "", cot.cliente_distrito || "")))}
+        {fila("DEPARTAMENTO", <span style={{ display: "flex", gap: 8, whiteSpace: "nowrap", alignItems: "center" }}>
+          <span style={{ minWidth: 0, flex: editable ? 1 : undefined }}>{campo("cliente_departamento", cot.cliente_departamento || "")}</span>
+          <b>PROVINCIA:</b><span style={{ minWidth: 0, flex: editable ? 1 : undefined }}>{campo("cliente_provincia", cot.cliente_provincia || "")}</span>
+          <b>DISTRITO:</b><span style={{ minWidth: 0, flex: editable ? 1 : undefined }}>{campo("cliente_distrito", cot.cliente_distrito || "")}</span>
+        </span>)}
+        {fila("ATENCIÓN", campo("atencion", cot.atencion || cliente?.contacto || "", "text", (v) => formatearTexto(v, "titulo")))}
+        {fila("TELÉFONO", campo("telefono", cot.telefono || cliente?.celular_contacto || cliente?.telefono || ""))}
+        {fila("PROYECTO", campo("nombre", cot.nombre))}
       </div>
       <div>
-        {fila("FECHA DE EMISIÓN", editable ? campo("fecha_emision", cot.fecha_emision, "date") : fecha(cot.fecha_emision), 118)}
-        {fila("MONEDA", editable ? menu("Moneda", cot.moneda, [["USD", "Dólares"], ["PEN", "Soles"]], (v) => void moneda(v)) : cot.moneda === "USD" ? "Dólares" : "Soles", 118)}
-        {fila("CONDICIÓN DE VENTA", editable ? menu("Condición de venta", cot.condicion_venta || "", [["Crédito", "Crédito"], ["Contado", "Contado"]], (v) => void guardar({ condicion_venta: v })) : cot.condicion_venta || "—", 118)}
-        {fila("VALIDEZ DE OFERTA", editable ? campo("validez_dias", cot.validez_dias, "number") : `${cot.validez_dias} días (hasta ${fecha(vigenciaHasta(cot.fecha_emision, cot.validez_dias))})`, 118)}
-        {cot.moneda === "USD" && fila("TIPO CAMBIO", tc > 0 ? `${tc.toFixed(3)}${cot.tipo_cambio_fecha ? ` · ${fecha(cot.tipo_cambio_fecha)}` : ""}` : "No disponible", 118)}
-        {editable && fila("ORIENTACIÓN", menu("Orientación", cot.orientacion || "vertical", [["vertical", "Vertical"], ["horizontal", "Horizontal"]], (v) => void guardar({ orientacion: v })), 118)}
+        {fila("MONEDA", editable ? menu("Moneda", cot.moneda, [["USD", "Dólares"], ["PEN", "Soles"]], (v) => void moneda(v)) : cot.moneda === "USD" ? "DÓLARES" : "SOLES", 60)}
+        {cot.moneda === "USD" && fila("T. CAMBIO", tc > 0 ? tc.toFixed(3) : "—", 60)}
+        {fila("IGV", cot.aplica_igv === false ? "0.00%" : "18.00%", 60)}
+        {editable && fila("HOJA", menu("Orientación", cot.orientacion || "vertical", [["vertical", "Vertical"], ["horizontal", "Horizontal"]], (v) => void guardar({ orientacion: v })), 60)}
       </div>
     </div>
-    <div className="mt-2">{fila("PROYECTO", <div style={{ border: `1.5px solid ${DOC.dark}`, padding: "4px 8px" }}>{campo("nombre", cot.nombre)}</div>)}</div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1.5px solid ${DOC.gris}`, borderRadius: 10, marginTop: 10, textAlign: "center" }}>
+      {([
+        ["FECHA DE EMISIÓN", editable ? campo("fecha_emision", cot.fecha_emision, "date") : fecha(cot.fecha_emision)],
+        ["CONDICIÓN DE VENTA", editable ? menu("Condición de venta", cot.condicion_venta || "", [["Crédito", "Crédito"], ["Contado", "Contado"]], (v) => void guardar({ condicion_venta: v })) : cot.condicion_venta || "—"],
+        ["VALIDEZ DE OFERTA", editable ? campo("validez_dias", cot.validez_dias, "number") : `${cot.validez_dias} DÍAS`],
+        ["VIGENTE HASTA", fecha(vigenciaHasta(cot.fecha_emision, cot.validez_dias))],
+      ] as [string, ReactNode][]).map(([l, v], i) => <div key={l} style={{ padding: "5px 4px", borderLeft: i ? `1.5px solid ${DOC.gris}` : "none" }}><b style={{ display: "block" }}>{l}:</b><div style={{ marginTop: 3, minHeight: 11 }}>{v}</div></div>)}
+    </div>
     {consultandoRuc && <p role="status" className="mt-2 text-xs text-muted-foreground">Consultando RUC…</p>}
     {error && <p role="alert" className="mt-2 text-xs text-bad">{error}</p>}
   </div>;
