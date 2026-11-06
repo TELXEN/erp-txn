@@ -1,3 +1,4 @@
+import type React from "react";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
@@ -408,12 +409,16 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
 
       {abierto && (
         <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
-        <Panel
-          titulo={editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"}
-          className="min-h-full"
-          extra={<Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cerrar editor</Boton>}
-        >
-          <form onSubmit={guardar} className="p-5">
+        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-line bg-card px-5 py-3">
+          <h2 className="text-base font-semibold tracking-tight">{editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"}</h2>
+          <div className="flex items-center gap-2">
+            <Boton type="submit" form="form-preliquidacion">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
+            <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
+            <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cerrar editor</Boton>
+          </div>
+        </div>
+        <Panel className="min-h-full">
+          <form id="form-preliquidacion" onSubmit={guardar} className="p-5">
 
             <HojaPreliquidacion
               editable
@@ -463,48 +468,28 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
                   )}
                 </>
               }
-              editorCondicion={
-                <div style={{ display: "grid", gap: 5, marginTop: 5 }}>
-                  <div className="flex items-center justify-between gap-3">
-                    <span>Régimen</span>
-                    <span className="flex items-center gap-1">
-                      <select aria-label="Régimen" style={{ ...edHoja, width: "auto", fontWeight: 700 }} value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" }); }}>
+              editorCondicion={(() => {
+                const F = (et: string, v: React.ReactNode) => <><span style={{ color: "#6B7280" }}>{et}</span><span>:</span><span style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>{v}</span></>;
+                const credito = form.condicion_pago === "Crédito";
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 24 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "110px 10px 1fr", rowGap: 4, alignContent: "start" }}>
+                      {F("Régimen", <select aria-label="Régimen" style={{ ...edHoja, width: "auto", fontWeight: 700 }} value={`${form.tipo_tributario}|${form.pct_detraccion}`} onChange={(e) => { const [t, p] = e.target.value.split("|"); setForm({ ...form, tipo_tributario: t as TipoTributario, pct_detraccion: p ?? "0" }); }}>
                         {REGIMENES.map((r) => <option key={r.etiqueta} value={`${r.valor}|${r.pct}`}>{r.etiqueta}</option>)}
                         <option value={`${form.tipo_tributario}|${form.pct_detraccion}`} hidden>{form.tipo_tributario} {form.pct_detraccion}%</option>
-                      </select>
-                      <input aria-label="% aplicado" type="number" step="0.01" min="0" max="100" style={{ ...edHoja, width: 46, textAlign: "right" }} value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />%
-                    </span>
+                      </select>)}
+                      {F("% aplicado", <><input aria-label="% aplicado" type="number" step="0.01" min="0" max="100" style={{ ...edHoja, width: 50, textAlign: "right", fontWeight: 700, opacity: form.tipo_tributario === "ninguno" ? 0.4 : 1 }} value={form.pct_detraccion} disabled={form.tipo_tributario === "ninguno"} onChange={(e) => setForm({ ...form, pct_detraccion: e.target.value })} />%</>)}
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "130px 10px 1fr", rowGap: 4, alignContent: "start" }}>
+                      {F("Condición de pago", <select aria-label="Condición de pago" style={{ ...edHoja, width: "auto", fontWeight: 700 }} value={form.condicion_pago} onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })}><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select>)}
+                      {credito && F("Plazo", <><select aria-label="Plazo" style={{ ...edHoja, width: "auto", fontWeight: 700 }} value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"} onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })}>{PLAZOS.map((p) => <option key={p} value={String(p)}>{p} días</option>)}<option value="otro">Otro</option></select><input aria-label="Días de crédito" type="number" min="0" step="1" style={{ ...edHoja, width: 40, textAlign: "right", fontWeight: 700 }} value={form.dias_credito} onChange={(e) => setForm({ ...form, dias_credito: e.target.value })} /> días</>)}
+                      {credito && F("Vencimiento estimado", fmtFecha(venc))}
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <span>Condición de pago</span>
-                    <select aria-label="Condición de pago" style={{ ...edHoja, width: "auto", fontWeight: 700 }} value={form.condicion_pago} onChange={(e) => setForm({ ...form, ...condicionVacia(e.target.value) })}>
-                      <option value="Contado">Contado</option>
-                      <option value="Crédito">Crédito</option>
-                    </select>
-                  </div>
-                  {form.condicion_pago === "Crédito" && (
-                    <>
-                      <div className="flex items-center justify-between gap-3">
-                        <span>Plazo</span>
-                        <span className="flex items-center gap-1">
-                          <select aria-label="Plazo" style={{ ...edHoja, width: "auto" }} value={PLAZOS.includes(Number(form.dias_credito)) ? form.dias_credito : "otro"} onChange={(e) => e.target.value !== "otro" && setForm({ ...form, dias_credito: e.target.value })}>
-                            {PLAZOS.map((p) => <option key={p} value={String(p)}>{p} días</option>)}
-                            <option value="otro">Otro</option>
-                          </select>
-                          <input aria-label="Días de crédito" type="number" min="0" step="1" style={{ ...edHoja, width: 40, textAlign: "right" }} value={form.dias_credito} onChange={(e) => setForm({ ...form, dias_credito: e.target.value })} /> días
-                        </span>
-                      </div>
-                      <div className="flex justify-between"><span>Vencimiento estimado</span><span>{fmtFecha(venc)}</span></div>
-                    </>
-                  )}
-                </div>
-              }
+                );
+              })()}
             />
 
-            <div className="mt-4 flex gap-2">
-              <Boton type="submit">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
-              <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
-            </div>
             {error && <p className="mt-2 font-mono text-xs text-bad">{error}</p>}
           </form>
         </Panel>
