@@ -97,7 +97,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
   }
   const tc = cot.fecha_envio ? Number(cot.tipo_cambio) : Number(cambio?.venta) || Number(cot.tipo_cambio);
   const fecha = (v: string) => v.split("-").reverse().join("/");
-  const fila = (label: string, valor: ReactNode, ancho = 74) => <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 22 : undefined }}><b style={{ width: ancho, flexShrink: 0 }}>{label}</b><span style={{ width: 8, flexShrink: 0 }}>:</span><div style={{ flex: 1, minWidth: 0 }}>{valor}</div></div>;
+  const fila = (label: string, valor: ReactNode, ancho = 74) => <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 14 : undefined }}><b style={{ width: ancho, flexShrink: 0 }}>{label}</b><span style={{ width: 8, flexShrink: 0 }}>:</span><div style={{ flex: 1, minWidth: 0 }}>{valor}</div></div>;
   const ruc = cot.ruc_cliente || cliente?.numero_documento || "";
   return <div style={{ fontFamily: DOC_FUENTE_CSS, color: "#000", fontSize: 9, lineHeight: 1.15, textTransform: "uppercase" }}>
     <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6 }}>
