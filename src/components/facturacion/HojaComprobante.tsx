@@ -303,7 +303,7 @@ export function HojaComprobante(props: {
         <div style={{ marginTop: "auto", paddingTop: 18 }}>
           {usaImportes(tipo) && <div style={{ padding: "4px 0", fontSize: 9, fontWeight: 700, textAlign: "justify", width: "100%" }}>{montoEnLetras(montos.total, form.moneda)}</div>}
           {usaImportes(tipo) && <div style={{ ...CARD, padding: 8, marginTop: 8, fontSize: 9 }}>
-            {form.condicion_pago !== "Crédito" ? <b style={{ fontSize: 10 }}>{form.condicion_pago}</b> : <div style={{ fontSize: 10, lineHeight: 1.25 }}>
+            {form.condicion_pago !== "Crédito" ? <div style={{ fontSize: 10, lineHeight: 1.25 }}><b>Información del pago</b><div style={{ display: "grid", gridTemplateColumns: "200px 14px 1fr", marginTop: 2 }}><span>Monto neto pendiente de pago</span><span>:</span><span>{money(baseCuotas)}</span></div></div> : <div style={{ fontSize: 10, lineHeight: 1.25 }}>
               <b>Información del crédito</b>
               <div style={{ display: "grid", gridTemplateColumns: "200px 14px 1fr", marginTop: 2 }}><span>Monto neto pendiente de pago</span><span>:</span><span>{money(baseCuotas)}</span><span>Total de Cuotas</span><span>:</span><span>{cuotas.length}</span></div>
               <div style={{ display: "grid", gridTemplateColumns: `repeat(${columnasCuotas(cuotas.length)}, 56px 74px 80px)`, columnGap: 10, marginTop: 6, alignItems: "center" }}>
