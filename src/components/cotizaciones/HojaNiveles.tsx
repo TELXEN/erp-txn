@@ -70,6 +70,7 @@ export function HojaNiveles({
   const [sel, setSel] = useState<string | null>(null);
   const [ventana, setVentana] = useState<{ modo: "nuevo" | "editar"; id?: string; form: Form } | null>(null);
   const [error, setError] = useState("");
+  const [avisoRepetida, setAvisoRepetida] = useState<{ nombre: string; detalle: string; resolver: (ok: boolean) => void } | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [origenPartida, setOrigenPartida] = useState<"banco" | "nueva">("banco");
 
@@ -182,7 +183,9 @@ export function HojaNiveles({
         const repetida = partidaRepetida(orden, pos, claveNombre(nombre), f.apuId, claveNombre);
         if (repetida) {
           const suma = Number(repetida.metrado || 0) + datos.metrado;
-          if (!window.confirm(`La partida «${repetida.nombre}» ya existe en este título o subtítulo.\n¿Sumar la cantidad (${num(Number(repetida.metrado || 0))} + ${num(datos.metrado)} = ${num(suma)})?`)) return;
+          const ok = await new Promise<boolean>((resolver) => setAvisoRepetida({ nombre: String(repetida.nombre ?? ""), detalle: `${num(Number(repetida.metrado || 0))} + ${num(datos.metrado)} = ${num(suma)}`, resolver }));
+          setAvisoRepetida(null);
+          if (!ok) return;
           const { error: errSuma } = await db.from("cotizacion_items").update({ metrado: suma }).eq("id", repetida.id);
           if (errSuma) throw errSuma;
           await refrescar();
@@ -305,6 +308,16 @@ export function HojaNiveles({
 
   return (
     <div className="flex w-full gap-2">
+      {avisoRepetida && (
+        <VentanaFlotante titulo="Partida repetida" abierta superpuesta ancho="max-w-sm" onCerrar={() => avisoRepetida.resolver(false)}>
+          <p className="text-sm text-ink">La partida <b>«{avisoRepetida.nombre}»</b> ya existe en este título o subtítulo.</p>
+          <p className="mt-2 text-sm text-muted-foreground">¿Sumar la cantidad? <span className="font-mono text-ink">{avisoRepetida.detalle}</span></p>
+          <div className="mt-4 flex justify-end gap-2">
+            <Boton type="button" variante="linea" onClick={() => avisoRepetida.resolver(false)}>Cancelar</Boton>
+            <Boton type="button" onClick={() => avisoRepetida.resolver(true)}>Sumar cantidad</Boton>
+          </div>
+        </VentanaFlotante>
+      )}
       <ContextMenu>
       <ContextMenuTrigger asChild>
       <div className="min-w-0 flex-1 overflow-x-auto rounded-md border border-line bg-card">
