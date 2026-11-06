@@ -17,7 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco } from "@/lib/banco-apu";
 import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
-import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
+import { PanelApuCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
 import { LienzoEscalado, PanelLateralApu } from "@/components/cotizaciones/EditorEscalado";
 
@@ -186,6 +186,7 @@ function Cotizaciones() {
   const esUltimaRevision = hermanas.length > 0 && hermanas.at(-1)?.id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
+  const [apuAbierto, setApuAbierto] = useState(false);
   const [cmdInsumo, setCmdInsumo] = useState<{ grupo: string; n: number } | null>(null);
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
