@@ -279,7 +279,7 @@ export function HojaPreliquidacion(props: Props) {
 }
 
 /** V. Venta editable: al escribir recalcula el P. unitario (venta ÷ cantidad). */
-function CampoVenta({ valor, onCambio, style }: { valor: number; onCambio: (v: number) => void; style: React.CSSProperties }) {
+function CampoVenta({ valor, onCambio, style }: { valor: number; onCambio: (v: number) => void; style: CSSProperties }) {
   const [texto, setTexto] = useState<string | null>(null);
   return <input type="number" step="0.01" min="0" aria-label="Valor de venta" value={texto ?? (valor ? valor.toFixed(2) : "")} onFocus={() => setTexto(valor ? valor.toFixed(2) : "")} onBlur={() => setTexto(null)} onChange={(e) => { setTexto(e.target.value); onCambio(Number(e.target.value || 0)); }} style={style} />;
 }
