@@ -70,6 +70,7 @@ export function HojaNiveles({
   const [sel, setSel] = useState<string | null>(null);
   const [ventana, setVentana] = useState<{ modo: "nuevo" | "editar"; id?: string; form: Form } | null>(null);
   const [error, setError] = useState("");
+  const [avisoRepetida, setAvisoRepetida] = useState<{ nombre: string; detalle: string; resolver: (ok: boolean) => void } | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [origenPartida, setOrigenPartida] = useState<"banco" | "nueva">("banco");
 
@@ -182,7 +183,9 @@ export function HojaNiveles({
         const repetida = partidaRepetida(orden, pos, claveNombre(nombre), f.apuId, claveNombre);
         if (repetida) {
           const suma = Number(repetida.metrado || 0) + datos.metrado;
-          if (!window.confirm(`La partida «${repetida.nombre}» ya existe en este título o subtítulo.\n¿Sumar la cantidad (${num(Number(repetida.metrado || 0))} + ${num(datos.metrado)} = ${num(suma)})?`)) return;
+          const ok = await new Promise<boolean>((resolver) => setAvisoRepetida({ nombre: String(repetida.nombre ?? ""), detalle: `${num(Number(repetida.metrado || 0))} + ${num(datos.metrado)} = ${num(suma)}`, resolver }));
+          setAvisoRepetida(null);
+          if (!ok) return;
           const { error: errSuma } = await db.from("cotizacion_items").update({ metrado: suma }).eq("id", repetida.id);
           if (errSuma) throw errSuma;
           await refrescar();
