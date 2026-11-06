@@ -136,14 +136,6 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
         {editable && fila("HOJA", menu("Orientación", cot.orientacion || "vertical", [["vertical", "Vertical"], ["horizontal", "Horizontal"]], (v) => void guardar({ orientacion: v })), 60)}
       </div>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1.5px solid ${DOC.gris}`, borderRadius: 10, marginTop: 10, textAlign: "center" }}>
-      {([
-        ["FECHA DE EMISIÓN", editable ? campo("fecha_emision", cot.fecha_emision, "date") : fecha(cot.fecha_emision)],
-        ["CONDICIÓN DE VENTA", editable ? menu("Condición de venta", cot.condicion_venta || "", [["Crédito", "Crédito"], ["Contado", "Contado"]], (v) => void guardar({ condicion_venta: v })) : cot.condicion_venta || "—"],
-        ["VALIDEZ DE OFERTA", editable ? campo("validez_dias", cot.validez_dias, "number") : `${cot.validez_dias} DÍAS`],
-        ["VIGENTE HASTA", fecha(vigenciaHasta(cot.fecha_emision, cot.validez_dias))],
-      ] as [string, ReactNode][]).map(([l, v], i) => <div key={l} style={{ padding: "5px 4px", borderLeft: i ? `1.5px solid ${DOC.gris}` : "none" }}><b style={{ display: "block" }}>{l}:</b><div style={{ marginTop: 3, minHeight: 11 }}>{v}</div></div>)}
-    </div>
     {consultandoRuc && <p role="status" className="mt-2 text-xs text-muted-foreground">Consultando RUC…</p>}
     {error && <p role="alert" className="mt-2 text-xs text-bad">{error}</p>}
   </div>;
