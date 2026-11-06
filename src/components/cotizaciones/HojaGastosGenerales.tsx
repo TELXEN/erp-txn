@@ -134,7 +134,6 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
                     ))}
                     <div style={{ textAlign: "right", fontSize: 8.5, color: "#555" }}>% Gastos generales: {n2(pct)} %</div>
                   </div>
-                  </div>
                 )}
               </section>
             ))}
