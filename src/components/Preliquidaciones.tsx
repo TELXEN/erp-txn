@@ -1,16 +1,16 @@
 import type React from "react";
 import { BarraIconosHoja } from "@/components/BarraIconosHoja";
+import { Encabezado } from "@/components/AppShell";
 import { useEffect, useState } from "react";
 import { useTipoCambioHoy } from "@/lib/tipo-cambio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, Plus, Receipt, Upload, X } from "lucide-react";
+import { Eye, FilePlus2, Receipt, X } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Boton, BotonIcono, Campo, Etiqueta, Input, Panel, Select, Vacio } from "@/components/ui-kit";
 import { Buscador, coincide, Resaltar } from "@/components/Buscador";
 import { condicionVacia, datosCondicion, PLAZOS } from "@/components/CondicionPago";
 import { fecha as fmtFecha, hoy, soles } from "@/lib/format";
-import { exportarExcel } from "@/lib/exportar";
 import { useEmpresa } from "@/lib/empresa";
 import { useUnidadesMedida } from "@/lib/unidades";
 import { HojaPreliquidacion } from "@/components/HojaPreliquidacion";
@@ -407,6 +407,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         </div>
       )}
 
+      <Encabezado titulo="Preliquidaciones" subtitulo="Comercial · valorización, aprobación y preparación del comprobante" acciones={<div className="flex items-center gap-2">{abierto ? null : <Boton onClick={nuevo}><FilePlus2 size={14} />Nueva preliquidación</Boton>}</div>} />
       {abierto && (
         <div className="-mx-4 -my-6 min-h-full bg-background sm:-mx-6">
         <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-line bg-card px-5 py-3">
@@ -516,33 +517,6 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         extra={
           <div className="flex items-center gap-2">
             <Buscador valor={busqueda} onChange={setBusqueda} total={filtradas.length} placeholder="Buscar por código, concepto, cliente u obra..." />
-            <Boton
-              variante="linea"
-              onClick={() =>
-                exportarExcel("preliquidaciones", [
-                  {
-                    nombre: "Preliquidaciones",
-                    filas: lista.map((p) => {
-                      const mm = calcularMontos(netoDe(p.id), Number(p.pct_detraccion), Number(p.tipo_cambio), p.tipo_tributario ?? "detraccion");
-                      return {
-                        Código: p.codigo, Fecha: p.fecha, Obra: nombreProy(p.proyecto_id), Cliente: nombreCliente(p.cliente_id),
-                        RUC: rucCliente(p.cliente_id), Dirección: dirCliente(p.cliente_id),
-                        "Amortización adelanto": amortDe(p.id), Factura: facturaDe(p.id)?.numero_factura ?? "",
-                        "Orden de compra": p.orden_compra ?? "", Descripción: p.concepto, Moneda: p.moneda, Neto: mm.neto, IGV: mm.igv, Total: mm.total,
-                        Régimen: mm.tipo === "detraccion" ? `Detracción ${p.pct_detraccion}%` : mm.tipo === "retencion" ? `Retención ${p.pct_detraccion}%` : "Ninguno",
-                        "Detracción (S/)": mm.detraccionPen, "Retención (S/)": mm.retencionPen,
-                        "Neto a cobrar": mm.cobrar, Condición: p.condicion_pago,
-
-                        Vencimiento: p.fecha_vencimiento ?? "", Estado: p.estado,
-                      };
-                    }),
-                  },
-                ])
-              }
-            >
-              <Upload size={13} /> Excel
-            </Boton>
-            {!abierto && <Boton onClick={nuevo}><Plus size={13} /> Nueva</Boton>}
           </div>
         }
       >
