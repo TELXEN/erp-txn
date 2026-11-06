@@ -53,6 +53,36 @@ function TextoCreciente({ value, onChange, placeholder, style }: { value: string
 
 export type Empresa = { razon_social?: string; eslogan?: string; ruc?: string; direccion?: string; telefono?: string; web?: string; logo_url?: string } | null | undefined;
 
+/** Condiciones del comprobante: forma de pago, régimen, anticipo y estado SUNAT.
+ *  Se muestra en la barra fija superior del editor, junto a los botones de guardado. */
+export function BarraCondicionesCpe({ form, setForm, cuotas, setCuotas, montos, aviso }: {
+  form: FormCpe; setForm: (f: FormCpe) => void; cuotas: CuotaEditor[]; setCuotas: (c: CuotaEditor[]) => void;
+  montos: { total: number; netoPagar?: number }; aviso?: string;
+}) {
+  const tipo = form.tipo_comprobante as TipoComprobante;
+  const baseCuotas = montos.netoPagar ?? montos.total;
+  const set = (k: keyof FormCpe, v: string) => setForm({ ...form, [k]: v });
+  function cambiarCondicion(v: string) { setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }
+  const sunat = Boolean(form.cliente_estado_sunat || form.cliente_condicion_sunat);
+  if (!usaImportes(tipo) && !sunat && !aviso) return null;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", alignItems: "center", fontSize: 12, padding: "5px 12px", border: `1px solid ${C.line}`, borderRadius: 8, background: C.white, boxSizing: "border-box" }}>
+      {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Forma de pago</b><select value={form.condicion_pago} onChange={(e) => cambiarCondicion(e.target.value)}><option>Contado</option><option>Crédito</option></select></label>}
+      {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Régimen</b><select value={form.tipo_tributario} onChange={(e) => { const t = e.target.value as TipoTributarioCpe; setForm({ ...form, tipo_tributario: t, ...regimenPorDefecto(t) }); }} style={{ ...edSel, width: "auto", borderBottom: `1px solid ${C.line}` }}><option value="ninguno">No aplica</option><option value="detraccion">Detracción</option><option value="retencion">Retención</option></select></label>}
+      {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}><input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} /><b>Anticipo</b></label>}
+      {usaImportes(tipo) && form.anticipo_tipo !== "ninguno" && <>
+        <select aria-label="Modalidad" value={form.anticipo_tipo} onChange={(e) => { const v = e.target.value as AnticipoTipo; setForm({ ...form, anticipo_tipo: v, ...datosAnticipo(v, form.anticipo_documento, form.anticipo_monto) }); }} style={{ ...edSel, width: "auto", borderBottom: `1px solid ${C.line}` }}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select>
+        {form.anticipo_tipo === "deduccion" && <>
+          <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Comprobante</b><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={{ ...ed, width: 130, borderBottom: `1px solid ${C.line}` }} /></label>
+          <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Importe</b><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} style={{ ...ed, width: 110, borderBottom: `1px solid ${C.line}` }} /></label>
+        </>}
+      </>}
+      {sunat && <span style={{ fontWeight: 700, color: form.cliente_condicion_sunat === "HABIDO" ? C.green : C.muted }}>SUNAT: {form.cliente_estado_sunat} · {form.cliente_condicion_sunat}</span>}
+      {aviso && <span style={{ color: C.greenDark }}>{aviso}</span>}
+    </div>
+  );
+}
+
 export function HojaComprobante(props: {
   form: FormCpe; setForm: (f: FormCpe) => void; items: ItemEditor[]; setItems: (i: ItemEditor[]) => void;
   docs: DocRelacionado[]; setDocs: (d: DocRelacionado[]) => void; empresa: Empresa;
@@ -64,8 +94,10 @@ export function HojaComprobante(props: {
   numeroPreview: string; montos: { subTotalVentas: number; descuentos: number; valorVenta: number; isc: number; igv: number; icbper: number; otrosCargos: number; otrosTributos: number; redondeo: number; anticipo: number; total: number; montoDetraccion: number; montoRetencion: number; detraccionBase?: number; detraccionUsd?: number; retencionBase?: number; retencionUsd?: number; netoPagar?: number };
   totalRegimen: number; importeRegimen: number; onTipoChange: (t: TipoComprobante) => void; bloqueado: boolean;
   tipos?: { tipo: TipoComprobante; etiqueta: string; corto: string }[];
+  /** Avisos (consulta SUNAT, tipo de cambio, licencias) que se muestran en la barra fija superior. */
+  onAviso?: (m: string) => void;
 }) {
-  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado, tipos = PESTANAS_CPE } = props;
+  const { form, setForm, items, setItems, docs, setDocs, cuotas, setCuotas, empresa, clientes, proyectos, refs, series, numeroPreview, montos, totalRegimen, importeRegimen, onTipoChange, bloqueado, tipos = PESTANAS_CPE, onAviso } = props;
   const simbolo = form.moneda === "USD" ? "US$" : "S/";
   const baseCuotas = montos.netoPagar ?? montos.total;
   function cambiarCondicion(v: string) { setForm({ ...form, condicion_pago: v }); setCuotas(v === "Crédito" ? (cuotas.length ? cuotas : repartirCuotas(baseCuotas, [form.fecha_vencimiento])) : []); }
@@ -77,7 +109,7 @@ export function HojaComprobante(props: {
   }, [baseCuotas, form.condicion_pago, form.fecha_vencimiento, cuotas, setCuotas]);
   const { data: cuentas = [] } = useQuery({ queryKey: ["bancos-cpe"], queryFn: async () => { const { data, error } = await supabase.from("bancos").select("nombre,numero_cuenta,cci,monedas,tipo_cuenta").eq("activo", true).order("nombre"); if (error) throw error; return (data ?? []) as CuentaCpe[]; } });
   const buscarDoc = useServerFn(consultarDocumentoSunat); const buscarTc = useServerFn(consultarTipoCambio); const { data: tcHoy } = useTipoCambioHoy();
-  const [aviso, setAviso] = useState(""); const [buscando, setBuscando] = useState(false);
+  const setAviso = (m: string) => onAviso?.(m); const [buscando, setBuscando] = useState(false);
   const [verPartidas, setVerPartidas] = useState(false); const [nuevoTransp, setNuevoTransp] = useState(false); const [pendienteTransp, setPendienteTransp] = useState("");
   const { data: transportistas = [] } = useTransportistas();
   const esGuia = form.tipo_comprobante === "09";
@@ -123,20 +155,6 @@ export function HojaComprobante(props: {
 
   return (
     <div ref={lienzo} className="cpe-editor-canvas" style={{ paddingBottom: 18 }}>
-      <div style={{ width: 794 * zoom, maxWidth: "100%", margin: "0 auto 10px", display: "flex", flexWrap: "wrap", gap: "8px 18px", alignItems: "center", fontSize: 12, padding: "8px 12px", border: `1px solid ${C.line}`, borderRadius: 8, background: C.white, boxSizing: "border-box" }}>
-        {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Forma de pago</b><select value={form.condicion_pago} onChange={(e) => cambiarCondicion(e.target.value)}><option>Contado</option><option>Crédito</option></select></label>}
-        {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Régimen</b><select value={form.tipo_tributario} onChange={(e) => { const t = e.target.value as TipoTributarioCpe; setForm({ ...form, tipo_tributario: t, ...regimenPorDefecto(t) }); }} style={{ ...edSel, width: "auto", borderBottom: `1px solid ${C.line}` }}><option value="ninguno">No aplica</option><option value="detraccion">Detracción</option><option value="retencion">Retención</option></select></label>}
-        {usaImportes(tipo) && <label style={{ display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}><input type="checkbox" checked={form.anticipo_tipo !== "ninguno"} onChange={(e) => setForm({ ...form, anticipo_tipo: e.target.checked ? "anticipo" : "ninguno", anticipo_documento: "", anticipo_monto: "" })} /><b>Anticipo</b></label>}
-        {usaImportes(tipo) && form.anticipo_tipo !== "ninguno" && <>
-          <select aria-label="Modalidad" value={form.anticipo_tipo} onChange={(e) => { const v = e.target.value as AnticipoTipo; setForm({ ...form, anticipo_tipo: v, ...datosAnticipo(v, form.anticipo_documento, form.anticipo_monto) }); }} style={{ ...edSel, width: "auto", borderBottom: `1px solid ${C.line}` }}><option value="anticipo">Factura por pago anticipado</option><option value="deduccion">Factura que resta anticipos</option></select>
-          {form.anticipo_tipo === "deduccion" && <>
-            <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Comprobante</b><input value={form.anticipo_documento} onChange={(e) => set("anticipo_documento", e.target.value.toUpperCase())} placeholder="F001-00000012" style={{ ...ed, width: 130, borderBottom: `1px solid ${C.line}` }} /></label>
-            <label style={{ display: "flex", gap: 6, alignItems: "center" }}><b>Importe</b><input type="number" step="0.01" min="0" value={form.anticipo_monto} onChange={(e) => set("anticipo_monto", e.target.value)} style={{ ...ed, width: 110, borderBottom: `1px solid ${C.line}` }} /></label>
-          </>}
-        </>}
-        {(form.cliente_estado_sunat || form.cliente_condicion_sunat) && <span style={{ fontWeight: 700, color: form.cliente_condicion_sunat === "HABIDO" ? C.green : C.muted }}>SUNAT: {form.cliente_estado_sunat} · {form.cliente_condicion_sunat}</span>}
-        {aviso && <span style={{ color: C.greenDark }}>{aviso}</span>}
-      </div>
       <section className="cpe-editor-sheet" style={{ width: 794, zoom, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px", background: C.white, color: C.ink, fontFamily: "var(--font-global)", fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(26,43,76,.14)", display: "flex", flexDirection: "column" }}>
         <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6, color: "#000" }}>
           <div style={{ width: 115, display: "flex", alignItems: "center", justifyContent: "flex-start", alignSelf: "flex-start" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 110, maxHeight: 65 }} /> : <div style={{ width: 62, height: 62, borderRadius: 10, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}</div>
