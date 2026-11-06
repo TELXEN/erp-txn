@@ -1,3 +1,4 @@
+import { EncabezadoAnexo } from "@/components/cotizaciones/EncabezadoAnexo";
 import * as React from "react";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -83,24 +84,7 @@ export function HojaGastosGenerales({ id, acciones }: { id: string; acciones?: R
           <div id={enPapel ? "gg-impresion" : undefined} className={enPapel ? "mx-auto space-y-6" : "bg-card text-foreground"} style={enPapel ? { width: 794 } : { width: 794, fontFamily: fuente.css }}>
             {paginas.map((pagina, pIdx) => (
               <section key={pIdx} className={enPapel ? "bg-card text-foreground shadow-lg ring-1 ring-line" : ""} style={{ fontFamily: fuente.css, padding: "28px 34px", minHeight: ALTO_HOJA, pageBreakAfter: pIdx < paginas.length - 1 ? "always" : "auto", fontSize: 9 }}>
-                <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6, color: "#000", lineHeight: 1.15, textTransform: "uppercase" }}>
-                  <div style={{ width: 132, flexShrink: 0, display: "flex", alignItems: "center", alignSelf: "flex-start" }}>{empresa?.logo_url ? <img src={empresa.logo_url} alt="" crossOrigin="anonymous" style={{ maxWidth: 132, maxHeight: 78, objectFit: "contain" }} /> : <b style={{ fontSize: 20 }}>TELXEN</b>}</div>
-                  <div style={{ flex: 1, minWidth: 0, textAlign: "left", paddingLeft: 4, alignSelf: "flex-start" }}>
-                    <b style={{ fontSize: 13, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN S.A.C"}</b>
-                    <div style={{ fontWeight: 300, fontSize: 6, marginTop: 2 }}>{empresa?.eslogan || ""}</div>
-                    <div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.direccion || "—"}</div>
-                    <div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.web || "—"}</div>
-                  </div>
-                  <div style={{ width: 248, flexShrink: 0, textAlign: "center", display: "flex", flexDirection: "column" }}>
-                    <div style={{ border: "1px solid #000", borderRadius: 8, padding: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginTop: 5 }}>DETALLE DE GASTOS GENERALES</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, marginTop: 5 }}>{cot?.codigo || "SIN CÓDIGO"}</div>
-                    </div>
-                    <div style={{ marginTop: 6, fontSize: 8, fontWeight: 700 }}>HOJA {pIdx + 1} DE {paginas.length}</div>
-                  </div>
-                </header>
-                <div style={{ marginTop: 4, fontSize: 9, textAlign: "left" }}><b>CLIENTE:</b> {cot?.cliente ?? ""} &nbsp;·&nbsp; <b>PROYECTO:</b> {cot?.nombre ?? ""}</div>
+                <EncabezadoAnexo titulo="DETALLE DE GASTOS GENERALES" codigo={cot?.codigo} hoja={pIdx + 1} total={paginas.length} cliente={cot?.cliente} proyecto={cot?.nombre} />
                 <table className="mt-2 w-full table-fixed border-collapse">
                   <colgroup><col className="w-[52px]" /><col /><col className="w-[48px]" /><col className="w-[52px]" /><col className="w-[48px]" /><col className="w-[72px]" /><col className="w-[80px]" /></colgroup>
                   <thead>
