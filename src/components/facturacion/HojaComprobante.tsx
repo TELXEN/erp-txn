@@ -311,7 +311,7 @@ export function HojaComprobante(props: {
                 {cuotas.flatMap((q, i) => [
                   <span key={i + "a"} style={{ textAlign: "center", display: "inline-flex", gap: 3, justifyContent: "center", alignItems: "center" }}>{i + 1}{cuotas.length > 1 && <button type="button" title="Quitar cuota" onClick={() => setCuotas(repartirCuotas(baseCuotas, cuotas.filter((_, n) => n !== i).map((c) => c.fecha)))} style={{ border: "none", background: "transparent", color: "var(--color-bad)", cursor: "pointer", padding: 0, display: "flex" }}><Trash2 size={9} /></button>}</span>,
                   <FechaComprobante key={i + "b"} etiqueta={`Fecha de cuota ${i + 1}`} value={q.fecha} onChange={(v) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, fecha: v } : c)))} style={{ ...ed, width: 70, padding: 0 }} />,
-                  <input key={i + "c"} type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...ed, width: 80, padding: 0, textAlign: "right" }} />,
+                  <span key={i + "c"} style={{ display: "inline-flex", alignItems: "baseline", justifyContent: "flex-end", gap: 2 }}><span>{sym}</span><input type="number" step="0.01" aria-label={`Importe de cuota ${i + 1}`} readOnly={cuotas.length === 1} value={q.monto} onChange={(e) => setCuotas(cuotas.map((c, n) => (n === i ? { ...c, monto: e.target.value } : c)))} style={{ ...ed, width: 58, padding: 0, textAlign: "right" }} /></span>,
                 ])}
               </div>
             </div>}
