@@ -579,11 +579,11 @@ export function VistaPreviaCotizacion({ id }: { id: string }) {
                         return (
                           <div style={{ width: 300, flexShrink: 0, display: "grid", gap: 3, lineHeight: 1.15 }}>
                             {filaD("COSTO DIRECTO", S(sim, calculo.costoDirecto))}
-                            {calculo.gastosGenerales > 0 && filaD(`GASTOS GENERALES (${Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)`, S(sim, calculo.gastosGenerales))}
-                            {calculo.utilidad > 0 && filaD(`UTILIDAD (${Number(cot.pct_utilidad ?? 0).toFixed(2)}%)`, S(sim, calculo.utilidad))}
-                            {filaD("SUB TOTAL", S(sim, subtotal))}
+                            {filaD(`GASTOS GENERALES (${Number(cot.pct_gastos_generales ?? 0).toFixed(2)}%)`, S(sim, calculo.gastosGenerales))}
+                            {filaD(`UTILIDAD (${Number(cot.pct_utilidad ?? 0).toFixed(2)}%)`, S(sim, calculo.utilidad))}
+                            {filaD("SUB TOTAL", S(sim, subtotal), !conIgv)}
                             {conIgv && filaD("IGV (18.00%)", S(sim, igv))}
-                            {filaD("TOTAL", S(sim, conIgv ? total : subtotal), true)}
+                            {conIgv && filaD("TOTAL", S(sim, total), true)}
                             {esUsd && tc > 0 && <div style={{ marginTop: 2, color: C.slate500, fontSize: "7.5pt", textAlign: "right" }}>Equivalente en soles (T.C. {tc.toFixed(3)}): {S("S/", (conIgv ? total : subtotal) * tc)}</div>}
                           </div>
                         );

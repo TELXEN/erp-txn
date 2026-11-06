@@ -132,7 +132,7 @@ export function EncabezadoCotizacion({ cot, editable = false, clientes = [], num
       <div>
         {fila("MONEDA", editable ? menu("Moneda", cot.moneda, [["USD", "Dólares"], ["PEN", "Soles"]], (v) => void moneda(v)) : cot.moneda === "USD" ? "DÓLARES" : "SOLES", 60)}
         {cot.moneda === "USD" && fila("T. CAMBIO", tc > 0 ? tc.toFixed(3) : "—", 60)}
-        {fila("IGV", cot.aplica_igv === false ? "0.00%" : "18.00%", 60)}
+        {cot.aplica_igv !== false && fila("IGV", "18.00%", 60)}
         {editable && fila("HOJA", menu("Orientación", cot.orientacion || "vertical", [["vertical", "Vertical"], ["horizontal", "Horizontal"]], (v) => void guardar({ orientacion: v })), 60)}
       </div>
     </div>
