@@ -144,3 +144,16 @@ export function posicionInsercion<T extends FilaNivel>(ordenadas: T[], nivel: st
   }
   return bloqueDe(ordenadas, seleccionadoId)[1];
 }
+
+/**
+ * Partida hermana ya existente (mismo título/subtítulo) con el mismo APU o el mismo nombre.
+ * Las hermanas son la racha contigua de partidas alrededor de la posición de inserción.
+ */
+export function partidaRepetida<T extends FilaNivel & { nombre?: string | null; partida_apu_id?: string | null }>(
+  ordenadas: T[], pos: number, nombreClave: string, apuId: string | null, clave: (t: string) => string,
+): T | null {
+  const hermanas: T[] = [];
+  for (let i = pos - 1; i >= 0 && nivelDe(ordenadas[i]!) === "partida"; i--) hermanas.push(ordenadas[i]!);
+  for (let i = pos; i < ordenadas.length && nivelDe(ordenadas[i]!) === "partida"; i++) hermanas.push(ordenadas[i]!);
+  return hermanas.find((h) => (apuId && h.partida_apu_id === apuId) || clave(h.nombre ?? "") === nombreClave) ?? null;
+}
