@@ -164,7 +164,7 @@ export function PieCotizacion({ cot, editable = false }: { cot: Cotizacion; edit
     </div>
   );
   return (
-    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.15 }}>
+    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "7pt", lineHeight: 1.15 }}>
       {fila("Nombre", campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo")))}
       {fila("Correo", campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email"))}
       {fila("Celular", campo("telefono_elaborado", cot.telefono_elaborado || ""))}
