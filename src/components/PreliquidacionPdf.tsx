@@ -156,12 +156,6 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         <View style={{ flexDirection: "row", gap: 10, marginTop: 13 }} wrap={false}>
           <View style={{ flex: 1, justifyContent: "space-between" }}>
             <View>{datos.observacion ? <><Text style={[s.b, { fontSize: 6, color: DOC.green }]}>OBSERVACIONES</Text><Text style={{ marginTop: 2 }}>{datos.observacion}</Text></> : null}</View>
-            {datos.aplicaTributo ? (
-              <View style={{ fontSize: 7.5, color: "#4B5563" }}>
-                {det ? <View style={{ flexDirection: "row" }}><Text style={[s.b, { width: 130 }]}>Cta. Cte. Banco de la Nación</Text><Text style={s.b}>{datos.cuentaDetracciones?.numero || "—"}</Text></View> : null}
-                <View style={{ flexDirection: "row" }}><Text style={[s.b, { width: 130 }]}>{det ? "Detracción" : "Retención"} ({N(datos.porcentajeTributario)}%)</Text><Text style={s.b}>S/ {N(det ? datos.detraccionPen : datos.retencionPen)}</Text></View>
-              </View>
-            ) : null}
           </View>
           <View style={{ width: 225, fontSize: 7.5 }}>
             {filas.map((f) => (
@@ -174,6 +168,13 @@ function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
         </View>
 
         <View style={{ position: "absolute", left: 28, right: 28, bottom: 21 }} fixed>
+            {datos.aplicaTributo ? (
+              <View style={{ fontSize: 7.5, color: "#4B5563", marginBottom: 6 }}>
+                {det ? <View style={{ flexDirection: "row" }}><Text style={[s.b, { width: 130 }]}>Cta. Cte. Banco de la Nación</Text><Text style={s.b}>{datos.cuentaDetracciones?.numero || "—"}</Text></View> : null}
+                <View style={{ flexDirection: "row" }}><Text style={[s.b, { width: 130 }]}>{det ? "Detracción" : "Retención"} ({N(datos.porcentajeTributario)}%)</Text><Text style={s.b}>S/ {N(det ? datos.detraccionPen : datos.retencionPen)}</Text></View>
+              </View>
+            ) : null}
+
           <View style={{ borderWidth: 0.8, borderColor: DOC.line, borderRadius: 6, padding: 6, fontSize: 7.5, lineHeight: 1.25 }}>
             <Text style={s.b}>{datos.condicionPago === "Crédito" ? "Información del crédito" : "Información del pago"}</Text>
             <View style={{ flexDirection: "row", marginTop: 1.5 }}><Text style={{ width: 150 }}>Monto neto pendiente de pago</Text><Text style={{ width: 10 }}>:</Text><Text>{money(datos.netoDepositar)}</Text></View>

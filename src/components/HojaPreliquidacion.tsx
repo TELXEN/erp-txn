@@ -225,12 +225,6 @@ export function HojaPreliquidacion(props: Props) {
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", fontSize: 9, textAlign: "left", whiteSpace: "pre-wrap" }}>
           {(observacion || editable) && <><b style={{ fontSize: 8, color: C.green }}>OBSERVACIONES</b>
             {editable ? <TextoCreciente value={observacion} onChange={(v) => onCampo?.("observacion", v)} placeholder="Observaciones (opcional)" style={{ ...ed, marginTop: 3 }} /> : <div style={{ marginTop: 3 }}>{observacion}</div>}</>}
-          {mm.aplica && (
-            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 28, rowGap: 1, marginTop: "auto", paddingTop: 10, fontSize: 10, color: "#4B5563", whiteSpace: "normal", lineHeight: 1.2, fontWeight: 700 }}>
-              {det && <><span>Cta. Cte. Banco de la Nación</span><span>{ctaDet || "—"}</span></>}
-              <span>{det ? "Detracción" : "Retención"} ({N(pctDetraccion)}%)</span><span>S/ {N(det ? mm.detraccionPen : mm.retencionPen)}</span>
-            </div>
-          )}
         </div>
         <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10, display: "grid", gap: 3 }}>
           {filas.map((f) => {
@@ -248,6 +242,13 @@ export function HojaPreliquidacion(props: Props) {
       </div>
 
       <div style={{ position: "absolute", left: 38, right: 38, bottom: 28 }}>
+          {mm.aplica && (
+            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 28, rowGap: 1, marginBottom: 8, fontSize: 10, color: "#4B5563", whiteSpace: "normal", lineHeight: 1.2, fontWeight: 700 }}>
+              {det && <><span>Cta. Cte. Banco de la Nación</span><span>{ctaDet || "—"}</span></>}
+              <span>{det ? "Detracción" : "Retención"} ({N(pctDetraccion)}%)</span><span>S/ {N(det ? mm.detraccionPen : mm.retencionPen)}</span>
+            </div>
+          )}
+
         <div style={{ ...CARD, padding: 8, fontSize: 10, lineHeight: 1.25 }}>
           <b>{condicionPago === "Crédito" ? "Información del crédito" : "Información del pago"}</b>
           <div style={{ display: "grid", gridTemplateColumns: "200px 14px 1fr", marginTop: 2 }}>
