@@ -242,6 +242,12 @@ export function HojaPreliquidacion(props: Props) {
       </div>
 
       <div style={{ position: "absolute", left: 38, right: 38, bottom: 28 }}>
+        {editable && props.editorCondicion && (
+          <div style={{ border: `1px solid ${C.line}`, background: "#FAFAFA", borderRadius: 10, padding: "6px 10px 8px", marginBottom: 8, fontSize: 10 }}>
+            <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".08em", color: "#6B7280", marginBottom: 4 }}>CONDICIONES DE PAGO</div>
+            {props.editorCondicion}
+          </div>
+        )}
           {mm.aplica && (
             <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 28, rowGap: 1, marginBottom: 8, fontSize: 10, color: "#4B5563", whiteSpace: "normal", lineHeight: 1.2, fontWeight: 700 }}>
               {det && <><span>Cta. Cte. Banco de la Nación</span><span>{ctaDet || "—"}</span></>}
@@ -267,9 +273,6 @@ export function HojaPreliquidacion(props: Props) {
   if (!anchoCompleto) return hoja;
   return (
     <div>
-      {props.editorCondicion && (
-        <div className="mb-3 rounded-md border border-line bg-card px-3 py-2 text-xs" style={{ maxWidth: 520 }}>{props.editorCondicion}</div>
-      )}
       <div ref={lienzo} style={{ width: "100%", overflow: "hidden", paddingBottom: 8 }}>{hoja}</div>
     </div>
   );

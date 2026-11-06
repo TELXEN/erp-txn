@@ -265,3 +265,4 @@
 - [x] Factura: selector IGV 10/10.5/18 bajo Moneda (TC en medio si USD), desglose sin fondo gris, fila DETRACCIÓN/RETENCIÓN, TOTAL verde Excel #107C41
 
 - [x] Editor de factura igual a la vista de impresión: hoja A4 escalada a todo el ancho, campos integrados, descripción que crece.
+- [x] Preliquidaciones: condiciones de pago encima de Información del crédito; Guardar/Cancelar fijos junto a Cerrar editor
