@@ -1,3 +1,4 @@
+import { EncabezadoAnexo } from "@/components/cotizaciones/EncabezadoAnexo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useState } from "react";
@@ -144,20 +145,7 @@ function VistaApu() {
           <div id="apu-impresion" className="apu-documento mx-auto bg-card text-foreground" style={{ width: 794, fontFamily: fuente.css }}>
             {paginas.map((pagina, pIdx) => (
               <section key={pIdx} style={{ padding: "28px 34px", minHeight: ALTO_HOJA, pageBreakAfter: pIdx < paginas.length - 1 ? "always" : "auto", fontSize: 9 }}>
-                <div className="flex items-center gap-3 border-b-2 border-primary pb-2.5">
-                  {empresa?.logo_url ? <img src={empresa.logo_url} alt="" crossOrigin="anonymous" className="h-12 object-contain" /> :
-                    <div className="flex h-12 w-12 items-center justify-center bg-primary text-lg font-bold text-primary-foreground">TX</div>}
-                  <div className="flex-1">
-                    <div className="text-xs font-bold">{empresa?.razon_social ?? "TELXEN SAC"}</div>
-                    <div className="text-muted-foreground">RUC {empresa?.ruc ?? ""} · {empresa?.direccion ?? ""}</div>
-                    <div className="text-muted-foreground">Cliente: {cot?.cliente ?? ""}</div>
-                  </div>
-                  <div className="border border-primary px-3 py-1.5 text-center">
-                    <div className="font-bold text-primary">ANÁLISIS DE PRECIOS UNITARIOS</div>
-                    <div className="font-bold">{cot?.codigo ?? ""}</div>
-                    <div className="text-muted-foreground">Hoja {pIdx + 1} de {paginas.length}</div>
-                  </div>
-                </div>
+                <EncabezadoAnexo titulo="ANÁLISIS DE PRECIOS UNITARIOS" codigo={cot?.codigo} hoja={pIdx + 1} total={paginas.length} cliente={cot?.cliente} proyecto={cot?.nombre} />
                 {pagina.map(({ it, comps }, fIdx) => {
                   const calc = costoReceta(comps, recursos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8));
                   const totalMo = sumar2(calc.filas.filter((f) => f.tipo === "MO").map((f) => f.parcial));
