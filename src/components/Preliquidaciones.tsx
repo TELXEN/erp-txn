@@ -443,7 +443,7 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
               observacion={form.observacion}
               cuentas={cuentas}
               unidades={unidades}
-              onCampo={(campo, valor) => setForm((f) => (campo === "condicion_pago" ? { ...f, ...condicionVacia(valor) } : { ...f, [campo]: valor }))}
+              onCampo={(campo, valor) => setForm((f) => (campo === "condicion_pago" ? { ...f, ...condicionVacia(valor) } : campo === "fecha_vencimiento" ? (valor && f.fecha ? { ...f, dias_credito: String(Math.max(0, Math.round((Date.parse(valor) - Date.parse(f.fecha)) / 86400000))) } : f) : { ...f, [campo]: valor }))}
               onLinea={(i, cambios) => setLineas(lineas.map((x, k) => (k === i ? { ...x, ...cambios } : x)))}
               onQuitarLinea={(i) => setLineas(lineas.filter((_, k) => k !== i))}
               onAgregarLinea={() => setLineas([...lineas, itemVacio()])}
