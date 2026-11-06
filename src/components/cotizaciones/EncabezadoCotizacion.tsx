@@ -151,23 +151,23 @@ export function PieCotizacion({ cot, editable = false }: { cot: Cotizacion; edit
     await Promise.all([qc.invalidateQueries({ queryKey: ["cotizaciones"] }), qc.invalidateQueries({ queryKey: ["cotizacion"] })]);
   }
   const campo = (nombre: string, valor: string, tipo = "text", formatear?: (v: string) => string) => editable
-    ? <input key={`${nombre}-${valor}`} aria-label={nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-transparent bg-transparent py-0 text-inherit uppercase outline-none hover:border-muted-foreground focus:border-muted-foreground" style={{ font: "inherit", textAlign: "inherit" }} onBlur={(e) => {
+    ? <input key={`${nombre}-${valor}`} aria-label={nombre} type={tipo} defaultValue={valor} className="min-w-0 w-full border-0 border-b border-transparent bg-transparent py-0 text-inherit outline-none hover:border-muted-foreground focus:border-muted-foreground" style={{ font: "inherit", textAlign: "inherit" }} onBlur={(e) => {
       const escrito = formatear ? formatear(e.target.value) : e.target.value;
       if (String(valor) !== String(escrito)) { e.target.value = String(escrito); void guardar({ [nombre]: escrito }); }
     }} />
     : <span>{valor || "—"}</span>;
   const fila = (label: string, valor: ReactNode) => (
-    <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 24 : undefined }}>
+    <div key={label} style={{ display: "flex", alignItems: "center", minHeight: editable ? 14 : undefined }}>
       <span style={{ width: 56, flexShrink: 0 }}>{label}</span>
       <span style={{ width: 12, flexShrink: 0, textAlign: "center" }}>:</span>
       <div style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{valor}</div>
     </div>
   );
   return (
-    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.35 }}>
-      {fila("NOMBRE", campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo")))}
-      {fila("CORREO", campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email"))}
-      {fila("CELULAR", campo("telefono_elaborado", cot.telefono_elaborado || ""))}
+    <div style={{ fontFamily: DOC_FUENTE_CSS, color: DOC.dark, fontSize: "8pt", lineHeight: 1.15 }}>
+      {fila("Nombre", campo("elaborado_por", cot.elaborado_por || nombreUsuario, "text", (v) => formatearTexto(v, "titulo")))}
+      {fila("Correo", campo("correo_elaborado", cot.correo_elaborado || correoUsuario, "email"))}
+      {fila("Celular", campo("telefono_elaborado", cot.telefono_elaborado || ""))}
     </div>
   );
 }
