@@ -64,7 +64,7 @@ type Props = {
   /** true: edición a pantalla completa (hoja ampliada con zoom); false: A4 real. */
   anchoCompleto?: boolean;
   unidades?: { id: string; simbolo: string; activo: boolean }[];
-  onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "orden_compra" | "observacion" | "amortizacion" | "dias_credito" | "condicion_pago", valor: string) => void;
+  onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "orden_compra" | "observacion" | "amortizacion" | "dias_credito" | "condicion_pago" | "fecha_vencimiento", valor: string) => void;
   onLinea?: (indice: number, cambios: Partial<HojaPLLinea>) => void;
   onQuitarLinea?: (indice: number) => void;
   onAgregarLinea?: () => void;
@@ -161,7 +161,7 @@ export function HojaPreliquidacion(props: Props) {
           ["Fecha de Emisión", editable ? <input key="f" type="date" value={fecha} onChange={(e) => onCampo?.("fecha", e.target.value)} style={{ ...ed, textAlign: "center" }} /> : F(fecha)],
           ["Forma de Pago", editable ? <select key="cp" aria-label="Forma de pago" value={condicionPago} onChange={(e) => onCampo?.("condicion_pago", e.target.value)} style={{ ...ed, textAlign: "center", textAlignLast: "center" }}><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select> : condicionPago || "—"],
           ["Orden de Compra", editable ? <input key="o" aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} style={{ ...ed, textAlign: "center" }} /> : ordenCompra],
-          ["Fecha de Vencimiento", condicionPago === "Crédito" ? F(fechaVencimiento) : ""],
+          ["Fecha de Vencimiento", condicionPago === "Crédito" ? (editable ? <input key="fv" type="date" aria-label="Fecha de vencimiento" value={fechaVencimiento} min={fecha} onChange={(e) => onCampo?.("fecha_vencimiento", e.target.value)} style={{ ...ed, textAlign: "center" }} /> : F(fechaVencimiento)) : ""],
         ] as [string, ReactNode][]).map(([l, v], i) => (
           <div key={l} style={{ padding: "5px 4px", borderLeft: i ? `1.5px solid ${C.gris}` : "none" }}>
             <b style={{ display: "block" }}>{l}:</b>
