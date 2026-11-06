@@ -4,7 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileDown } from "lucide-react";
+import { ArrowLeft, FileDown, Printer } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
@@ -124,7 +124,7 @@ function VistaApu() {
         margin: [7, 5, 7, 5], filename: `${nombreArchivo}.pdf`, image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false,
-          onclone: colorearParaExportar,
+          onclone: (doc: Document) => { colorearParaExportar(doc); const e = doc.getElementById("apu-impresion"); e?.classList.remove("space-y-6"); e?.querySelectorAll("section").forEach((x) => x.classList.remove("shadow-lg", "ring-1")); },
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".apu-ficha"] },
