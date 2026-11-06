@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cuotasCoincidenConNeto, datosAnticipo, netoComprobante, repartirCuotas } from "./facturacion";
+import { columnasCuotas, cuotasCoincidenConNeto, datosAnticipo, netoComprobante, repartirCuotas } from "./facturacion";
 
 describe("Neto y cuotas de comprobantes", () => {
   it("resta la detracción al importe total, no depende de las cuotas", () => {
@@ -36,5 +36,13 @@ describe("Anticipo en comprobantes", () => {
   });
   it("sin anticipo no queda ninguna referencia", () => {
     expect(datosAnticipo("ninguno", "F001-00000012", 500)).toEqual({ anticipo_documento: "", anticipo_monto: "" });
+  });
+});
+describe("Grupos de cuotas en horizontal", () => {
+  it("muestra tantos grupos como cuotas, máximo tres por fila", () => {
+    expect(columnasCuotas(1)).toBe(1);
+    expect(columnasCuotas(2)).toBe(2);
+    expect(columnasCuotas(3)).toBe(3);
+    expect(columnasCuotas(5)).toBe(3);
   });
 });

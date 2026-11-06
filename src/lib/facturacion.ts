@@ -111,6 +111,9 @@ export function cuotasCoincidenConNeto(neto: number, montos: number[]) {
     && montos.reduce((s, m) => s + Math.round(m * 100), 0) === Math.round(neto * 100);
 }
 /** Reparte el total en n cuotas iguales, ajustando la última por redondeo. */
+/** Grupos «Nº Cuota / Fec. Venc. / Monto» por fila: tantos como cuotas, máximo tres. */
+export function columnasCuotas(n: number): number { return Math.min(3, Math.max(1, n)); }
+
 export function repartirCuotas(total: number, fechas: string[]): CuotaEditor[] {
   const n = Math.max(1, fechas.length);
   const base = Math.floor((total / n) * 100) / 100;
