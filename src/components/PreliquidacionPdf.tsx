@@ -1,7 +1,8 @@
 import { Document, Image, Page, StyleSheet, Text, View, pdf } from "@react-pdf/renderer";
 import { familiaReactPdf } from "@/lib/fuentes-documentos-pdf";
 import type { FuenteDocumentoId } from "@/lib/fuentes-documentos";
-import { DOC, DOC_ALIAS } from "@/lib/documento-tema";
+import { DOC } from "@/lib/documento-tema";
+import { cuentasDelComprobante, tituloCuenta, type CuentaCpe } from "@/lib/cuentas-comprobante";
 
 type LineaPdf = {
   descripcion: string;
@@ -64,220 +65,138 @@ function separarCodigoPartida(descripcion: string) {
   return { codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""), texto: m[2].trim() };
 }
 
-const colors = DOC_ALIAS;
-
-function crearEstilos(fontFamily: string) {
-return StyleSheet.create({
-  page: { padding: "32 34 150", fontFamily, fontSize: 8.5, color: colors.slate700 },
-  header: { flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 2, borderBottomColor: colors.emerald700, paddingBottom: 12, marginBottom: 16 },
-  brand: { width: 96, alignItems: "center", justifyContent: "center" },
-  logo: { maxWidth: 96, maxHeight: 46, objectFit: "contain" },
-  logoFallback: { width: 46, height: 46, borderRadius: 9, backgroundColor: colors.emerald700, color: colors.white, fontFamily, fontWeight: 700, fontSize: 14, textAlign: "center", lineHeight: 46 },
-  company: { flex: 1, alignItems: "flex-end", paddingTop: 2 },
-  companyName: { fontFamily, fontWeight: 700, fontSize: 13, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right" },
-  slogan: { fontFamily, fontSize: 7, color: colors.emerald800, letterSpacing: 0.3, textAlign: "right", lineHeight: 1.3, marginTop: 2 },
-  companyLine: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 3 },
-  companyLineMt: { fontFamily, fontSize: 7, color: colors.slate700, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
-  companyWeb: { fontFamily, fontSize: 7, color: colors.emerald800, textAlign: "right", lineHeight: 1.35, marginTop: 1.5 },
-  titleCol: { width: 150 },
-  titleBox: { alignItems: "center", backgroundColor: DOC.white, borderWidth: 1, borderColor: DOC.line, borderTopWidth: 4, borderTopColor: colors.emerald700, borderRadius: 6, paddingVertical: 9, paddingHorizontal: 12 },
-  boxTitle: { fontFamily, fontWeight: 700, fontSize: 12.5, color: colors.slate950, letterSpacing: 0.7, lineHeight: 1.15 },
-  boxRuc: { fontFamily, fontWeight: 700, fontSize: 8.5, color: colors.slate950, marginTop: 2 },
-  boxCode: { fontFamily, fontWeight: 700, fontSize: 10, color: colors.slate950, marginTop: 1.5, letterSpacing: 0.5 },
-  statusLine: { flexDirection: "row", justifyContent: "center", marginTop: 5 },
-  statusText: { fontFamily, fontWeight: 700, fontSize: 7, color: DOC.accentText, paddingVertical: 2, paddingHorizontal: 9, borderRadius: 8, backgroundColor: DOC.accentSoft, borderWidth: 0.8, borderColor: DOC.accent },
-  infoBand: { flexDirection: "row", gap: 16, padding: 12, backgroundColor: DOC.soft, borderWidth: 1, borderColor: DOC.line, borderLeftWidth: 3, borderLeftColor: DOC.accent, borderRadius: 6, marginBottom: 14 },
-  infoColumn: { flex: 1 },
-  label: { fontFamily, fontWeight: 700, fontSize: 6.7, color: colors.slate500, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 3 },
-  value: { fontFamily, fontWeight: 700, fontSize: 9, color: colors.slate950, lineHeight: 1.3 },
-  subvalue: { fontSize: 7.8, color: colors.slate500, lineHeight: 1.35, marginTop: 2 },
-  sectionTitle: { fontFamily, fontWeight: 700, fontSize: 8, color: colors.emerald800, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 7 },
-  table: { marginBottom: 15 },
-  tableHeader: { flexDirection: "row", backgroundColor: DOC.green, color: DOC.white, fontWeight: 700, fontSize: 6.5, paddingVertical: 4, alignItems: "center" },
-  tableRow: { flexDirection: "row", minHeight: 20, alignItems: "flex-start", paddingVertical: 4, borderBottomWidth: 0.7, borderBottomColor: colors.slate300 },
-  tableRowAlt: { backgroundColor: colors.slate50 },
-  cell: { paddingHorizontal: 6 },
-  number: { width: "5%", textAlign: "center" },
-  codeCell: { width: "10%", textAlign: "left" },
-  description: { width: "35%", fontSize: 7, lineHeight: 1.25 },
-  unit: { width: "9%", textAlign: "center" },
-  quantity: { width: "11%", textAlign: "right" },
-  price: { width: "14%", textAlign: "right" },
-  subtotal: { width: "16%", textAlign: "right" },
-  summaryWrap: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
-  paymentCard: { width: "52%", padding: 11, borderWidth: 1, borderColor: DOC.line, borderRadius: 6 },
-  paymentRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 5 },
-  totals: { width: "42%", backgroundColor: DOC.total, borderRadius: 6, padding: 6 },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderBottomWidth: 0.5, borderBottomColor: colors.slate300 },
-  totalStrong: { flexDirection: "row", justifyContent: "space-between", padding: "6 4", color: DOC.green, borderTopWidth: 1, borderTopColor: DOC.green, fontFamily, fontWeight: 700, fontSize: 10 },
-  settlement: { flexDirection: "row", gap: 8, marginBottom: 15 },
-  settlementCard: { flex: 1, padding: 10, borderWidth: 1, borderColor: DOC.line, borderRadius: 6 },
-  settlementValue: { fontFamily, fontWeight: 700, fontSize: 11, color: colors.emerald800, marginTop: 4 },
-  banking: { position: "absolute", left: 34, right: 34, bottom: 26, padding: 7, borderWidth: 1, borderColor: DOC.line, borderRadius: 6, backgroundColor: colors.white },
-  bankList: {},
-  bankTitle: { fontFamily, fontWeight: 700, fontSize: 7, color: colors.emerald800, letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 4 },
-  bankLabel: { fontFamily, fontWeight: 700, fontSize: 6, color: colors.slate500, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 1, marginTop: 1 },
-  bankValue: { fontFamily, fontWeight: 700, fontSize: 7.2, color: colors.slate950, lineHeight: 1.2, marginTop: 1 },
-  notes: { padding: 10, borderLeftWidth: 3, borderLeftColor: DOC.accent, backgroundColor: DOC.soft, borderRadius: 6, marginBottom: 14 },
-  legal: { fontSize: 7, lineHeight: 1.4, color: colors.slate500, marginTop: "auto", paddingTop: 12, borderTopWidth: 0.7, borderTopColor: colors.slate300 },
-  footer: { position: "absolute", left: 34, right: 34, bottom: 14, flexDirection: "row", justifyContent: "space-between", color: colors.slate500, fontSize: 6.5 },
-});
-}
-
-const formatoFecha = (valor: string) => {
-  if (!valor) return "—";
-  const [anio, mes, dia] = valor.slice(0, 10).split("-");
-  return anio && mes && dia ? `${dia}/${mes}/${anio}` : valor;
-};
-
-const numero = (valor: number, decimales = 2) =>
+const N = (valor: number, decimales = 2) =>
   Number(valor || 0).toLocaleString("es-PE", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
+const F = (v: string) => (v ? v.slice(0, 10).split("-").reverse().join("/") : "");
 
 function PreliquidacionDocument({ datos }: { datos: DatosPreliquidacionPdf }) {
-  const styles = crearEstilos(familiaReactPdf(datos.fuentePdf));
-  const simbolo = datos.moneda === "USD" ? "US$" : "S/";
-  const dinero = (valor: number) => `${simbolo} ${numero(valor)}`;
-  const descuento = datos.detraccionPen > 0 ? `S/ ${numero(datos.detraccionPen, 0)}` : datos.retencionPen > 0 ? `S/ ${numero(datos.retencionPen)}` : "No aplica";
-  const es = (datos.empresa.eslogan || "").trim();
-  const idxComa = es.indexOf(",");
-  const esloganLineas = es
-    ? (idxComa >= 0 ? [es.slice(0, idxComa + 1), es.slice(idxComa + 1).trim()].filter(Boolean) : [es])
-    : ["SOLUCIONES INTEGRALES EN ENERGÍA,", "AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"];
+  const ff = familiaReactPdf(datos.fuentePdf);
+  const s = StyleSheet.create({
+    page: { padding: "27 28 190", fontFamily: ff, fontSize: 6.8, color: DOC.ink },
+    b: { fontFamily: ff, fontWeight: 700 },
+    card: { borderWidth: 1.1, borderColor: DOC.gris, borderRadius: 7 },
+  });
+  const simbolo = datos.moneda === "USD" ? "$" : "S/";
+  const money = (v: number) => `${simbolo} ${N(v)}`;
+  const det = datos.tipoTributario === "detraccion";
+  const cuentas: CuentaCpe[] = cuentasDelComprobante(datos.cuentasTodas.map((c) => ({ nombre: c.nombre, numero_cuenta: c.numero, cci: c.cci, monedas: c.moneda, tipo_cuenta: c.tipoCuenta })));
+  const filas: { e: string; v: number; t?: boolean }[] = [
+    { e: "VALOR EJECUTADO", v: datos.valorEjecutado },
+    ...(datos.amortizacion > 0 ? [{ e: "AMORTIZACIÓN (−)", v: datos.amortizacion }] : []),
+    { e: "SUB TOTAL", v: datos.valorNeto },
+    { e: "IGV 18%", v: datos.igv },
+    { e: "TOTAL", v: datos.total, t: true },
+  ];
+  const Linea = ({ l, v, bold }: { l: string; v: string; bold?: boolean }) => (
+    <View style={{ flexDirection: "row", marginTop: 1 }}><Text style={[s.b, { width: 56 }]}>{l}</Text><Text style={{ width: 7 }}>:</Text><Text style={[{ flex: 1 }, bold ? s.b : {}]}>{v}</Text></View>
+  );
+  const cols = [["CÓDIGO", "10%", "left"], ["DESCRIPCIÓN", "47%", "left"], ["UNIDAD", "8%", "center"], ["CANTIDAD", "10%", "right"], ["P. UNITARIO", "12%", "right"], ["V. VENTA", "13%", "right"]] as const;
 
   return (
     <Document title={`Preliquidación ${datos.codigo}`} author={datos.empresa.razonSocial} subject="Preliquidación comercial">
-      <Page size="A4" style={styles.page}>
-        <View style={styles.header} fixed>
-          <View style={styles.brand}>
-            {datos.empresa.logoUrl ? (
-              <Image src={datos.empresa.logoUrl} style={styles.logo} />
-            ) : (
-              <Text style={styles.logoFallback}>
-                {datos.empresa.razonSocial.split(/\s+/).slice(0, 2).map((p) => p[0]).join("").toUpperCase()}
-              </Text>
-            )}
+      <Page size="A4" style={s.page}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingBottom: 4, color: "#000" }}>
+          <View style={{ width: 104 }}>
+            {datos.empresa.logoUrl ? <Image src={datos.empresa.logoUrl} style={{ maxWidth: 99, maxHeight: 58, objectFit: "contain" }} /> : <Text style={s.b}>TX</Text>}
           </View>
-          <View style={styles.company}>
-            <Text style={styles.companyName}>{datos.empresa.razonSocial}</Text>
-            {esloganLineas.map((linea, i) => (
-              <Text key={i} style={styles.slogan}>{linea}</Text>
-            ))}
-            {datos.empresa.direccion ? <Text style={styles.companyLine}>Dirección: {datos.empresa.direccion}</Text> : null}
-            {datos.empresa.telefono ? <Text style={styles.companyLineMt}>Teléfono: {datos.empresa.telefono}</Text> : null}
-            {datos.empresa.web ? <Text style={styles.companyWeb}>{datos.empresa.web}</Text> : null}
+          <View style={{ flex: 1, lineHeight: 1.15 }}>
+            <Text style={[s.b, { fontSize: 9.8 }]}>{datos.empresa.razonSocial.toUpperCase()}</Text>
+            <Text style={{ fontSize: 5.3, marginTop: 1.5 }}>{(datos.empresa.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL").toUpperCase()}</Text>
+            <Text style={{ fontSize: 5.6, marginTop: 1.5 }}>{(datos.empresa.direccion || "—").toUpperCase()}</Text>
+            <Text style={{ fontSize: 5.6, marginTop: 1.5 }}>{(datos.empresa.web || "—").toUpperCase()}</Text>
           </View>
-          <View style={styles.titleCol}>
-            <View style={styles.titleBox}>
-              <Text style={styles.boxTitle}>PRELIQUIDACIÓN</Text>
-              <Text style={styles.boxRuc}>RUC: {datos.empresa.ruc || "—"}</Text>
-              <Text style={styles.boxCode}>{datos.codigo}</Text>
+          <View style={{ width: 186, alignItems: "center" }}>
+            <View style={{ width: "100%", borderWidth: 0.8, borderColor: "#000", borderRadius: 6, padding: 7, alignItems: "center", lineHeight: 1.15 }}>
+              <Text style={[s.b, { fontSize: 7.5 }]}>RUC: {datos.empresa.ruc || "—"}</Text>
+              <Text style={[s.b, { fontSize: 9, marginTop: 4 }]}>PRELIQUIDACIÓN</Text>
+              <Text style={[s.b, { fontSize: 9.8, marginTop: 4 }]}>{datos.codigo}</Text>
             </View>
-            <View style={styles.statusLine}>
-              <Text style={styles.statusText}>{datos.estado.toUpperCase()}</Text>
-            </View>
+            <Text style={[s.b, { marginTop: 4, fontSize: 6, color: DOC.accentText, backgroundColor: DOC.accentSoft, borderWidth: 0.8, borderColor: DOC.accent, borderRadius: 8, paddingVertical: 1.5, paddingHorizontal: 8 }]}>{datos.estado.toUpperCase()}</Text>
           </View>
         </View>
 
-        <View style={styles.infoBand}>
-          <View style={styles.infoColumn}>
-            <Text style={styles.label}>Cliente</Text>
-            <Text style={styles.value}>{datos.cliente.razonSocial}</Text>
-            <Text style={styles.subvalue}>RUC {datos.cliente.ruc || "—"}</Text>
-            <Text style={styles.subvalue}>{datos.cliente.direccion || "Dirección no registrada"}</Text>
+        <View style={[s.card, { flexDirection: "row", gap: 9, padding: 9, marginTop: 6, lineHeight: 1.15 }]}>
+          <View style={{ flex: 1 }}>
+            <Linea l="RUC" v={datos.cliente.ruc || "—"} />
+            <Linea l="NOMBRE" v={datos.cliente.razonSocial.toUpperCase()} bold />
+            <Linea l="DIRECCIÓN" v={(datos.cliente.direccion || "—").toUpperCase()} />
+            <Linea l="PROYECTO" v={(datos.proyecto || "—").toUpperCase()} />
+            {datos.concepto ? <Linea l="DESCRIPCIÓN" v={datos.concepto.toUpperCase()} /> : null}
           </View>
-          <View style={styles.infoColumn}>
-            <Text style={styles.label}>Proyecto / obra</Text>
-            <Text style={styles.value}>{datos.proyecto}</Text>
-            <Text style={[styles.label, { marginTop: 8 }]}>Orden de compra</Text>
-            <Text style={styles.value}>{datos.ordenCompra || "—"}</Text>
-          </View>
-          <View style={{ width: "23%" }}>
-            <Text style={styles.label}>Fecha de emisión</Text>
-            <Text style={styles.value}>{formatoFecha(datos.fecha)}</Text>
-            <Text style={[styles.label, { marginTop: 8 }]}>Moneda</Text>
-            <Text style={styles.value}>{datos.moneda === "USD" ? "Dólares (USD)" : "Soles (PEN)"}</Text>
-            {datos.moneda === "USD" ? <Text style={styles.subvalue}>T.C. detracción {numero(datos.tipoCambio, 3)}</Text> : null}
+          <View style={{ width: 90 }}>
+            <Linea l="MONEDA" v={datos.moneda} />
+            {datos.moneda === "USD" ? <Linea l="T. CAMBIO" v={N(datos.tipoCambio, 3)} /> : null}
+            <Linea l="IGV" v="18.00%" />
           </View>
         </View>
 
-        {datos.concepto ? <View style={{ marginBottom: 12 }}><Text style={styles.label}>Descripción</Text><Text style={styles.value}>{datos.concepto}</Text></View> : null}
-        <Text style={styles.sectionTitle}>Detalle de la preliquidación</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader} fixed>
-            <Text style={[styles.cell, styles.number]}>#</Text><Text style={[styles.cell, styles.codeCell]}>CÓDIGO</Text><Text style={[styles.cell, styles.description]}>DESCRIPCIÓN</Text>
-            <Text style={[styles.cell, styles.unit]}>UND.</Text><Text style={[styles.cell, styles.quantity]}>CANT.</Text>
-            <Text style={[styles.cell, styles.price]}>P. UNIT.</Text><Text style={[styles.cell, styles.subtotal]}>SUBTOTAL</Text>
+        <View style={[s.card, { flexDirection: "row", marginTop: 7, textAlign: "center" }]}>
+          {([["Fecha de Emisión", F(datos.fecha)], ["Forma de Pago", datos.condicionPago || "—"], ["Orden de Compra", datos.ordenCompra], ["Fecha de Vencimiento", datos.condicionPago === "Crédito" ? F(datos.fechaVencimiento) : ""]] as [string, string][]).map(([l, v], i) => (
+            <View key={l} style={{ flex: 1, padding: 4, borderLeftWidth: i ? 1.1 : 0, borderLeftColor: DOC.gris }}>
+              <Text style={s.b}>{l}:</Text><Text style={{ marginTop: 2, minHeight: 8 }}>{v}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={{ marginTop: 13 }}>
+          <View style={{ flexDirection: "row", backgroundColor: DOC.gris, color: DOC.white, paddingVertical: 3 }} fixed>
+            {cols.map(([h, w, a]) => <Text key={h} style={[s.b, { width: w, textAlign: a, fontSize: 5, paddingHorizontal: 3 }]}>{h}</Text>)}
           </View>
-          {datos.lineas.map((linea, index) => {
-            const partes = separarCodigoPartida(linea.descripcion);
+          {datos.lineas.map((l, i) => {
+            const p = separarCodigoPartida(l.descripcion);
+            const vals = [p.codigo || "—", p.texto, l.unidad, N(l.cantidad), money(l.precioUnitario), money(l.cantidad * l.precioUnitario)];
             return (
-            <View key={`${linea.descripcion}-${index}`} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : {}]} wrap={false}>
-              <Text style={[styles.cell, styles.number]}>{index + 1}</Text><Text style={[styles.cell, styles.codeCell]}>{partes.codigo || "—"}</Text><Text style={[styles.cell, styles.description]}>{partes.texto}</Text>
-              <Text style={[styles.cell, styles.unit]}>{linea.unidad}</Text><Text style={[styles.cell, styles.quantity]}>{numero(linea.cantidad)}</Text>
-              <Text style={[styles.cell, styles.price]}>{dinero(linea.precioUnitario)}</Text><Text style={[styles.cell, styles.subtotal]}>{dinero(linea.cantidad * linea.precioUnitario)}</Text>
-            </View>
-            );
-          })}
-
-        </View>
-
-        <View style={styles.summaryWrap} wrap={false}>
-          <View style={styles.paymentCard}>
-            <Text style={styles.sectionTitle}>Condición comercial</Text>
-            <View style={styles.paymentRow}><Text>Condición de pago</Text><Text style={styles.value}>{datos.condicionPago}</Text></View>
-            {datos.condicionPago === "Crédito" ? <><View style={styles.paymentRow}><Text>Plazo</Text><Text>{datos.diasCredito} días</Text></View><View style={styles.paymentRow}><Text>Vencimiento estimado</Text><Text>{formatoFecha(datos.fechaVencimiento)}</Text></View></> : null}
-          </View>
-          <View style={styles.totals}>
-            {datos.amortizacion > 0 ? <><View style={styles.totalRow}><Text>Valor ejecutado</Text><Text>{dinero(datos.valorEjecutado)}</Text></View><View style={styles.totalRow}><Text>Amortización (−)</Text><Text>{dinero(datos.amortizacion)}</Text></View></> : null}
-            <View style={styles.totalRow}><Text>Valor neto</Text><Text>{dinero(datos.valorNeto)}</Text></View>
-            <View style={styles.totalRow}><Text>IGV 18%</Text><Text>{dinero(datos.igv)}</Text></View>
-            <View style={styles.totalStrong}><Text>TOTAL</Text><Text>{dinero(datos.total)}</Text></View>
-          </View>
-        </View>
-
-        <Text style={styles.sectionTitle}>Liquidación y cobro</Text>
-        <View style={styles.settlement} wrap={false}>
-          <View style={styles.settlementCard}><Text style={styles.label}>Régimen tributario</Text><Text style={styles.settlementValue}>{datos.aplicaTributo ? `${datos.tipoTributario === "detraccion" ? "Detracción" : "Retención"} ${numero(datos.porcentajeTributario)}%` : "No aplica"}</Text></View>
-          <View style={styles.settlementCard}><Text style={styles.label}>{datos.aplicaTributo ? (datos.tipoTributario === "detraccion" ? "Detracción" : "Retención") : "Importe descontado"}</Text><Text style={styles.settlementValue}>{descuento}</Text></View>
-          <View style={styles.settlementCard}><Text style={styles.label}>Neto a depositar</Text><Text style={styles.settlementValue}>{dinero(datos.netoDepositar)}</Text></View>
-        </View>
-
-        <View style={styles.banking} fixed>
-          <Text style={styles.bankTitle}>DATOS BANCARIOS</Text>
-          {datos.cuentasTodas.length === 0 ? <Text style={styles.bankValue}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</Text> : null}
-          {(() => {
-            const grupoMoneda = (m: string) => (/USD|D[ÓO]LAR/i.test(m) ? "DÓLARES" : "SOLES");
-            const normales = datos.cuentasTodas.filter((c) => !c.esDetraccion);
-            const detracciones = datos.cuentasTodas.filter((c) => c.esDetraccion);
-            const grupos = (["SOLES", "DÓLARES"] as const)
-              .map((moneda) => ({ moneda, cuentas: normales.filter((c) => grupoMoneda(c.moneda) === moneda) }))
-              .filter((g) => g.cuentas.length > 0);
-            return (
-              <View style={{ flexDirection: "row", gap: 12 }}>
-                {grupos.map((g) => (
-                  <View key={g.moneda} style={{ flex: 1 }}>
-                    <Text style={styles.bankLabel}>{g.moneda}</Text>
-                    {g.cuentas.map((c, i) => (
-                      <Text key={i} style={styles.bankValue}>{`${c.nombre} · ${c.tipoCuenta} · CTA. ${c.numero || "—"} · CCI ${c.cci || "—"}`.toUpperCase()}</Text>
-                    ))}
-                  </View>
-                ))}
-                {detracciones.length > 0 ? (
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.bankLabel}>DETRACCIONES</Text>
-                    {detracciones.map((c, i) => (
-                      <Text key={i} style={styles.bankValue}>{`${c.nombre} · ${c.tipoCuenta} · CTA. ${c.numero || "—"}`.toUpperCase()}</Text>
-                    ))}
-                  </View>
-                ) : null}
+              <View key={i} wrap={false} style={{ flexDirection: "row", paddingVertical: 3.5, borderBottomWidth: 0.7, borderBottomColor: DOC.line, backgroundColor: i % 2 ? DOC.soft : DOC.white }}>
+                {cols.map(([h, w, a], k) => <Text key={h} style={[{ width: w, textAlign: a, paddingHorizontal: 3 }, k === 1 ? { fontSize: 5.3, lineHeight: 1.25, paddingLeft: 7 } : {}, k === 5 ? s.b : {}]}>{vals[k]}</Text>)}
               </View>
             );
-          })()}
+          })}
         </View>
 
-        {datos.observacion ? <View style={styles.notes} wrap={false}><Text style={styles.label}>Observaciones</Text><Text>{datos.observacion}</Text></View> : null}
-        <Text style={styles.legal}>Documento referencial previo a la emisión del comprobante electrónico. No constituye comprobante de pago ni tiene valor tributario.</Text>
-        <View style={styles.footer} fixed><Text>{datos.empresa.razonSocial} · {datos.codigo}</Text><Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} /></View>
+        <View style={{ flexDirection: "row", gap: 10, marginTop: 13 }} wrap={false}>
+          <View style={{ flex: 1, justifyContent: "space-between" }}>
+            <View>{datos.observacion ? <><Text style={[s.b, { fontSize: 6, color: DOC.green }]}>OBSERVACIONES</Text><Text style={{ marginTop: 2 }}>{datos.observacion}</Text></> : null}</View>
+            {datos.aplicaTributo ? (
+              <View style={{ fontSize: 7.5, color: "#4B5563" }}>
+                {det ? <View style={{ flexDirection: "row" }}><Text style={[s.b, { width: 130 }]}>Cta. Cte. Banco de la Nación</Text><Text style={s.b}>{datos.cuentaDetracciones?.numero || "—"}</Text></View> : null}
+                <View style={{ flexDirection: "row" }}><Text style={[s.b, { width: 130 }]}>{det ? "Detracción" : "Retención"} ({N(datos.porcentajeTributario)}%)</Text><Text style={s.b}>S/ {N(det ? datos.detraccionPen : datos.retencionPen)}</Text></View>
+              </View>
+            ) : null}
+          </View>
+          <View style={{ width: 225, fontSize: 7.5 }}>
+            {filas.map((f) => (
+              <View key={f.e} style={{ flexDirection: "row", gap: 4, marginTop: 2.2 }}>
+                <Text style={{ flex: 1, backgroundColor: f.t ? DOC.totalDesglose : DOC.grisClaro, borderRadius: 5, paddingVertical: 2, textAlign: "center" }}>{f.e}</Text>
+                <Text style={{ flex: 1, borderWidth: 1.1, borderColor: f.t ? DOC.totalDesglose : DOC.gris, borderRadius: 5, paddingVertical: 1.5, paddingHorizontal: 6, textAlign: "right" }}>{money(f.v)}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={{ position: "absolute", left: 28, right: 28, bottom: 21 }} fixed>
+          <View style={{ borderWidth: 0.8, borderColor: DOC.line, borderRadius: 6, padding: 6, fontSize: 7.5, lineHeight: 1.25 }}>
+            <Text style={s.b}>{datos.condicionPago === "Crédito" ? "Información del crédito" : "Información del pago"}</Text>
+            <View style={{ flexDirection: "row", marginTop: 1.5 }}><Text style={{ width: 150 }}>Monto neto pendiente de pago</Text><Text style={{ width: 10 }}>:</Text><Text>{money(datos.netoDepositar)}</Text></View>
+            {datos.condicionPago === "Crédito" ? <>
+              <View style={{ flexDirection: "row" }}><Text style={{ width: 150 }}>Plazo</Text><Text style={{ width: 10 }}>:</Text><Text>{datos.diasCredito} días</Text></View>
+              <View style={{ flexDirection: "row" }}><Text style={{ width: 150 }}>Fecha de vencimiento</Text><Text style={{ width: 10 }}>:</Text><Text>{F(datos.fechaVencimiento) || "—"}</Text></View>
+            </> : null}
+          </View>
+          {cuentas.length > 0 ? (
+            <View style={{ borderWidth: 0.8, borderColor: DOC.line, borderRadius: 6, padding: 6, marginTop: 6 }}>
+              <Text style={[s.b, { fontSize: 6.5, marginBottom: 3 }]}>CUENTAS BANCARIAS</Text>
+              <View style={{ flexDirection: "row", gap: 8 }}>
+                {cuentas.map((c, i) => (
+                  <View key={i} style={{ flex: 1, fontSize: 6.2 }}>
+                    <Text style={s.b}>{tituloCuenta(c)}</Text>
+                    <View style={{ flexDirection: "row", gap: 6, marginTop: 1 }}><Text>CTA: {c.numero_cuenta || "—"}</Text>{c.cci ? <Text>CCI: {c.cci}</Text> : null}</View>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+          <Text style={{ marginTop: 7, paddingTop: 5, borderTopWidth: 0.7, borderTopColor: DOC.line, fontSize: 6 }}>Documento referencial previo a la emisión del comprobante electrónico. No constituye comprobante de pago ni tiene valor tributario.</Text>
+        </View>
       </Page>
     </Document>
   );
