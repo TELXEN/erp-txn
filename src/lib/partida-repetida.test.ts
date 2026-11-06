@@ -7,7 +7,7 @@ const f = (id: string, nivel: string, nombre: string, apu: string | null = null)
 describe("partidaRepetida", () => {
   const filas = [f("t1", "titulo", "Obras"), f("p1", "partida", "Excavación"), f("t2", "titulo", "Otros"), f("p2", "partida", "Relleno")];
   it("detecta la misma partida en el mismo título", () => {
-    expect((partidaRepetida(filas, 2, claveNombre("EXCAVACION"), null, claveNombre) as { id: string })?.id).toBe("p1");
+    expect((partidaRepetida(filas, 2, claveNombre("EXCAVACION"), null, claveNombre) as unknown as { id: string } | null)?.id).toBe("p1");
   });
   it("no la cuenta si está en otro título", () => {
     expect(partidaRepetida(filas, 4, claveNombre("Excavación"), null, claveNombre)).toBeNull();
