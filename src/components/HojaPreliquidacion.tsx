@@ -1,12 +1,13 @@
 /**
- * Hoja de preliquidación compartida: la MISMA hoja se usa en la edición
- * (ancho completo, campos editables en línea) y en la vista previa/impresión
- * (A4 fijo de 794 px, solo lectura). Colores y letra vienen de documento-tema.
+ * Hoja de preliquidación con el MISMO formato de la factura (comprobante-vista):
+ * A4 de 794 px. En edición se amplía con zoom al ancho de la ventana y los
+ * controles que no se imprimen van en una franja fuera de la hoja.
  */
-import type { ReactNode } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Plus, X } from "lucide-react";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { calcularMontos, type TipoTributario } from "@/lib/preliquidacion-montos";
+import { CuentasComprobante, cuentaDetraccionDe } from "@/components/facturacion/CuentasComprobante";
 
 export type HojaPLLinea = { descripcion: string; unidad: string; cantidad: string; precio_unitario: string };
 export type HojaPLEmpresa = {
@@ -21,22 +22,22 @@ export type HojaPLEmpresa = {
 export type HojaPLCliente = { razon_social: string; numero_documento?: string | null | undefined; direccion?: string | null | undefined } | null;
 export type HojaPLCuenta = { nombre: string; numero_cuenta: string; cci: string; monedas: string; tipo_cuenta: string };
 
-const F = (v: string) => {
-  if (!v) return "—";
-  const [a, m, d] = v.slice(0, 10).split("-");
-  return a && m && d ? `${d}/${m}/${a}` : v;
-};
-const N = (v: number, dec = 2) =>
-  Number(v || 0).toLocaleString("es-PE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+const C = DOC;
+const ROB = DOC_FUENTE_CSS;
+const F = (v: string) => (v ? v.slice(0, 10).split("-").reverse().join("/") : "");
+const N = (v: number, dec = 2) => Number(v || 0).toLocaleString("es-PE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
 
 /** Separa el ítem jerárquico (01.02.01) de la descripción y lo vuelve código compacto (010201). */
 export function separarCodigo(descripcion: string) {
   const m = /^\s*(\d{1,2}(?:\.\d{1,2})*)\s+(.*)$/.exec(descripcion || "");
   if (!m || !m[1] || !m[2]) return { codigo: "", texto: (descripcion || "").trim() };
-  return {
-    codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""),
-    texto: m[2].trim(),
-  };
+  return { codigo: m[1].split(".").map((p) => p.padStart(2, "0")).join(""), texto: m[2].trim() };
+}
+
+function TextoCreciente({ value, onChange, placeholder, style }: { value: string; onChange: (v: string) => void; placeholder?: string; style?: CSSProperties }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => { const el = ref.current; if (!el) return; el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; }, [value]);
+  return <textarea ref={ref} rows={1} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ ...style, resize: "none", overflow: "hidden", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }} />;
 }
 
 type Props = {
@@ -59,250 +60,153 @@ type Props = {
   fechaVencimiento: string;
   observacion: string;
   cuentas: HojaPLCuenta[];
-  /** true: campos editables en línea y hoja fluida; false: solo lectura. */
   editable?: boolean;
-  /** true: la hoja ocupa todo el ancho disponible (edición); false: A4 fijo 794 px. */
+  /** true: edición a pantalla completa (hoja ampliada con zoom); false: A4 real. */
   anchoCompleto?: boolean;
   unidades?: { id: string; simbolo: string; activo: boolean }[];
   onCampo?: (campo: "fecha" | "moneda" | "tipo_cambio" | "concepto" | "orden_compra" | "observacion" | "amortizacion" | "dias_credito", valor: string) => void;
   onLinea?: (indice: number, cambios: Partial<HojaPLLinea>) => void;
   onQuitarLinea?: (indice: number) => void;
   onAgregarLinea?: () => void;
-  /** Botones extra bajo la tabla en modo edición (p. ej. «Cargar partidas de la obra»). */
   accionesLineas?: ReactNode;
-  /** Controles en línea (edición) que sustituyen el texto de cliente, proyecto y condición comercial. */
   editorCliente?: ReactNode;
   editorProyecto?: ReactNode;
+  /** En edición se muestra en la franja fuera de la hoja (régimen, condición, plazo). */
   editorCondicion?: ReactNode;
+  /** id del section para imprimir solo la hoja. */
+  idHoja?: string;
 };
 
 export function HojaPreliquidacion(props: Props) {
   const {
     empresa, codigo, estado, fecha, moneda, tipoCambio, cliente, proyectoNombre, concepto, ordenCompra = "",
     lineas, amortizacion, tipoTributario, pctDetraccion, condicionPago, diasCredito,
-    fechaVencimiento, observacion, cuentas,
-    editable = false, anchoCompleto = false, unidades = [],
-    onCampo, onLinea, onQuitarLinea, onAgregarLinea, accionesLineas,
+    fechaVencimiento, observacion, cuentas, editable = false, anchoCompleto = false, unidades = [],
+    onCampo, onLinea, onQuitarLinea, onAgregarLinea, accionesLineas, idHoja,
   } = props;
+
+  const lienzo = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  useLayoutEffect(() => {
+    if (!anchoCompleto || !lienzo.current) return;
+    const ro = new ResizeObserver(([e]) => { if (e) setZoom(Math.max(1, Math.min(2, (e.contentRect.width - 8) / 794))); });
+    ro.observe(lienzo.current);
+    return () => ro.disconnect();
+  }, [anchoCompleto]);
 
   const tc = moneda === "USD" ? tipoCambio : 1;
   const bruto = lineas.reduce((s, l) => s + Number(l.cantidad || 0) * Number(l.precio_unitario || 0), 0);
   const neto = bruto - amortizacion;
   const mm = calcularMontos(neto, pctDetraccion, tc, tipoTributario);
-  const simbolo = moneda === "USD" ? "US$" : "S/";
-  const D = (v: number) => `${simbolo} ${N(v)}`;
-  const cuentasOrdenadas = [...cuentas].sort((a, b) => Number(a.tipo_cuenta === "Detracciones") - Number(b.tipo_cuenta === "Detracciones"));
-  const descuento = mm.detraccionPen > 0 ? `S/ ${N(mm.detraccionPen, 0)}` : mm.retencionPen > 0 ? `S/ ${N(mm.retencionPen)}` : "No aplica";
+  const simbolo = moneda === "USD" ? "$" : "S/";
+  const money = (v: number) => `${simbolo} ${N(v)}`;
+  const det = tipoTributario === "detraccion";
+  const ctaDet = cuentaDetraccionDe(cuentas)?.numero_cuenta;
 
-  const etiqueta = { fontSize: 7.5, fontWeight: 700, letterSpacing: 0.7, textTransform: "uppercase" as const, color: DOC.mute, marginBottom: 3 };
-  const valor = { fontSize: 10, fontWeight: 700, color: DOC.green, lineHeight: 1.3 };
-  const subvalor = { fontSize: 9, color: DOC.mute, lineHeight: 1.35, marginTop: 2 };
-  const tituloSeccion = { fontSize: 9, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase" as const, color: DOC.green, marginBottom: 7 };
-  const celda = { padding: "7px 7px", borderBottom: `1px solid ${DOC.line}`, fontSize: 9.5 };
-  /** Campo editable en línea: mismo tamaño y posición que el texto, con subrayado punteado. */
-  const ed: React.CSSProperties = {
-    background: "transparent",
-    border: "none",
-    borderBottom: `1px dashed ${DOC.mute}`,
-    font: "inherit",
-    color: "inherit",
-    width: "100%",
-    padding: 0,
-    outline: "none",
-  };
+  const ed: CSSProperties = { background: "transparent", border: "none", borderBottom: "1px solid transparent", font: "inherit", color: "inherit", width: "100%", padding: 0, outline: "none", textTransform: "inherit" };
+  const CARD: CSSProperties = { background: "#ffffff", border: "1px solid #E5E7EB", borderRadius: 8, padding: 10, textAlign: "left" };
 
-  const eslogan = empresa?.eslogan?.trim();
-  const idxEslogan = eslogan ? eslogan.indexOf(",") : -1;
-  const eslogan1 = eslogan ? (idxEslogan >= 0 ? eslogan.slice(0, idxEslogan + 1) : eslogan) : "SOLUCIONES INTEGRALES EN ENERGÍA,";
-  const eslogan2 = eslogan && idxEslogan >= 0 ? eslogan.slice(idxEslogan + 1).trim() : eslogan ? "" : "AUTOMATIZACIÓN Y CONTROL INDUSTRIAL";
+  const filas: { etiqueta: string; valor: number; total?: boolean; editar?: boolean }[] = [
+    { etiqueta: "VALOR EJECUTADO", valor: bruto },
+    ...(amortizacion > 0 || editable ? [{ etiqueta: "AMORTIZACIÓN (−)", valor: amortizacion, editar: true }] : []),
+    { etiqueta: "SUB TOTAL", valor: mm.neto },
+    { etiqueta: "IGV 18%", valor: mm.igv },
+    { etiqueta: "TOTAL", valor: mm.total, total: true },
+  ];
 
-  return (
+  const hoja = (
     <section
-      style={{
-        width: anchoCompleto ? "100%" : 794,
-        minHeight: anchoCompleto ? undefined : 1123,
-        margin: anchoCompleto ? 0 : "0 auto",
-        background: DOC.white,
-        color: DOC.ink,
-        fontFamily: DOC_FUENTE_CSS,
-        fontSize: 9.5,
-        padding: "38px 40px 34px",
-        boxSizing: "border-box",
-        boxShadow: anchoCompleto ? "none" : "0 10px 30px -12px rgba(15,23,42,.25)",
-        border: anchoCompleto ? `1px solid ${DOC.line}` : "none",
-        borderRadius: anchoCompleto ? 8 : 0,
-        display: "flex",
-        flexDirection: "column",
-      }}
+      id={idHoja}
+      className={editable ? "cpe-editor-sheet" : undefined}
+      style={{ width: 794, minHeight: 1123, boxSizing: "border-box", margin: "0 auto", padding: "36px 38px 250px", background: C.white, color: C.ink, fontFamily: ROB, fontWeight: 400, fontSize: 9, boxShadow: "0 12px 35px rgba(15,23,42,.18)", position: "relative", zoom: anchoCompleto ? zoom : undefined }}
     >
-      {/* Encabezado */}
-      <div className="flex items-start justify-between gap-5" style={{ borderBottom: `2px solid ${DOC.green}`, paddingBottom: 14, marginBottom: 18 }}>
-        <div className="flex items-center" style={{ minWidth: 150 }}>
-          {empresa?.logo_url ? (
-            <img src={empresa.logo_url} alt="Logotipo de la empresa" style={{ display: "block", maxWidth: 150, maxHeight: 62, objectFit: "contain" }} />
-          ) : (
-            <div className="flex items-center justify-center" style={{ width: 62, height: 62, borderRadius: 12, background: DOC.green, color: DOC.white, fontWeight: 700, fontSize: 20 }}>
-              {(empresa?.razon_social || "TELXEN").split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()}
-            </div>
-          )}
+      <header style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 6, color: "#000", textTransform: "uppercase", lineHeight: 1.15 }}>
+        <div style={{ width: 138, display: "flex", alignItems: "center" }}>
+          {empresa?.logo_url ? <img src={empresa.logo_url} alt="" style={{ maxWidth: 132, maxHeight: 78 }} /> : <div style={{ width: 62, height: 62, borderRadius: 10, background: C.green, color: C.white, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>TX</div>}
         </div>
-
-        <div style={{ flex: 1, textAlign: "right", paddingTop: 2 }}>
-          <div style={{ fontSize: 11.5, fontWeight: 700, color: DOC.green, letterSpacing: 0.4, lineHeight: 1.35, textAlign: "right" }}>
-            {empresa?.razon_social || "TELXEN"}
-          </div>
-          <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontSize: 9.5, fontWeight: 300, color: DOC.green, letterSpacing: 0.4, lineHeight: 1.3, textAlign: "right" }}>
-            <span style={{ display: "block" }}>{eslogan1}</span>
-            {eslogan2 && <span style={{ display: "block" }}>{eslogan2}</span>}
-          </div>
-          {empresa?.direccion && (
-            <div style={{ marginTop: 4, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: DOC.ink }}>Dirección: {empresa.direccion}</div>
-          )}
-          {empresa?.telefono && (
-            <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: DOC.ink }}>Teléfono: {empresa.telefono}</div>
-          )}
-          {empresa?.web && <div style={{ marginTop: 2, fontFamily: DOC_FUENTE_CSS, fontWeight: 300, fontSize: 9.5, color: DOC.green }}>{empresa.web}</div>}
+        <div style={{ flex: 1, minHeight: 62, textAlign: "left", paddingLeft: 4, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <b style={{ fontSize: 13, fontWeight: 700 }}>{empresa?.razon_social || "TELXEN SAC"}</b>
+          <div style={{ fontWeight: 300, fontSize: 7, marginTop: 2, whiteSpace: "nowrap" }}>{empresa?.eslogan || "SOLUCIONES INTEGRALES EN ENERGÍA, AUTOMATIZACIÓN Y CONTROL INDUSTRIAL"}</div>
+          <div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.direccion || "—"}</div>
+          <div style={{ fontWeight: 300, fontSize: 7.5, marginTop: 2 }}>{empresa?.web || "—"}</div>
         </div>
+        <div style={{ width: 248, textAlign: "center", flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div style={{ border: "1px solid #000", borderRadius: 8, padding: 10 }}>
+            <div style={{ fontSize: 10, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, marginTop: 5 }}>PRELIQUIDACIÓN</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginTop: 5 }}>{codigo || "AUTOMÁTICO"}</div>
+          </div>
+          <div style={{ alignSelf: "center", marginTop: 6, fontSize: 8, fontWeight: 700, letterSpacing: ".05em", padding: "2px 10px", borderRadius: 999, background: C.accentSoft, color: C.accentText, border: `1px solid ${C.accent}` }}>{estado.toUpperCase()}</div>
+        </div>
+      </header>
 
-        <div style={{ width: 210, flexShrink: 0 }}>
-          <div style={{ background: DOC.white, border: `1px solid ${DOC.line}`, borderTop: `4px solid ${DOC.green}`, borderRadius: 6, padding: "10px 16px", textAlign: "center", color: DOC.green }}>
-            <div style={{ fontSize: editable ? 20 : 18, fontWeight: 800, letterSpacing: 0.8, lineHeight: 1.15, whiteSpace: "nowrap" }}>PRELIQUIDACIÓN</div>
-            <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>RUC: {empresa?.ruc || "—"}</div>
-            <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 0.6 }}>{codigo || "AUTOMÁTICO"}</div>
-          </div>
-          <div className="flex justify-between" style={{ marginTop: 5, fontSize: 9.5, color: DOC.mute }}>
-            <span>{estado.toUpperCase()}</span>
-          </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, padding: 13, border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 8, fontSize: 9, textAlign: "left", textTransform: "uppercase", lineHeight: 1.15 }}>
+        <div style={{ minWidth: 0, display: "grid", gridTemplateColumns: "74px 8px 1fr", columnGap: 2, alignItems: "baseline" }}>
+          <b>RUC</b><span>:</span><span>{cliente?.numero_documento || "—"}</span>
+          <b>Nombre</b><span>:</span><span style={{ fontWeight: 700 }}>{props.editorCliente ?? (cliente?.razon_social || "—")}</span>
+          <b>Dirección</b><span>:</span><span>{cliente?.direccion || "—"}</span>
+          <b>Proyecto</b><span>:</span><span>{props.editorProyecto ?? (proyectoNombre || "—")}</span>
+          {(concepto || editable) && <><b>Descripción</b><span>:</span><span>{editable ? <input aria-label="Descripción de la preliquidación" value={concepto} onChange={(e) => onCampo?.("concepto", e.target.value)} style={ed} /> : concepto}</span></>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "52px 8px auto", columnGap: 2, alignItems: "baseline" }}>
+          <b>Moneda</b><span>:</span>
+          <span>{editable ? <select value={moneda} onChange={(e) => onCampo?.("moneda", e.target.value)} style={{ ...ed, width: "auto" }}><option value="PEN">PEN</option><option value="USD">USD</option></select> : moneda}</span>
+          {moneda === "USD" && <><b>T. cambio</b><span>:</span><span>{N(tc, 3)}</span></>}
+          <b>IGV</b><span>:</span><span>18.00%</span>
         </div>
       </div>
 
-      {/* Cliente / proyecto / fecha */}
-      <div
-        className="flex"
-        style={{ gap: 18, padding: 13, background: DOC.soft, border: `1px solid ${DOC.line}`, borderLeft: `3px solid ${DOC.accent}`, borderRadius: 6, marginBottom: 14 }}
-      >
-        <div style={{ flex: 1 }}>
-          <div style={etiqueta}>Cliente</div>
-          {props.editorCliente ?? <div style={valor}>{cliente?.razon_social || "—"}</div>}
-          <div style={subvalor}>RUC {cliente?.numero_documento || "—"}</div>
-          <div style={subvalor}>{cliente?.direccion || "Dirección no registrada"}</div>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={etiqueta}>Proyecto / obra</div>
-          {props.editorProyecto ?? <div style={valor}>{proyectoNombre || "—"}</div>}
-          <div style={{ ...etiqueta, marginTop: 8 }}>Orden de compra</div>
-          {editable ? (
-            <input aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} placeholder="Número del documento" style={{ ...ed, ...valor }} />
-          ) : (
-            <div style={valor}>{ordenCompra || "—"}</div>
-          )}
-        </div>
-        <div style={{ width: "23%" }}>
-          <div style={etiqueta}>Fecha de emisión</div>
-          {editable ? (
-            <input type="date" value={fecha} onChange={(e) => onCampo?.("fecha", e.target.value)} style={{ ...ed, ...valor }} />
-          ) : (
-            <div style={valor}>{F(fecha)}</div>
-          )}
-          <div style={{ ...etiqueta, marginTop: 8 }}>Moneda</div>
-          {editable ? (
-            <select value={moneda} onChange={(e) => onCampo?.("moneda", e.target.value)} style={{ ...ed, ...valor }}>
-              <option value="PEN">Soles (PEN)</option>
-              <option value="USD">Dólares (USD)</option>
-            </select>
-          ) : (
-            <div style={valor}>{moneda === "USD" ? "Dólares (USD)" : "Soles (PEN)"}</div>
-          )}
-          {moneda === "USD" && <div style={subvalor} title="Tipo de cambio SUNAT (Decolecta), solo para calcular la detracción o retención">T.C. detracción {N(tc, 3)}</div>}
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 10, fontSize: 9, textAlign: "center", lineHeight: 1.15 }}>
+        {([
+          ["Fecha de Emisión", editable ? <input key="f" type="date" value={fecha} onChange={(e) => onCampo?.("fecha", e.target.value)} style={{ ...ed, textAlign: "center" }} /> : F(fecha)],
+          ["Forma de Pago", condicionPago || "—"],
+          ["Orden de Compra", editable ? <input key="o" aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} style={{ ...ed, textAlign: "center" }} /> : ordenCompra],
+          ["Fecha de Vencimiento", condicionPago === "Crédito" ? F(fechaVencimiento) : ""],
+        ] as [string, ReactNode][]).map(([l, v], i) => (
+          <div key={l} style={{ padding: "5px 4px", borderLeft: i ? `1.5px solid ${C.gris}` : "none" }}>
+            <b style={{ display: "block" }}>{l}:</b>
+            <div style={{ marginTop: 3, minHeight: 11 }}>{v}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Detalle */}
-      {(concepto || editable) && <div className="mb-4">
-        <div style={etiqueta}>Descripción</div>
-        {editable ? <input aria-label="Descripción de la preliquidación" value={concepto} onChange={(e) => onCampo?.("concepto", e.target.value)} style={{ ...ed, ...valor }} /> : <div style={valor}>{concepto}</div>}
-      </div>}
-      <div style={tituloSeccion}>Detalle de la preliquidación</div>
-      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: editable ? 4 : 16, tableLayout: "fixed" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 18, fontSize: 9, tableLayout: "fixed" }}>
         <colgroup>
-          <col style={{ width: "5%" }} />
-          <col style={{ width: "10%" }} />
-          <col style={{ width: editable ? "33%" : "35%" }} />
-          <col style={{ width: "9%" }} />
-          <col style={{ width: "11%" }} />
-          <col style={{ width: "14%" }} />
-          <col style={{ width: "16%" }} />
-          {editable && <col style={{ width: "4%" }} />}
+          <col style={{ width: "10%" }} /><col style={{ width: editable ? "44%" : "47%" }} /><col style={{ width: "8%" }} /><col style={{ width: "10%" }} /><col style={{ width: "12%" }} /><col style={{ width: "13%" }} />
+          {editable && <col style={{ width: "3%" }} />}
         </colgroup>
         <thead>
-          <tr style={{ background: DOC.green, color: DOC.white }}>
-            {[
-              { h: "#", a: "center" },
-              { h: "Código", a: "left" },
-              { h: "Descripción", a: "left" },
-              { h: "Und.", a: "center" },
-              { h: "Cant.", a: "right" },
-              { h: "P. Unit.", a: "right" },
-              { h: "Subtotal", a: "right" },
-              ...(editable ? [{ h: "", a: "center" }] : []),
-            ].map(({ h, a }) => (
-              <th key={h || "acc"} style={{ padding: "8px 7px", fontSize: 8.5, textTransform: "uppercase", letterSpacing: 0.3, textAlign: a as "left" | "right" | "center" }}>
-                {h}
-              </th>
+          <tr style={{ background: C.gris, color: C.white }}>
+            {[["CÓDIGO", "left"], ["DESCRIPCIÓN", "left"], ["UNIDAD", "center"], ["CANTIDAD", "center"], ["P. UNITARIO", "center"], ["V. VENTA", "center"], ...(editable ? [["", "center"]] : [])].map(([h, a], i) => (
+              <th key={i} style={{ padding: "4px 4px", fontWeight: 700, fontSize: 6.5, textAlign: a as "left" | "center" }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {lineas.length === 0 && (
-            <tr><td colSpan={editable ? 8 : 7} style={{ ...celda, textAlign: "center", color: DOC.mute }}>Sin líneas registradas.</td></tr>
-          )}
+          {lineas.length === 0 && <tr><td colSpan={editable ? 7 : 6} style={{ padding: 6, textAlign: "center", color: C.mute }}>Sin líneas registradas.</td></tr>}
           {lineas.map((l, i) => {
             const { codigo: cod, texto } = separarCodigo(l.descripcion);
+            const td: CSSProperties = { padding: 6, verticalAlign: "top" };
             return (
-              <tr key={i} style={{ background: i % 2 === 1 ? DOC.soft : DOC.white }}>
-                <td style={{ ...celda, textAlign: "center" }}>{i + 1}</td>
-                <td style={{ ...celda, textAlign: "left", color: DOC.mute, whiteSpace: "nowrap" }}>{cod || "—"}</td>
-                <td style={{ ...celda, wordBreak: "break-word" }}>
-                  {editable ? (
-                    <input value={l.descripcion} onChange={(e) => onLinea?.(i, { descripcion: e.target.value })} maxLength={200} placeholder="Descripción de la línea" style={ed} />
-                  ) : (
-                    texto
-                  )}
+              <tr key={i} style={{ borderBottom: `1px solid ${C.line}`, background: i % 2 ? C.soft : C.white }}>
+                <td style={{ ...td, overflowWrap: "anywhere" }}>{cod || "—"}</td>
+                <td style={{ ...td, paddingLeft: 12, fontSize: 7, lineHeight: 1.25, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
+                  {editable ? <TextoCreciente value={l.descripcion} onChange={(v) => onLinea?.(i, { descripcion: v })} placeholder="Descripción de la línea" style={{ ...ed, display: "block", fontSize: 7, lineHeight: 1.25 }} /> : texto}
                 </td>
-                <td style={{ ...celda, textAlign: "center" }}>
+                <td style={{ ...td, textAlign: "center" }}>
                   {editable ? (
                     <select value={l.unidad} onChange={(e) => onLinea?.(i, { unidad: e.target.value })} style={{ ...ed, textAlign: "center" }}>
                       {!unidades.some((u) => u.simbolo === l.unidad) && <option value={l.unidad}>{l.unidad}</option>}
-                      {unidades.filter((u) => u.activo).map((u) => (
-                        <option key={u.id} value={u.simbolo}>{u.simbolo}</option>
-                      ))}
+                      {unidades.filter((u) => u.activo).map((u) => <option key={u.id} value={u.simbolo}>{u.simbolo}</option>)}
                     </select>
-                  ) : (
-                    l.unidad
-                  )}
+                  ) : l.unidad}
                 </td>
-                <td style={{ ...celda, textAlign: "right" }}>
-                  {editable ? (
-                    <input type="number" step="0.01" min="0" value={l.cantidad} onChange={(e) => onLinea?.(i, { cantidad: e.target.value })} style={{ ...ed, textAlign: "right" }} />
-                  ) : (
-                    N(Number(l.cantidad))
-                  )}
-                </td>
-                <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>
-                  {editable ? (
-                    <input type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => onLinea?.(i, { precio_unitario: e.target.value })} style={{ ...ed, textAlign: "right" }} />
-                  ) : (
-                    D(Number(l.precio_unitario))
-                  )}
-                </td>
-                <td style={{ ...celda, textAlign: "right", whiteSpace: "nowrap" }}>{D(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
+                <td style={{ ...td, textAlign: "right" }}>{editable ? <input type="number" step="0.01" min="0" value={l.cantidad} onChange={(e) => onLinea?.(i, { cantidad: e.target.value })} style={{ ...ed, textAlign: "right" }} /> : N(Number(l.cantidad))}</td>
+                <td style={{ ...td, textAlign: "right" }}>{editable ? <input type="number" step="0.01" min="0" value={l.precio_unitario} onChange={(e) => onLinea?.(i, { precio_unitario: e.target.value })} style={{ ...ed, textAlign: "right" }} /> : money(Number(l.precio_unitario))}</td>
+                <td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{money(Number(l.cantidad || 0) * Number(l.precio_unitario || 0))}</td>
                 {editable && (
-                  <td style={{ ...celda, textAlign: "center" }}>
-                    {lineas.length > 1 && (
-                      <button type="button" onClick={() => onQuitarLinea?.(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-bad)", padding: 0 }} aria-label="Quitar línea">
-                        <Trash2 size={13} />
-                      </button>
-                    )}
+                  <td style={{ ...td, padding: "6px 0", textAlign: "center" }}>
+                    {lineas.length > 1 && <button type="button" onClick={() => onQuitarLinea?.(i)} aria-label="Quitar línea" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-bad)", padding: 0 }}><X size={10} /></button>}
                   </td>
                 )}
               </tr>
@@ -311,135 +215,61 @@ export function HojaPreliquidacion(props: Props) {
         </tbody>
       </table>
       {editable && (
-        <div className="flex flex-wrap gap-2" style={{ marginBottom: 16 }}>
-          <button
-            type="button"
-            onClick={onAgregarLinea}
-            style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9.5, fontWeight: 700, color: DOC.green, background: DOC.soft, border: `1px solid ${DOC.line}`, borderRadius: 5, padding: "5px 10px", cursor: "pointer" }}
-          >
-            <Plus size={12} /> Agregar línea
-          </button>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+          <button type="button" onClick={onAgregarLinea} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 7.5, fontWeight: 700, color: C.green, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 4, padding: "2px 6px", cursor: "pointer" }}><Plus size={9} /> Agregar línea</button>
           {accionesLineas}
         </div>
       )}
 
-      {/* Condición comercial + totales */}
-      <div className="flex items-start justify-between" style={{ marginBottom: 18 }}>
-        <div style={{ width: "52%", padding: 12, border: `1px solid ${DOC.line}`, borderRadius: 5 }}>
-          <div style={tituloSeccion}>Condición comercial</div>
-          {props.editorCondicion ?? (<>
-          <div className="flex justify-between" style={{ marginTop: 5 }}><span>Condición de pago</span><span style={valor}>{condicionPago}</span></div>
-          {condicionPago === "Crédito" && (
-            <>
-              <div className="flex justify-between" style={{ marginTop: 5 }}>
-                <span>Plazo</span>
-                {editable ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                    <input type="number" min="0" value={diasCredito || ""} onChange={(e) => onCampo?.("dias_credito", e.target.value)} style={{ ...ed, width: 50, textAlign: "right" }} /> días
-                  </span>
-                ) : (
-                  <span>{diasCredito} días</span>
-                )}
+      <div style={{ display: "flex", gap: 14, alignItems: "stretch", marginTop: 18 }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", fontSize: 9, textAlign: "left", whiteSpace: "pre-wrap" }}>
+          {(observacion || editable) && <><b style={{ fontSize: 8, color: C.green }}>OBSERVACIONES</b>
+            {editable ? <TextoCreciente value={observacion} onChange={(v) => onCampo?.("observacion", v)} placeholder="Observaciones (opcional)" style={{ ...ed, marginTop: 3 }} /> : <div style={{ marginTop: 3 }}>{observacion}</div>}</>}
+          {mm.aplica && (
+            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", columnGap: 28, rowGap: 1, marginTop: "auto", paddingTop: 10, fontSize: 10, color: "#4B5563", whiteSpace: "normal", lineHeight: 1.2, fontWeight: 700 }}>
+              {det && <><span>Cta. Cte. Banco de la Nación</span><span>{ctaDet || "—"}</span></>}
+              <span>{det ? "Detracción" : "Retención"} ({N(pctDetraccion)}%)</span><span>S/ {N(det ? mm.detraccionPen : mm.retencionPen)}</span>
+            </div>
+          )}
+        </div>
+        <div style={{ width: 300, flexShrink: 0, marginLeft: "auto", fontSize: 10, display: "grid", gap: 3 }}>
+          {filas.map((f) => {
+            const col = f.total ? C.totalDesglose : C.gris;
+            return (
+              <div key={f.etiqueta} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                <div style={{ background: f.total ? col : C.grisClaro, color: C.ink, borderRadius: 7, padding: "3px 6px", textAlign: "center" }}>{f.etiqueta}</div>
+                <div style={{ border: `1.5px solid ${col}`, borderRadius: 7, padding: "2px 8px", textAlign: "right", color: C.ink }}>
+                  {f.editar && editable ? <input type="number" step="0.01" min="0" aria-label="Amortización" value={amortizacion || ""} onChange={(e) => onCampo?.("amortizacion", e.target.value)} style={{ ...ed, textAlign: "right" }} /> : money(f.valor)}
+                </div>
               </div>
-              <div className="flex justify-between" style={{ marginTop: 5 }}><span>Vencimiento estimado</span><span>{F(fechaVencimiento)}</span></div>
-            </>
-          )}
-          </>)}
+            );
+          })}
         </div>
-        <div style={{ width: "42%" }}>
-          <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${DOC.line}` }}><span>Valor ejecutado</span><span>{D(bruto)}</span></div>
-          {(amortizacion > 0 || editable) && (
-            <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${DOC.line}` }}>
-              <span>Amortización (−)</span>
-              {editable ? (
-                <input type="number" step="0.01" min="0" value={amortizacion || ""} onChange={(e) => onCampo?.("amortizacion", e.target.value)} style={{ ...ed, width: 110, textAlign: "right" }} />
-              ) : (
-                <span>{D(amortizacion)}</span>
-              )}
-            </div>
-          )}
-          <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${DOC.line}` }}><span>Valor neto</span><span>{D(mm.neto)}</span></div>
-          <div className="flex justify-between" style={{ padding: "5px 0", borderBottom: `1px solid ${DOC.line}` }}><span>IGV 18%</span><span>{D(mm.igv)}</span></div>
-          <div className="flex justify-between" style={{ marginTop: 6, padding: "6px 4px", color: DOC.green, borderTop: `1px solid ${DOC.green}`, fontWeight: 700, fontSize: 11 }}>
-            <span>TOTAL</span><span>{D(mm.total)}</span>
+      </div>
+
+      <div style={{ position: "absolute", left: 38, right: 38, bottom: 28 }}>
+        <div style={{ ...CARD, padding: 8, fontSize: 10, lineHeight: 1.25 }}>
+          <b>{condicionPago === "Crédito" ? "Información del crédito" : "Información del pago"}</b>
+          <div style={{ display: "grid", gridTemplateColumns: "200px 14px 1fr", marginTop: 2 }}>
+            <span>Monto neto pendiente de pago</span><span>:</span><span>{money(mm.cobrar)}</span>
+            {condicionPago === "Crédito" && <><span>Plazo</span><span>:</span><span>{diasCredito} días</span><span>Fecha de vencimiento</span><span>:</span><span>{F(fechaVencimiento) || "—"}</span></>}
           </div>
         </div>
-      </div>
-
-      {/* Liquidación y cobro */}
-      <div style={tituloSeccion}>Liquidación y cobro</div>
-      <div className="flex" style={{ gap: 9, marginBottom: 16 }}>
-        {[
-          { t: "Régimen tributario", v: mm.aplica ? `${tipoTributario === "detraccion" ? "Detracción" : "Retención"} ${N(pctDetraccion)}%` : "No aplica" },
-          { t: mm.aplica ? (tipoTributario === "detraccion" ? "Detracción" : "Retención") : "Importe descontado", v: descuento },
-          { t: "Neto a depositar", v: D(mm.cobrar) },
-        ].map((c) => (
-          <div key={c.t} style={{ flex: 1, padding: 11, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
-            <div style={etiqueta}>{c.t}</div>
-            <div style={{ fontWeight: 700, fontSize: 12, color: DOC.green, marginTop: 4 }}>{c.v}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Observaciones */}
-      {(observacion || editable) && (
-        <div style={{ padding: 11, borderLeft: `3px solid ${DOC.accent}`, background: DOC.soft, borderRadius: 6, marginBottom: 14 }}>
-          <div style={etiqueta}>Observaciones</div>
-          {editable ? (
-            <input value={observacion} onChange={(e) => onCampo?.("observacion", e.target.value)} maxLength={300} placeholder="Observaciones (opcional)" style={ed} />
-          ) : (
-            <div>{observacion}</div>
-          )}
+        {cuentas.length > 0 && <div style={{ ...CARD, padding: "0 8px 6px", marginTop: 8 }}><CuentasComprobante cuentas={cuentas} tipo="todas" compacto /></div>}
+        <div style={{ marginTop: 10, borderTop: `1px solid ${C.line}`, paddingTop: 7, fontWeight: 300, fontSize: 8, color: C.ink }}>
+          Documento referencial previo a la emisión del comprobante electrónico. No constituye comprobante de pago ni tiene valor tributario.
         </div>
-      )}
-
-      {/* Datos bancarios (pie) */}
-      <div style={{ padding: "8px 10px", background: DOC.soft, marginTop: "auto", marginBottom: 12, border: `1px solid ${DOC.line}`, borderRadius: 6 }}>
-        <div style={{ ...tituloSeccion, fontSize: 7.5, marginBottom: 4 }}>Datos bancarios</div>
-        {cuentasOrdenadas.length === 0 && <div style={{ ...valor, fontSize: 8 }}>NO HAY CUENTAS BANCARIAS REGISTRADAS.</div>}
-        {(() => {
-          const esDet = (c: (typeof cuentasOrdenadas)[number]) => c.tipo_cuenta === "Detracciones";
-          const grupoMoneda = (m: string) => (/USD|D[ÓO]LAR/i.test(m) ? "DÓLARES" : "SOLES");
-          const normales = cuentasOrdenadas.filter((c) => !esDet(c));
-          const detracciones = cuentasOrdenadas.filter(esDet);
-          const grupos = (["SOLES", "DÓLARES"] as const)
-            .map((mon) => ({ moneda: mon, cuentas: normales.filter((c) => grupoMoneda(c.monedas) === mon) }))
-            .filter((g) => g.cuentas.length > 0);
-          const columnas = grupos.length + (detracciones.length > 0 ? 1 : 0);
-          return (
-            <div style={{ display: "grid", gridTemplateColumns: columnas > 1 ? `repeat(${columnas}, 1fr)` : "1fr", columnGap: 14, rowGap: 4, textTransform: "uppercase" }}>
-              {grupos.map((g) => (
-                <div key={g.moneda}>
-                  <div style={{ ...etiqueta, fontSize: 6.5, marginBottom: 2 }}>{g.moneda}</div>
-                  {g.cuentas.map((c, i) => (
-                    <div key={i} style={{ ...valor, fontSize: 8, lineHeight: 1.25, marginTop: 1 }}>
-                      {`${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"} · CCI ${c.cci || "—"}`}
-                    </div>
-                  ))}
-                </div>
-              ))}
-              {detracciones.length > 0 && (
-                <div>
-                  <div style={{ ...etiqueta, fontSize: 6.5, marginBottom: 2 }}>Detracciones</div>
-                  {detracciones.map((c, i) => (
-                    <div key={i} style={{ ...valor, fontSize: 8, lineHeight: 1.25, marginTop: 1 }}>
-                      {`${c.nombre} · ${c.tipo_cuenta} · Cta. ${c.numero_cuenta || "—"}`}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })()}
-      </div>
-
-      <div style={{ fontSize: 8, lineHeight: 1.45, color: DOC.mute, paddingTop: 12, borderTop: `1px solid ${DOC.line}` }}>
-        Documento referencial previo a la emisión del comprobante electrónico. No constituye comprobante de pago ni tiene valor tributario.
-      </div>
-      <div className="flex justify-between" style={{ marginTop: 10, fontSize: 7.5, color: DOC.mute }}>
-        <span>{empresa?.razon_social || "TELXEN SAC"} · {codigo || "—"}</span>
-        <span>Página 1 de 1</span>
       </div>
     </section>
+  );
+
+  if (!anchoCompleto) return hoja;
+  return (
+    <div>
+      {props.editorCondicion && (
+        <div className="mb-3 rounded-md border border-line bg-card px-3 py-2 text-xs" style={{ maxWidth: 520 }}>{props.editorCondicion}</div>
+      )}
+      <div ref={lienzo} style={{ width: "100%", overflow: "hidden", paddingBottom: 8 }}>{hoja}</div>
+    </div>
   );
 }
