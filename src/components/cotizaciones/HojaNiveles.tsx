@@ -21,6 +21,7 @@ import {
   nivelDe,
   moverBloqueNivel,
   numerarNiveles,
+  partidaRepetida,
   posicionInsercion,
   totalesNiveles,
   type NivelCotizacion,
@@ -177,6 +178,20 @@ export function HojaNiveles({
       }
       // Nuevo: entra al final del bloque de la fila elegida (como hijo o siguiente hermano).
       const pos = posicionInsercion(orden, f.nivel, seleccionado?.id ?? null);
+      if (esPartida) {
+        const repetida = partidaRepetida(orden, pos, claveNombre(nombre), f.apuId, claveNombre);
+        if (repetida) {
+          const suma = Number(repetida.metrado || 0) + datos.metrado;
+          if (!window.confirm(`La partida «${repetida.nombre}» ya existe en este título o subtítulo.\n¿Sumar la cantidad (${num(Number(repetida.metrado || 0))} + ${num(datos.metrado)} = ${num(suma)})?`)) return;
+          const { error: errSuma } = await db.from("cotizacion_items").update({ metrado: suma }).eq("id", repetida.id);
+          if (errSuma) throw errSuma;
+          await refrescar();
+          setSel(repetida.id);
+          setVentana({ ...ventana, form: { ...f, nombre: "", apuId: null, precio: "0", metrado: "1" } });
+          toast.success("Cantidad sumada a la partida existente.");
+          return;
+        }
+      }
       const { data, error: err } = await db
         .from("cotizacion_items")
         .insert({ ...datos, cotizacion_id: cotizacionId, codigo: "", especialidad: "", categoria: "", marca: "", orden: pos + 1, partida_apu_id: f.apuId })
