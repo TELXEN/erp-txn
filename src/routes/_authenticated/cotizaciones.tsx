@@ -17,8 +17,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ApuBanco, ORIGEN_COTIZACION } from "@/components/ApuCotizacion";
 import { dbBanco } from "@/lib/banco-apu";
 import { HojaNiveles } from "@/components/cotizaciones/HojaNiveles";
-import { PanelApuCotizacion, ResumenCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
+import { PanelApuCotizacion } from "@/components/cotizaciones/PanelApuCotizacion";
 import { HojaCotizacion } from "@/components/cotizaciones/HojaCotizacion";
+import { LienzoEscalado, PanelLateralApu } from "@/components/cotizaciones/EditorEscalado";
 
 import { Boton, BotonIcono, Etiqueta, MenuFiltros, Panel, SinAcceso, TarjetaResumen, Vacio, VentanaFlotante } from "@/components/ui-kit";
 import { cn } from "@/lib/utils";
@@ -185,6 +186,7 @@ function Cotizaciones() {
   const esUltimaRevision = hermanas.length > 0 && hermanas.at(-1)?.id === cot?.id;
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
+  const [apuAbierto, setApuAbierto] = useState(false);
   const [cmdInsumo, setCmdInsumo] = useState<{ grupo: string; n: number } | null>(null);
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
   /** En edición la hoja arranca sin encabezado: solo se ve la tabla de partidas. */
@@ -637,7 +639,7 @@ function Cotizaciones() {
             disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"}
             title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined} />
           <SeparadorBarra />
-          <BotonBarra icono={<FileText />} texto="Encabezado" onClick={() => setEncabezado(true)} />
+          <BotonBarra icono={<Calculator />} texto="Análisis APU" onClick={() => setApuAbierto((v) => !v)} />
           <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVentanaGG(true)} />
           <BotonBarra icono={<History />} texto="Nueva revisión" disabled={!esUltimaRevision || Boolean(cot.proyecto_id)}
             onClick={() => { if (confirm("¿Crear una nueva revisión clonando esta cotización?")) void nuevaRevision(); }} />
@@ -650,10 +652,9 @@ function Cotizaciones() {
         {aviso && <p className="mb-2 font-mono text-xs text-good">{aviso}</p>}
 
 
-        <div className="flex flex-col gap-2 bg-muted/60 px-2 py-2 lg:h-auto lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden lg:pr-1">
-          <div className="flex min-h-0 min-w-0 flex-col lg:w-[58%]">
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-          <HojaCotizacion cot={cot} items={items} clientes={clientes} mostrarEncabezado={false} ventanaEncabezado={{ abierta: encabezado, onCerrar: () => setEncabezado(false) }}>
+        <div className="relative flex min-h-0 flex-1 overflow-hidden bg-muted/60">
+          <LienzoEscalado>
+          <HojaCotizacion cot={cot} items={items} clientes={clientes}>
             <HojaNiveles
               cotizacionId={cot.id}
               items={itemsHoja}
@@ -666,20 +667,21 @@ function Cotizaciones() {
               accionesDocumento={[]}
               onAgregarInsumo={() => {
                 if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
+                setApuAbierto(true);
                 setCmdInsumo({ grupo: "INSUMO", n: Date.now() });
               }}
             />
           </HojaCotizacion>
+          </LienzoEscalado>
           <GastosGeneralesCotizacion abierta={ventanaGG} onCerrar={() => setVentanaGG(false)} cotizacionId={cot.id}
             costoDirecto={totales?.costoDirecto ?? 0} pctActual={Number(cot.pct_gastos_generales)} moneda={cot.moneda}
             soloLectura={!esUltimaRevision} pctUtilidad={Number(cot.pct_utilidad)} aplicaIgv={cot.aplica_igv ?? true}
             duracionMeses={Number((cot as { duracion_meses?: number }).duracion_meses ?? 1)} />
-          </div>
-          <div className="shrink-0"><ResumenCotizacion cot={cot} items={itemsHoja} soloLectura={!esUltimaRevision} /></div>
-          </div>
-          <aside className="flex min-h-[24rem] flex-col overflow-hidden rounded-md border border-line bg-card lg:h-full lg:min-h-0 lg:min-w-0 lg:flex-1">
-            <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
-          </aside>
+          {apuAbierto && (
+            <PanelLateralApu onCerrar={() => setApuAbierto(false)}>
+              <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
+            </PanelLateralApu>
+          )}
           <div ref={setSlotBarra} className="shrink-0" />
         </div>
         {apu && (
