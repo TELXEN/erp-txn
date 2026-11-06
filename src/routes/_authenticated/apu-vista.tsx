@@ -1,9 +1,10 @@
+import { createPortal } from "react-dom";
 import { EncabezadoAnexo } from "@/components/cotizaciones/EncabezadoAnexo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { colorearParaExportar } from "@/lib/exportar-colores";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileDown } from "lucide-react";
+import { ArrowLeft, FileDown, Printer } from "lucide-react";
 import { Encabezado } from "@/components/AppShell";
 import { Boton, Vacio } from "@/components/ui-kit";
 import { useEmpresa } from "@/lib/empresa";
@@ -83,6 +84,7 @@ function VistaApu() {
   const recursos = useRecursosApu();
   const cot = cotizaciones.find((c) => c.id === id);
   const [pdf, setPdf] = useState(false);
+  const [imprimiendo, setImprimiendo] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["apu-dossier", id, item],
@@ -122,7 +124,7 @@ function VistaApu() {
         margin: [7, 5, 7, 5], filename: `${nombreArchivo}.pdf`, image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
           scale: 3, useCORS: true, windowWidth: 794, backgroundColor: "#ffffff", logging: false,
-          onclone: colorearParaExportar,
+          onclone: (doc: Document) => { colorearParaExportar(doc); const e = doc.getElementById("apu-impresion"); e?.classList.remove("space-y-6"); e?.querySelectorAll("section").forEach((x) => x.classList.remove("shadow-lg", "ring-1")); },
         },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
         pagebreak: { mode: ["css", "legacy"], avoid: ["tr", ".apu-ficha"] },
@@ -130,21 +132,17 @@ function VistaApu() {
     } finally { setPdf(false); }
   }
 
-  return (
-    <div className="space-y-4">
-      <Encabezado titulo={item ? "Ficha de APU" : "Dossier de APU"} subtitulo={cot ? `${cot.codigo ?? ""} — ${cot.cliente}` : "Análisis de precios unitarios"} />
-      <div className="flex flex-wrap gap-2 print:hidden">
-        <Link to="/cotizacion-vista" search={{ id }}><Boton variante="linea"><ArrowLeft size={13} /> Volver a la vista previa</Boton></Link>
-        {item && <Link to="/apu-vista" search={{ id, item: "" }}><Boton variante="linea">Ver dossier completo</Boton></Link>}
-        <Boton onClick={() => void descargar()} disabled={pdf || !fichas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
-      </div>
-      {isLoading ? <Vacio texto="Cargando análisis…" /> : !fichas.length ? (
-        <Vacio texto={item ? "La partida no existe." : "Ninguna partida de esta cotización tiene análisis de precios todavía."} />
-      ) : (
-        <div className="overflow-x-auto">
-          <div id="apu-impresion" className="apu-documento mx-auto bg-card text-foreground" style={{ width: 794, fontFamily: fuente.css }}>
+  function imprimir() {
+    setImprimiendo(true);
+    const fin = () => { setImprimiendo(false); window.removeEventListener("afterprint", fin); };
+    window.addEventListener("afterprint", fin);
+    setTimeout(() => window.print(), 150);
+  }
+
+  const hoja = (enPapel: boolean) => (
+          <div id={enPapel ? "apu-impresion" : undefined} className={enPapel ? "apu-documento mx-auto space-y-6" : "apu-documento bg-card text-foreground"} style={{ width: 794, fontFamily: fuente.css }}>
             {paginas.map((pagina, pIdx) => (
-              <section key={pIdx} style={{ padding: "28px 34px", minHeight: ALTO_HOJA, pageBreakAfter: pIdx < paginas.length - 1 ? "always" : "auto", fontSize: 9 }}>
+              <section key={pIdx} className={enPapel ? "bg-card text-foreground shadow-lg ring-1 ring-line" : ""} style={{ padding: "28px 34px", minHeight: ALTO_HOJA, pageBreakAfter: pIdx < paginas.length - 1 ? "always" : "auto", fontSize: 9 }}>
                 <EncabezadoAnexo titulo="ANÁLISIS DE PRECIOS UNITARIOS" codigo={cot?.codigo} hoja={pIdx + 1} total={paginas.length} cliente={cot?.cliente} proyecto={cot?.nombre} />
                 {pagina.map(({ it, comps }, fIdx) => {
                   const calc = costoReceta(comps, recursos, Number(it.rendimiento ?? 1), Number(it.jornada ?? 8));
@@ -224,8 +222,24 @@ function VistaApu() {
               </section>
             ))}
           </div>
+  );
+
+  return (
+    <div className="flex h-[calc(100vh-10rem)] flex-col overflow-hidden rounded-md border border-line">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-card px-3 py-1">
+        <Link to="/cotizacion-vista" search={{ id }}><Boton variante="linea"><ArrowLeft size={13} /> Volver</Boton></Link>
+        {item && <Link to="/apu-vista" search={{ id, item: "" }}><Boton variante="linea">Ver dossier completo</Boton></Link>}
+        <div className="ml-auto flex items-center gap-2">
+          <Boton variante="linea" onClick={imprimir} disabled={!fichas.length}><Printer size={13} /> Imprimir</Boton>
+          <Boton onClick={() => void descargar()} disabled={pdf || !fichas.length}><FileDown size={13} /> {pdf ? "Generando…" : "Descargar PDF"}</Boton>
         </div>
-      )}
+      </div>
+      <div className="min-h-0 flex-1 overflow-auto bg-muted/60 p-3">
+        {isLoading ? <Vacio texto="Cargando análisis…" /> : !fichas.length ? (
+          <Vacio texto={item ? "La partida no existe." : "Ninguna partida de esta cotización tiene análisis de precios todavía."} />
+        ) : hoja(true)}
+      </div>
+      {imprimiendo && createPortal(<div className="gg-print-root">{hoja(false)}</div>, document.body)}
     </div>
   );
 }
