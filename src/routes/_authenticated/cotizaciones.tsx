@@ -188,6 +188,7 @@ function Cotizaciones() {
 
   const [partidaActiva, setPartidaActiva] = useState<string | null>(null);
   const [apuAbierto, setApuAbierto] = useState(false);
+  const [soloInsumo, setSoloInsumo] = useState(false);
   const [condicionesAbiertas, setCondicionesAbiertas] = useState(false);
   const [cmdInsumo, setCmdInsumo] = useState<{ grupo: string; n: number } | null>(null);
   const [slotBarra, setSlotBarra] = useState<HTMLDivElement | null>(null);
@@ -641,7 +642,7 @@ function Cotizaciones() {
             disabled={Boolean(cot.proyecto_id) || cot.estado !== "Aprobada"}
             title={cot.estado !== "Aprobada" && !cot.proyecto_id ? "Solo disponible para cotizaciones aprobadas" : undefined} />
           <SeparadorBarra />
-          <BotonBarra icono={<Calculator />} texto="Análisis APU" onClick={() => setApuAbierto((v) => !v)} />
+          <BotonBarra icono={<Calculator />} texto="Análisis APU" onClick={() => { setCmdInsumo(null); setApuAbierto((v) => !v); }} />
           <BotonBarra icono={<ScrollText />} texto="Condiciones" onClick={() => setCondicionesAbiertas(true)} />
           <BotonBarra icono={<Receipt />} texto="Gastos generales" onClick={() => setVentanaGG(true)} />
           <BotonBarra icono={<History />} texto="Nueva revisión" disabled={!esUltimaRevision || Boolean(cot.proyecto_id)}
@@ -670,7 +671,7 @@ function Cotizaciones() {
               accionesDocumento={[]}
               onAgregarInsumo={() => {
                 if (!partidaActiva) return setError("Selecciona una partida de la hoja para agregar un insumo a su APU.");
-                setApuAbierto(true);
+                if (!apuAbierto) setSoloInsumo(true);
                 setCmdInsumo({ grupo: "INSUMO", n: Date.now() });
               }}
             />
@@ -682,9 +683,13 @@ function Cotizaciones() {
             duracionMeses={Number((cot as { duracion_meses?: number }).duracion_meses ?? 1)} />
           {condicionesAbiertas && <CondicionesPropuesta cot={cot} abierta onCerrar={() => setCondicionesAbiertas(false)} />}
           {apuAbierto && (
-            <PanelLateralApu onCerrar={() => setApuAbierto(false)}>
+            <PanelLateralApu onCerrar={() => { setApuAbierto(false); setCmdInsumo(null); }}>
               <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} />
             </PanelLateralApu>
+          )}
+          {soloInsumo && !apuAbierto && (
+            <PanelApuCotizacion cot={cot} item={itemsHoja.find((i) => i.id === partidaActiva) ?? null} comando={cmdInsumo} oculto
+              alCerrarInsumo={() => { setSoloInsumo(false); setCmdInsumo(null); }} />
           )}
           <div ref={setSlotBarra} className="shrink-0" />
         </div>

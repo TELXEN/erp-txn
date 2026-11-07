@@ -48,7 +48,7 @@ function CeldaNum({ valor, dec, onGuardar, sufijo, deshabilitado }: {
 }
 
 /** Panel derecho: APU propio de la partida de la cotización (copia fija, independiente del banco). Misma grilla que el Banco APU. */
-export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; item: CotizacionItem | null; comando?: { grupo: string; n: number } | null }) {
+export function PanelApuCotizacion({ cot, item, comando, oculto = false, alCerrarInsumo }: { cot: Cotizacion; item: CotizacionItem | null; comando?: { grupo: string; n: number } | null; oculto?: boolean; alCerrarInsumo?: () => void }) {
   const qc = useQueryClient();
   const { rol } = useAuth();
   const recursos = useRecursosApu();
@@ -254,14 +254,17 @@ export function PanelApuCotizacion({ cot, item, comando }: { cot: Cotizacion; it
   const th = "h-[30px] !py-0 border-r border-line px-1 text-[10px] font-semibold uppercase text-foreground/80 whitespace-nowrap last:border-r-0";
   const td = "h-[26px] !py-0 leading-none border-r border-line/70 px-1 align-middle text-[11px] whitespace-nowrap";
 
+  const ventanaInsumo = agregar ? (
+    <VentanaInsumo modo="nuevo" agregarA={{ titulo: it.nombre }}
+      {...(agregar.t === "INSUMO" ? {} : { soloTabla: BANCOS_RECURSO.find((b) => b[3] === agregar.t)?.[1] as SelInsumo["tabla"] })}
+      alAgregar={agregarApu} onCerrar={() => { setAgregar(null); alCerrarInsumo?.(); }} />
+  ) : null;
+  if (oculto) return ventanaInsumo;
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       {menu && <MenuContextualApu menu={menu} onCerrar={cerrarMenu} onAccion={(a) => void accionMenu(a, menu)} />}
-      {agregar && (
-        <VentanaInsumo modo="nuevo" agregarA={{ titulo: it.nombre }}
-          {...(agregar.t === "INSUMO" ? {} : { soloTabla: BANCOS_RECURSO.find((b) => b[3] === agregar.t)?.[1] as SelInsumo["tabla"] })}
-          alAgregar={agregarApu} onCerrar={() => setAgregar(null)} />
-      )}
+      {ventanaInsumo}
       <div className="border-b border-line px-3 py-2">
         <p className="truncate text-xs font-semibold text-ink" title={it.nombre}>{it.codigo} · {it.nombre}</p>
       </div>
