@@ -5,6 +5,7 @@
  */
 import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Plus, X } from "lucide-react";
+import { FechaComprobante } from "@/components/facturacion/FechaComprobante";
 import { DOC, DOC_FUENTE_CSS } from "@/lib/documento-tema";
 import { calcularMontos, type TipoTributario } from "@/lib/preliquidacion-montos";
 import { CuentasComprobante, cuentaDetraccionDe } from "@/components/facturacion/CuentasComprobante";
@@ -158,10 +159,10 @@ export function HojaPreliquidacion(props: Props) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: `1.5px solid ${C.gris}`, borderRadius: 10, marginTop: 10, fontSize: 9, textAlign: "center", lineHeight: 1.15 }}>
         {([
-          ["Fecha de Emisión", editable ? <input key="f" type="date" value={fecha} onChange={(e) => onCampo?.("fecha", e.target.value)} style={{ ...ed, textAlign: "center" }} /> : F(fecha)],
+          ["Fecha de Emisión", editable ? <FechaComprobante key="f" etiqueta="Fecha de emisión" value={fecha} onChange={(v) => onCampo?.("fecha", v)} style={{ ...ed, textAlign: "center" }} /> : F(fecha)],
           ["Forma de Pago", editable ? <select key="cp" aria-label="Forma de pago" value={condicionPago} onChange={(e) => onCampo?.("condicion_pago", e.target.value)} style={{ ...ed, textAlign: "center", textAlignLast: "center" }}><option value="Contado">Contado</option><option value="Crédito">Crédito</option></select> : condicionPago || "—"],
           ["Orden de Compra", editable ? <input key="o" aria-label="Orden de compra" value={ordenCompra} onChange={(e) => onCampo?.("orden_compra", e.target.value)} maxLength={160} style={{ ...ed, textAlign: "center" }} /> : ordenCompra],
-          ["Fecha de Vencimiento", condicionPago === "Crédito" ? (editable ? <input key="fv" type="date" aria-label="Fecha de vencimiento" value={fechaVencimiento} min={fecha} onChange={(e) => onCampo?.("fecha_vencimiento", e.target.value)} style={{ ...ed, textAlign: "center" }} /> : F(fechaVencimiento)) : ""],
+          ["Fecha de Vencimiento", condicionPago === "Crédito" ? (editable ? <FechaComprobante key="fv" etiqueta="Fecha de vencimiento" value={fechaVencimiento} onChange={(v) => onCampo?.("fecha_vencimiento", v && fecha && v < fecha ? fecha : v)} style={{ ...ed, textAlign: "center" }} /> : F(fechaVencimiento)) : ""],
         ] as [string, ReactNode][]).map(([l, v], i) => (
           <div key={l} style={{ padding: "5px 4px", borderLeft: i ? `1.5px solid ${C.gris}` : "none" }}>
             <b style={{ display: "block" }}>{l}:</b>
