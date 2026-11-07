@@ -388,7 +388,7 @@ export function CintaOpciones({ categorias, pathname, modo, onModo, distintivo, 
           : m.subColumnas ? { gridColumn: nGrande + 1 + Math.floor(j / filasPeq), gridRow: 1 + (j % filasPeq) }
           : { gridColumn: nGrande + 1 + (j % colsPeq), gridRow: 1 + Math.floor(j / colsPeq) }) : undefined;
         const cls = `whitespace-nowrap rounded-md text-[11px] ${grande ? "flex h-full min-w-[80px] flex-col items-center justify-start gap-1 px-1" : "flex h-full min-w-[70px] items-center gap-1 px-1"}`;
-        const actCelda = o.a ? (pathname === o.a && (!o.search || Object.entries(o.search).every(([k, v], n) => (busqueda[k] ?? (n === 0 && subs.find((x) => x.a === o.a && x.search)?.search?.[k])) === v))) : (o.seccion != null && pathname === m.a && busqueda[o.campo ?? "seccion"] === o.seccion);
+        const actCelda = o.a ? (pathname === o.a && (!o.search || Object.entries(o.search).every(([k, v], n) => (busqueda[k] ?? (n === 0 && o.a === m.a && subs.find((x) => x.a === o.a && x.search)?.search?.[k])) === v))) : (o.seccion != null && pathname === m.a && busqueda[o.campo ?? "seccion"] === o.seccion);
         const tonoCelda = actCelda ? "bg-cinta-seleccion text-cinta-seleccion-foreground font-semibold" : "text-cinta-texto hover:bg-cinta-seleccion/20";
         const contenido = grande ? <><SI size={32} strokeWidth={1.25} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /><span className="whitespace-pre-line text-center leading-tight">{o.corto ?? o.texto}</span></> : <><SI size={16} strokeWidth={1.5} className={`shrink-0 ${o.iconoClase ?? "text-[var(--color-cinta-icono)]"}`} /> <span className="whitespace-pre-line">{o.corto ?? o.texto}</span></>;
 
