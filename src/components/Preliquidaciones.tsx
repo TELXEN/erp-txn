@@ -413,6 +413,13 @@ export function Preliquidaciones({ proyectos, clientes, ofertadoDe, facturadoDe,
         <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-line bg-card px-5 py-3">
           <h2 className="text-base font-semibold tracking-tight">{editando ? `Editar preliquidación ${lista.find((p) => p.id === editando)?.codigo ?? ""}` : "Nueva preliquidación"}</h2>
           <div className="flex items-center gap-2">
+            {(() => { const pe = editando ? lista.find((p) => p.id === editando) : undefined; if (!pe) return <span className="rounded border border-line px-2 py-1 text-xs text-muted-foreground">Estado: Borrador</span>; if (pe.estado === "Facturada") return <Etiqueta tono="good">Facturada</Etiqueta>; return (
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground">Estado
+                <Select aria-label="Estado de la preliquidación" className="h-9 w-32" value={pe.estado} onChange={(e) => void cambiarEstado(pe, e.target.value)}>
+                  {["Borrador", "Enviada", "Aprobada", "Observada"].map((s) => <option key={s} value={s}>{s}</option>)}
+                </Select>
+              </label>
+            ); })()}
             <Boton type="submit" form="form-preliquidacion">{editando ? "Guardar cambios" : "Guardar borrador"}</Boton>
             <Boton type="button" variante="linea" onClick={() => setAbierto(false)}>Cancelar</Boton>
             <Boton type="button" className="h-9 bg-accent px-4 font-semibold text-cinta-seleccion-foreground hover:bg-accent/90 hover:ring-0" disabled={!editando} title={editando ? "Vista previa" : "Guarda la preliquidación para ver la vista previa"} onClick={() => { if (editando) void navigate({ to: "/preliquidacion-vista", search: { id: editando } }); }}><Eye size={18} />Vista previa</Boton>
